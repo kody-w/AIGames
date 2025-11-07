@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ambassador Gallery - Scan & Enter Virtual Worlds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --darker: #111827;
+            --light: #f3f4f6;
+            --lighter: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+
+        .header .tagline {
+            font-size: 1em;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            padding: 40px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.3s;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            background: var(--light);
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Ambassador Grid */
+        .ambassador-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .ambassador-card {
+            background: var(--lighter);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ambassador-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .ambassador-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: var(--primary);
+        }
+
+        .ambassador-avatar {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            background: var(--light);
+            border-radius: 50%;
+            border: 4px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .ambassador-card:hover .ambassador-avatar {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .ambassador-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ambassador-role {
+            text-align: center;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .ambassador-description {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .ambassador-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .ambassador-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 2em;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .modal-avatar {
+            font-size: 5em;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .modal-content {
+            padding: 40px;
+        }
+
+        .modal-section {
+            margin-bottom: 30px;
+        }
+
+        .modal-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qr-container {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .qr-instructions {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .qr-instructions h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .qr-instructions ol {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .qr-instructions li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        /* Demo Section */
+        .demo-section {
+            background: var(--darker);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .demo-terminal {
+            background: #1a1f2e;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.8;
+            color: #10b981;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .demo-parameter {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .demo-parameter strong {
+            color: #60a5fa;
+        }
+
+        /* World Preview */
+        .world-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .world-preview::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
+        }
+
+        .world-preview-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .world-preview h3 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .world-preview p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        /* Creator Section */
+        .creator-section {
+            background: var(--light);
+            padding: 40px;
+            border-radius: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .avatar-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .avatar-option {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+
+        .avatar-option.selected {
+            border-color: var(--success);
+            background: #ecfdf5;
+            transform: scale(1.1);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--darker);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 11000;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .ambassador-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                🌍 AI Ambassador Gallery 🎯
+            </h1>
+            <p>Scan QR Codes • Enter Virtual Worlds • Experience AI Everywhere</p>
+            <p class="tagline">"Pokemon GO meets AI - Physical media for digital experiences"</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-tab="gallery">🎨 Ambassador Gallery</button>
+                <button class="tab" data-tab="creator">✨ Create Ambassador</button>
+                <button class="tab" data-tab="concept">💡 The Concept</button>
+                <button class="tab" data-tab="demo">🚀 Live Demo</button>
+            </div>
+
+            <!-- Gallery Tab -->
+            <div class="tab-content active" id="gallery">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="ambassadorCount">8</div>
+                        <div class="stat-label">AI Ambassadors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="worldCount">8</div>
+                        <div class="stat-label">Virtual Worlds</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="scanCount">247</div>
+                        <div class="stat-label">QR Scans</div>
+                    </div>
+                </div>
+
+                <h2 style="margin-bottom: 25px; color: var(--dark);">
+                    🌟 Featured Ambassadors
+                </h2>
+
+                <div class="ambassador-grid" id="ambassadorGrid"></div>
+            </div>
+
+            <!-- Creator Tab -->
+            <div class="tab-content" id="creator">
+                <div class="creator-section">
+                    <h2 style="margin-bottom: 25px; color: var(--dark);">
+                        ✨ Create Your AI Ambassador
+                    </h2>
+
+                    <div class="form-group">
+                        <label>Ambassador Name</label>
+                        <input type="text" class="form-input" id="newName" placeholder="Enter a unique name...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Role / Specialty</label>
+                        <input type="text" class="form-input" id="newRole" placeholder="e.g., Creative Guide, Data Wizard...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea class="form-textarea" id="newDescription" placeholder="Describe what this ambassador does..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Avatar (or enter custom emoji)</label>
+                        <div class="avatar-selector" id="avatarSelector"></div>
+                        <input type="text" class="form-input" id="customAvatar" placeholder="Or enter custom emoji: 🦋" style="margin-top: 15px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>World Type</label>
+                        <select class="form-select" id="worldType">
+                            <option value="creative">Creative Studio</option>
+                            <option value="analysis">Analysis Lab</option>
+                            <option value="learning">Learning Center</option>
+                            <option value="gaming">Gaming Arena</option>
+                            <option value="social">Social Hub</option>
+                            <option value="business">Business Office</option>
+                            <option value="nature">Nature Sanctuary</option>
+                            <option value="tech">Tech Workshop</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" class="form-input" id="newTags" placeholder="creative, fun, educational...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableSeededDemo" style="margin-right: 10px;">
+                            Enable Seeded Demo (predictable experience for showcases)
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; padding: 15px;" onclick="createAmbassador()">
+                        🎉 Create Ambassador & Generate QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- Concept Tab -->
+            <div class="tab-content" id="concept">
+                <h2 style="margin-bottom: 25px; color: var(--dark);">
+                    💡 The AI Ambassador Concept
+                </h2>
+
+                <div class="info-box">
+                    <h4>🌍 What are AI Ambassadors?</h4>
+                    <p>AI Ambassadors are branded AI experiences that transcend cultural and language barriers. Instead of technical "agents," they're friendly representatives that can be visualized as anything: emojis, creatures, shapes, wearable designs, or even bugs!</p>
+                </div>
+
+                <div class="world-preview">
+                    <div class="world-preview-content">
+                        <h3>🎮 Physical + Digital Integration</h3>
+                        <p>Like Pokemon GO, but for AI experiences!</p>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px;">
+                            <div>
+                                <div style="font-size: 3em; margin-bottom: 10px;">📱</div>
+                                <strong>Scan QR Code</strong>
+                                <p style="font-size: 0.9em; margin-top: 5px;">Found anywhere in the physical world</p>
+                            </div>
+                            <div>
+                                <div style="font-size: 3em; margin-bottom: 10px;">🚪</div>
+                                <strong>Enter World</strong>
+                                <p style="font-size: 0.9em; margin-top: 5px;">Instant access to virtual experience</p>
+                            </div>
+                            <div>
+                                <div style="font-size: 3em; margin-bottom: 10px;">🤖</div>
+                                <strong>Meet Ambassador</strong>
+                                <p style="font-size: 0.9em; margin-top: 5px;">Interact with AI personality</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 20px; color: var(--dark);">🎯 Key Features</h3>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                        <div style="font-size: 2.5em; margin-bottom: 15px;">🎨</div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Visual Flexibility</h4>
+                        <p style="color: #6b7280; line-height: 1.6;">
+                            Ambassadors can be represented as:<br>
+                            • Emojis & Unicode art<br>
+                            • Wearable text/designs<br>
+                            • Creatures & characters<br>
+                            • Abstract shapes<br>
+                            • Cultural symbols
+                        </p>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                        <div style="font-size: 2.5em; margin-bottom: 15px;">🔬</div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Seeded Demos</h4>
+                        <p style="color: #6b7280; line-height: 1.6;">
+                            Perfect for showcases:<br>
+                            • Static, reproducible data<br>
+                            • Identical experience every time<br>
+                            • No variability for demos<br>
+                            • Professional presentations<br>
+                            • Reliable outcomes
+                        </p>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                        <div style="font-size: 2.5em; margin-bottom: 15px;">📍</div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Physical Integration</h4>
+                        <p style="color: #6b7280; line-height: 1.6;">
+                            QR codes can be placed:<br>
+                            • Product packaging<br>
+                            • Posters & billboards<br>
+                            • Business cards<br>
+                            • Store displays<br>
+                            • Event booths
+                        </p>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; border: 2px solid var(--border);">
+                        <div style="font-size: 2.5em; margin-bottom: 15px;">⚡</div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Agent Integration</h4>
+                        <p style="color: #6b7280; line-height: 1.6;">
+                            Each QR links to:<br>
+                            • Specific LLM agent<br>
+                            • Pre-set parameters<br>
+                            • Memory context<br>
+                            • Custom capabilities<br>
+                            • Unique personality
+                        </p>
+                    </div>
+                </div>
+
+                <div class="info-box" style="margin-top: 30px;">
+                    <h4>🎮 The Pokemon GO Connection</h4>
+                    <p>Just like Pokemon GO brought virtual creatures into the physical world, AI Ambassadors bring AI experiences into physical spaces. Scan a code, enter a world, and interact with an AI personality - all seamlessly blending digital and physical.</p>
+                </div>
+
+                <div class="demo-section" style="margin-top: 30px;">
+                    <h4 style="margin-bottom: 20px; font-size: 1.5em;">📋 Use Case Examples</h4>
+                    
+                    <div class="demo-parameter">
+                        <strong>🏪 Retail Store:</strong><br>
+                        QR code on product → Meet "ShopBot" ambassador → Get styling advice & recommendations
+                    </div>
+
+                    <div class="demo-parameter">
+                        <strong>🎨 Art Gallery:</strong><br>
+                        QR code next to artwork → Meet "ArtGuide" ambassador → Learn history & techniques
+                    </div>
+
+                    <div class="demo-parameter">
+                        <strong>🏢 Conference Booth:</strong><br>
+                        QR code on banner → Meet "DemoBot" ambassador → Experience seeded demo with perfect data
+                    </div>
+
+                    <div class="demo-parameter">
+                        <strong>📚 Educational:</strong><br>
+                        QR code in textbook → Meet "TutorBuddy" ambassador → Interactive learning world
+                    </div>
+
+                    <div class="demo-parameter">
+                        <strong>🎪 Events:</strong><br>
+                        QR code on wristband → Meet event-specific ambassador → Personalized schedule & networking
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Tab -->
+            <div class="tab-content" id="demo">
+                <h2 style="margin-bottom: 25px; color: var(--dark);">
+                    🚀 Live Interactive Demo
+                </h2>
+
+                <div class="info-box">
+                    <h4>🎬 Simulated QR Scan Experience</h4>
+                    <p>Click "Simulate Scan" on any ambassador to see what a user would experience after scanning the QR code in the physical world.</p>
+                </div>
+
+                <div id="demoContainer" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ambassador Detail Modal -->
+    <div class="modal-overlay hidden" id="ambassadorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <div class="modal-avatar" id="modalAvatar"></div>
+                <h2 class="modal-title" id="modalName"></h2>
+                <p class="modal-subtitle" id="modalRole"></p>
+            </div>
+
+            <div class="modal-content">
+                <div class="modal-section">
+                    <h3>📖 About This Ambassador</h3>
+                    <p id="modalDescription" style="line-height: 1.8; color: #6b7280;"></p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🎯 Capabilities</h3>
+                    <div id="modalCapabilities"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>📱 QR Code for Physical World</h3>
+                    <div class="qr-container">
+                        <div class="qr-code" id="qrCodeDisplay">
+                            <div style="width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8em; text-align: center; padding: 10px;">
+                                QR Code<br>Placeholder<br><small style="font-size: 0.7em;">(Scan with phone camera)</small>
+                            </div>
+                        </div>
+                        <p style="font-weight: 600; margin-bottom: 10px;">Scan to enter this world</p>
+                        <p style="color: #6b7280; font-size: 0.9em;">Place this code on physical media: posters, products, displays, etc.</p>
+                        
+                        <div class="qr-instructions">
+                            <h4>📍 Where to Place This QR Code:</h4>
+                            <ol>
+                                <li><strong>Product Packaging:</strong> Let customers interact with your AI</li>
+                                <li><strong>Store Displays:</strong> Create interactive shopping experiences</li>
+                                <li><strong>Event Booths:</strong> Engage visitors with live demos</li>
+                                <li><strong>Marketing Materials:</strong> Business cards, flyers, posters</li>
+                                <li><strong>Educational Settings:</strong> Textbooks, worksheets, displays</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🔬 Seeded Demo Configuration</h3>
+                    <div class="demo-section">
+                        <div class="demo-header">
+                            <h4>Static Parameters (No Variability)</h4>
+                            <span style="background: var(--success); padding: 5px 15px; border-radius: 20px; font-size: 0.9em;">
+                                ✓ Demo Ready
+                            </span>
+                        </div>
+                        <div class="demo-terminal" id="demoParameters"></div>
+                        <p style="margin-top: 15px; opacity: 0.8;">
+                            <strong>💡 Pro Tip:</strong> Seeded demos use static data to ensure every showcase produces identical, impressive results. Perfect for conferences, sales demos, and presentations.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <h3>🌍 Virtual World Preview</h3>
+                    <div class="world-preview">
+                        <div class="world-preview-content">
+                            <h3 id="worldPreviewTitle">Creative Studio World</h3>
+                            <p id="worldPreviewDescription">
+                                A vibrant space filled with creative tools and inspiration
+                            </p>
+                            <button class="btn btn-success" style="padding: 15px 40px; font-size: 1.1em;" onclick="simulateWorldEntry()">
+                                🚀 Simulate World Entry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="downloadQR()">
+                        📥 Download QR Code
+                    </button>
+                    <button class="btn btn-secondary" onclick="shareAmbassador()">
+                        🔗 Share Link
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ambassador Data
+        let ambassadors = [
+            {
+                id: 1,
+                name: "CreativeBot",
+                avatar: "🎨",
+                role: "Creative Guide",
+                description: "Your imagination companion! Helps generate innovative ideas, designs, and creative solutions. Perfect for brainstorming sessions and artistic projects.",
+                tags: ["creative", "design", "innovation"],
+                worldType: "creative",
+                seededDemo: true,
+                capabilities: ["Idea generation", "Design feedback", "Creative problem solving", "Artistic inspiration"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.8,
+                    user_guid: "demo-creative-001",
+                    memory_seed: "creative_demo_v1"
+                }
+            },
+            {
+                id: 2,
+                name: "DataWizard",
+                avatar: "📊",
+                role: "Analytics Expert",
+                description: "Master of data insights! Analyzes patterns, creates visualizations, and helps you understand your data. Makes complex information simple and actionable.",
+                tags: ["analytics", "data", "insights"],
+                worldType: "analysis",
+                seededDemo: true,
+                capabilities: ["Data analysis", "Pattern recognition", "Report generation", "Predictive insights"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.3,
+                    user_guid: "demo-data-002",
+                    memory_seed: "data_demo_v1"
+                }
+            },
+            {
+                id: 3,
+                name: "LearnBuddy",
+                avatar: "📚",
+                role: "Learning Companion",
+                description: "Your personal tutor! Explains concepts clearly, adapts to your learning style, and makes education fun. Great for students of all ages.",
+                tags: ["education", "learning", "tutoring"],
+                worldType: "learning",
+                seededDemo: true,
+                capabilities: ["Concept explanation", "Quiz creation", "Study planning", "Homework help"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.5,
+                    user_guid: "demo-learn-003",
+                    memory_seed: "learning_demo_v1"
+                }
+            },
+            {
+                id: 4,
+                name: "GameMaster",
+                avatar: "🎮",
+                role: "Gaming Guide",
+                description: "Your gaming companion! Provides strategy tips, creates interactive stories, and makes gaming more immersive. Level up your play!",
+                tags: ["gaming", "entertainment", "strategy"],
+                worldType: "gaming",
+                seededDemo: true,
+                capabilities: ["Strategy advice", "Game mechanics", "Interactive stories", "Challenge creation"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.7,
+                    user_guid: "demo-game-004",
+                    memory_seed: "gaming_demo_v1"
+                }
+            },
+            {
+                id: 5,
+                name: "SocialButterfly",
+                avatar: "🦋",
+                role: "Social Connector",
+                description: "The networking expert! Helps you connect with others, craft messages, and build relationships. Makes social interactions effortless.",
+                tags: ["social", "networking", "communication"],
+                worldType: "social",
+                seededDemo: true,
+                capabilities: ["Message crafting", "Networking advice", "Event planning", "Communication coaching"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.6,
+                    user_guid: "demo-social-005",
+                    memory_seed: "social_demo_v1"
+                }
+            },
+            {
+                id: 6,
+                name: "BizPro",
+                avatar: "💼",
+                role: "Business Advisor",
+                description: "Your executive assistant! Handles business strategy, market analysis, and professional communications. Takes your business to the next level.",
+                tags: ["business", "professional", "strategy"],
+                worldType: "business",
+                seededDemo: true,
+                capabilities: ["Strategy planning", "Market analysis", "Financial insights", "Professional writing"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.4,
+                    user_guid: "demo-biz-006",
+                    memory_seed: "business_demo_v1"
+                }
+            },
+            {
+                id: 7,
+                name: "NatureGuide",
+                avatar: "🌿",
+                role: "Environmental Expert",
+                description: "Your nature companion! Identifies plants and animals, teaches sustainability, and connects you with the natural world.",
+                tags: ["nature", "environment", "sustainability"],
+                worldType: "nature",
+                seededDemo: true,
+                capabilities: ["Species identification", "Eco-tips", "Conservation education", "Nature facts"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.5,
+                    user_guid: "demo-nature-007",
+                    memory_seed: "nature_demo_v1"
+                }
+            },
+            {
+                id: 8,
+                name: "TechGuru",
+                avatar: "⚙️",
+                role: "Technical Wizard",
+                description: "The code whisperer! Helps with programming, debugging, and technical solutions. Turns complex tech into simple steps.",
+                tags: ["tech", "coding", "engineering"],
+                worldType: "tech",
+                seededDemo: true,
+                capabilities: ["Code review", "Debugging help", "Architecture design", "Tech tutorials"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.4,
+                    user_guid: "demo-tech-008",
+                    memory_seed: "tech_demo_v1"
+                }
+            }
+        ];
+
+        let currentAmbassador = null;
+        let selectedAvatar = "🎯";
+
+        // Avatar options
+        const avatarOptions = [
+            "🎨", "🚀", "🌟", "💎", "🦋", "🐝", "🐞", "🦄",
+            "🎯", "🎪", "🎭", "🎸", "🎺", "🎮", "🎲", "🎰",
+            "⚡", "🔥", "💫", "✨", "🌈", "🌸", "🌺", "🌻",
+            "📚", "📊", "💼", "🔬", "🎓", "⚙️", "🛠️", "🔧"
+        ];
+
+        // Initialize
+        function init() {
+            renderAmbassadors();
+            renderAvatarSelector();
+            setupTabs();
+        }
+
+        // Render ambassadors
+        function renderAmbassadors() {
+            const grid = document.getElementById('ambassadorGrid');
+            grid.innerHTML = '';
+
+            ambassadors.forEach(ambassador => {
+                const card = document.createElement('div');
+                card.className = 'ambassador-card';
+                card.innerHTML = `
+                    <div class="ambassador-avatar">${ambassador.avatar}</div>
+                    <div class="ambassador-name">${ambassador.name}</div>
+                    <div class="ambassador-role">${ambassador.role}</div>
+                    <div class="ambassador-description">${ambassador.description}</div>
+                    <div class="ambassador-tags">
+                        ${ambassador.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="ambassador-actions">
+                        <button class="btn btn-primary" onclick="viewAmbassador(${ambassador.id})">
+                            🔍 View Details
+                        </button>
+                        <button class="btn btn-secondary" onclick="quickScan(${ambassador.id})">
+                            📱 Quick Scan
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Update stats
+            document.getElementById('ambassadorCount').textContent = ambassadors.length;
+            document.getElementById('worldCount').textContent = ambassadors.length;
+        }
+
+        // View ambassador details
+        function viewAmbassador(id) {
+            const ambassador = ambassadors.find(a => a.id === id);
+            if (!ambassador) return;
+
+            currentAmbassador = ambassador;
+
+            document.getElementById('modalAvatar').textContent = ambassador.avatar;
+            document.getElementById('modalName').textContent = ambassador.name;
+            document.getElementById('modalRole').textContent = ambassador.role;
+            document.getElementById('modalDescription').textContent = ambassador.description;
+
+            // Capabilities
+            const capContainer = document.getElementById('modalCapabilities');
+            capContainer.innerHTML = ambassador.capabilities
+                .map(cap => `<div style="background: var(--light); padding: 12px; border-radius: 8px; margin-bottom: 10px;">✓ ${cap}</div>`)
+                .join('');
+
+            // Demo parameters
+            const paramsContainer = document.getElementById('demoParameters');
+            paramsContainer.innerHTML = `
+<strong>Seeded Demo Configuration:</strong>
+{
+  "ambassador_id": "${ambassador.id}",
+  "model": "${ambassador.demoParams.model}",
+  "temperature": ${ambassador.demoParams.temperature},
+  "user_guid": "${ambassador.demoParams.user_guid}",
+  "memory_seed": "${ambassador.demoParams.memory_seed}",
+  "seeded_run": true,
+  "static_data": true,
+  "reproducible": true
+}
+
+<span style="color: #60a5fa;">// This configuration ensures identical results every time</span>
+<span style="color: #60a5fa;">// Perfect for demos, presentations, and showcases</span>
+            `;
+
+            // World preview
+            const worldDescriptions = {
+                creative: "A vibrant studio filled with creative tools, inspiration boards, and collaborative spaces",
+                analysis: "A data-rich environment with dashboards, charts, and analytical instruments",
+                learning: "An interactive classroom with adaptive learning paths and engaging content",
+                gaming: "An immersive arena with challenges, quests, and strategic gameplay",
+                social: "A welcoming space designed for connection, conversation, and community",
+                business: "A professional environment optimized for productivity and decision-making",
+                nature: "A serene sanctuary showcasing the beauty and wisdom of the natural world",
+                tech: "A cutting-edge workshop equipped with the latest tools and technologies"
+            };
+
+            document.getElementById('worldPreviewTitle').textContent = `${ambassador.name}'s World`;
+            document.getElementById('worldPreviewDescription').textContent = worldDescriptions[ambassador.worldType] || "A unique virtual experience";
+
+            // Show modal
+            document.getElementById('ambassadorModal').classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('ambassadorModal').classList.add('hidden');
+            currentAmbassador = null;
+        }
+
+        // Simulate world entry
+        function simulateWorldEntry() {
+            if (!currentAmbassador) return;
+
+            showToast(`🚀 Entering ${currentAmbassador.name}'s world...`, 'success');
+            
+            setTimeout(() => {
+                alert(`Welcome to ${currentAmbassador.name}'s World!\n\n` +
+                      `${currentAmbassador.description}\n\n` +
+                      `This is where you'd interact with the AI ambassador using the seeded demo parameters.\n\n` +
+                      `QR Code → Scan → Enter World → Meet Ambassador → Interact!\n\n` +
+                      `Perfect for physical deployments in stores, events, museums, and more!`);
+            }, 1000);
+        }
+
+        // Quick scan simulation
+        function quickScan(id) {
+            const ambassador = ambassadors.find(a => a.id === id);
+            if (!ambassador) return;
+
+            showToast(`📱 Simulating QR scan for ${ambassador.name}...`, 'success');
+            
+            setTimeout(() => {
+                viewAmbassador(id);
+            }, 500);
+        }
+
+        // Download QR code
+        function downloadQR() {
+            if (!currentAmbassador) return;
+            showToast('QR code download started! (In production, this would generate a real QR code)', 'success');
+        }
+
+        // Share ambassador
+        function shareAmbassador() {
+            if (!currentAmbassador) return;
+            const url = `https://ai-ambassadors.app/world/${currentAmbassador.id}`;
+            navigator.clipboard.writeText(url);
+            showToast('Share link copied to clipboard!', 'success');
+        }
+
+        // Create ambassador
+        function createAmbassador() {
+            const name = document.getElementById('newName').value.trim();
+            const role = document.getElementById('newRole').value.trim();
+            const description = document.getElementById('newDescription').value.trim();
+            const customAvatar = document.getElementById('customAvatar').value.trim();
+            const worldType = document.getElementById('worldType').value;
+            const tags = document.getElementById('newTags').value.split(',').map(t => t.trim()).filter(t => t);
+            const seededDemo = document.getElementById('enableSeededDemo').checked;
+
+            if (!name || !role || !description) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            const newAmbassador = {
+                id: ambassadors.length + 1,
+                name: name,
+                avatar: customAvatar || selectedAvatar,
+                role: role,
+                description: description,
+                tags: tags,
+                worldType: worldType,
+                seededDemo: seededDemo,
+                capabilities: ["Custom capability 1", "Custom capability 2", "Custom capability 3"],
+                demoParams: {
+                    model: "gpt-4",
+                    temperature: 0.7,
+                    user_guid: `demo-custom-${ambassadors.length + 1}`,
+                    memory_seed: `custom_demo_v1`
+                }
+            };
+
+            ambassadors.push(newAmbassador);
+            renderAmbassadors();
+            
+            // Switch to gallery tab
+            switchTab('gallery');
+            
+            // Clear form
+            document.getElementById('newName').value = '';
+            document.getElementById('newRole').value = '';
+            document.getElementById('newDescription').value = '';
+            document.getElementById('customAvatar').value = '';
+            document.getElementById('newTags').value = '';
+            
+            showToast(`✨ Ambassador "${name}" created successfully!`, 'success');
+            
+            // Show the new ambassador
+            setTimeout(() => {
+                viewAmbassador(newAmbassador.id);
+            }, 500);
+        }
+
+        // Render avatar selector
+        function renderAvatarSelector() {
+            const selector = document.getElementById('avatarSelector');
+            selector.innerHTML = '';
+
+            avatarOptions.forEach(avatar => {
+                const option = document.createElement('div');
+                option.className = 'avatar-option';
+                if (avatar === selectedAvatar) {
+                    option.classList.add('selected');
+                }
+                option.textContent = avatar;
+                option.onclick = () => {
+                    selectedAvatar = avatar;
+                    renderAvatarSelector();
+                };
+                selector.appendChild(option);
+            });
+        }
+
+        // Setup tabs
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchTab(tab.dataset.tab);
+                });
+            });
+        }
+
+        // Switch tab
+        function switchTab(tabName) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Show content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+
+            // If demo tab, render demo content
+            if (tabName === 'demo') {
+                renderDemoContent();
+            }
+        }
+
+        // Render demo content
+        function renderDemoContent() {
+            const container = document.getElementById('demoContainer');
+            const demoAmbassador = ambassadors[0]; // Use first ambassador for demo
+
+            container.innerHTML = `
+                <div class="world-preview">
+                    <div class="world-preview-content">
+                        <h3>🎬 Interactive Demo: ${demoAmbassador.name}</h3>
+                        <p>Experience what users see after scanning a QR code</p>
+                        
+                        <div style="background: rgba(255,255,255,0.2); padding: 30px; border-radius: 15px; margin: 30px 0;">
+                            <h4 style="margin-bottom: 20px; font-size: 1.5em;">Simulated User Journey:</h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 30px;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3em; margin-bottom: 10px;">📱</div>
+                                    <strong>1. Scan</strong><br>
+                                    <small>User scans QR code</small>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3em; margin-bottom: 10px;">🌐</div>
+                                    <strong>2. Connect</strong><br>
+                                    <small>Opens web interface</small>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3em; margin-bottom: 10px;">🚪</div>
+                                    <strong>3. Enter</strong><br>
+                                    <small>Loads virtual world</small>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3em; margin-bottom: 10px;">${demoAmbassador.avatar}</div>
+                                    <strong>4. Meet</strong><br>
+                                    <small>Ambassador appears</small>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3em; margin-bottom: 10px;">💬</div>
+                                    <strong>5. Interact</strong><br>
+                                    <small>Start conversation</small>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-success" style="padding: 15px 40px; font-size: 1.2em;" onclick="runInteractiveDemo()">
+                                ▶️ Run Full Demo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-section" style="margin-top: 30px;">
+                    <h4 style="margin-bottom: 20px;">🔬 Behind the Scenes: Seeded Demo Parameters</h4>
+                    <div class="demo-terminal">
+<strong>When user scans QR code for "${demoAmbassador.name}":</strong>
+
+1. QR Code contains URL: https://ai-ambassadors.app/enter/${demoAmbassador.id}
+
+2. System loads configuration:
+{
+  "ambassador": "${demoAmbassador.name}",
+  "world_type": "${demoAmbassador.worldType}",
+  "demo_mode": true,
+  "seeded_run": true,
+  "parameters": ${JSON.stringify(demoAmbassador.demoParams, null, 2)}
+}
+
+3. Agent is called with EXACT parameters (no variability)
+
+4. Memory context is loaded from seed: "${demoAmbassador.demoParams.memory_seed}"
+
+5. User experiences predetermined, perfect demo
+
+<span style="color: #f59e0b;">⚡ Result: Identical experience every time - perfect for showcases!</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Run interactive demo
+        function runInteractiveDemo() {
+            const steps = [
+                { icon: '📱', text: 'User scans QR code on physical poster...' },
+                { icon: '🌐', text: 'Browser opens with custom URL...' },
+                { icon: '🎨', text: 'Virtual world loads with animations...' },
+                { icon: '👋', text: 'CreativeBot appears and greets user...' },
+                { icon: '💬', text: 'User asks: "Help me design a logo"' },
+                { icon: '🤖', text: 'Ambassador generates creative ideas...' },
+                { icon: '✨', text: 'User receives personalized suggestions!' }
+            ];
+
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    showToast(`${steps[currentStep].icon} ${steps[currentStep].text}`, 'success');
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        alert('🎉 Demo Complete!\n\nThis is exactly what users experience when they scan QR codes in the physical world.\n\nThe seeded demo ensures perfect, reproducible results every time - ideal for conferences, sales demos, and showcases!');
+                    }, 1000);
+                }
+            }, 1500);
+        }
+
+        // Show toast
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Click outside modal to close
+        document.getElementById('ambassadorModal').addEventListener('click', (e) => {
+            if (e.target.id === 'ambassadorModal') {
+                closeModal();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

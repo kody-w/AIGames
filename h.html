@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ambassador Administration Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .admin-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .change {
+            font-size: 14px;
+            color: var(--success);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--light);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-height: 600px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gray);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .ambassador-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .ambassador-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 25px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .ambassador-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .ambassador-avatar {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .ambassador-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .ambassador-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .ambassador-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--gray);
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .qr-preview {
+            text-align: center;
+            padding: 30px;
+            background: var(--light);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .table tr:hover {
+            background: var(--light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+        }
+
+        .emoji-picker {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .emoji-option {
+            font-size: 32px;
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .emoji-option:hover {
+            background: white;
+        }
+
+        .capability-item {
+            display: flex;
+            gap: 15px;
+            align-items: start;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .capability-icon {
+            font-size: 24px;
+        }
+
+        .memory-editor {
+            background: var(--darker);
+            color: #a5f3fc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-top: 20px;
+            min-height: 400px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .analytics-chart {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 300px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .world-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .world-preview h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            background: var(--light);
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header">
+            <h1>
+                <span>🌍</span>
+                AI Ambassador Administration Console
+            </h1>
+            <p>Manage your AI Ambassadors, QR codes, analytics, and seeded demos</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Ambassadors</h3>
+                <div class="value" id="totalAmbassadors">0</div>
+                <div class="change">+3 this week</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total QR Scans</h3>
+                <div class="value" id="totalScans">0</div>
+                <div class="change">+127% from last month</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Users</h3>
+                <div class="value" id="activeUsers">0</div>
+                <div class="change">+45 today</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg. Session Time</h3>
+                <div class="value">8m 34s</div>
+                <div class="change">+2m from average</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="nav-item active" data-view="dashboard">
+                    <span>📊</span>
+                    Dashboard
+                </div>
+                <div class="nav-item" data-view="ambassadors">
+                    <span>🤖</span>
+                    Ambassadors
+                </div>
+                <div class="nav-item" data-view="qr-codes">
+                    <span>📱</span>
+                    QR Codes
+                </div>
+                <div class="nav-item" data-view="memory-seeds">
+                    <span>🧠</span>
+                    Memory Seeds
+                </div>
+                <div class="nav-item" data-view="analytics">
+                    <span>📈</span>
+                    Analytics
+                </div>
+                <div class="nav-item" data-view="settings">
+                    <span>⚙️</span>
+                    Settings
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Dashboard View -->
+                <div id="dashboard" class="view active">
+                    <h2>Dashboard Overview</h2>
+                    <div class="analytics-chart">
+                        <h3>QR Scan Activity (Last 30 Days)</h3>
+                        <canvas id="scanChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Top Performing Ambassadors</h3>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ambassador</th>
+                                <th>Scans</th>
+                                <th>Interactions</th>
+                                <th>Satisfaction</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topAmbassadors">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Ambassadors View -->
+                <div id="ambassadors" class="view">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>AI Ambassadors</h2>
+                        <button class="btn btn-primary" onclick="showCreateAmbassador()">
+                            <span>➕</span>
+                            Create New Ambassador
+                        </button>
+                    </div>
+
+                    <input type="text" class="search-bar" placeholder="Search ambassadors..." id="ambassadorSearch">
+
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="active">Active</button>
+                        <button class="filter-btn" data-filter="draft">Draft</button>
+                        <button class="filter-btn" data-filter="demo">Demo</button>
+                    </div>
+
+                    <div class="ambassador-grid" id="ambassadorGrid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- QR Codes View -->
+                <div id="qr-codes" class="view">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>QR Code Management</h2>
+                        <button class="btn btn-primary" onclick="showQRGenerator()">
+                            <span>📱</span>
+                            Generate QR Code
+                        </button>
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>QR Code</th>
+                                <th>Ambassador</th>
+                                <th>Location</th>
+                                <th>Scans</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="qrCodeList">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Memory Seeds View -->
+                <div id="memory-seeds" class="view">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Memory Seeds</h2>
+                        <button class="btn btn-primary" onclick="showCreateMemorySeed()">
+                            <span>🧠</span>
+                            Create Memory Seed
+                        </button>
+                    </div>
+
+                    <p style="color: var(--gray); margin-bottom: 20px;">
+                        Memory seeds provide reproducible demo experiences with pre-configured conversation contexts.
+                    </p>
+
+                    <div class="ambassador-grid" id="memorySeedGrid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Analytics View -->
+                <div id="analytics" class="view">
+                    <h2>Analytics & Insights</h2>
+
+                    <div class="tab-group">
+                        <div class="tab active" data-tab="overview">Overview</div>
+                        <div class="tab" data-tab="engagement">Engagement</div>
+                        <div class="tab" data-tab="locations">Locations</div>
+                        <div class="tab" data-tab="queries">Top Queries</div>
+                    </div>
+
+                    <div class="tab-content active" data-content="overview">
+                        <div class="analytics-chart">
+                            <h3>User Engagement Over Time</h3>
+                            <canvas id="engagementChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-content="engagement">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3>Avg Session Duration</h3>
+                                <div class="value">8m 34s</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Interactions/Session</h3>
+                                <div class="value">5.3</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Return Rate (7d)</h3>
+                                <div class="value">34%</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Completion Rate</h3>
+                                <div class="value">82%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" data-content="locations">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Ambassador</th>
+                                    <th>Scans</th>
+                                    <th>Conversion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="locationAnalytics">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tab-content" data-content="queries">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Query</th>
+                                    <th>Ambassador</th>
+                                    <th>Count</th>
+                                    <th>Avg Response Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queryAnalytics">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Settings View -->
+                <div id="settings" class="view">
+                    <h2>Platform Settings</h2>
+
+                    <div class="form-group">
+                        <label>Azure Function Endpoint</label>
+                        <input type="text" id="azureFunctionUrl" placeholder="https://your-function.azurewebsites.net/api/">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Function Key</label>
+                        <input type="password" id="functionKey" placeholder="Enter your function key">
+                    </div>
+
+                    <div class="form-group">
+                        <label>QR Code Base URL</label>
+                        <input type="text" id="qrBaseUrl" placeholder="https://ai-ambassadors.app/enter/">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Analytics Tracking</label>
+                        <select id="analyticsEnabled">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                        <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                        <button class="btn btn-secondary" onclick="importData()">Import Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Ambassador Modal -->
+    <div id="ambassadorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Create New Ambassador</h2>
+                <button class="close-btn" onclick="closeModal('ambassadorModal')">&times;</button>
+            </div>
+
+            <div class="tab-group">
+                <div class="tab active" data-tab="basic">Basic Info</div>
+                <div class="tab" data-tab="appearance">Appearance</div>
+                <div class="tab" data-tab="world">World</div>
+                <div class="tab" data-tab="capabilities">Capabilities</div>
+                <div class="tab" data-tab="agent">Agent Mapping</div>
+                <div class="tab" data-tab="demo">Demo Config</div>
+            </div>
+
+            <div class="tab-content active" data-content="basic">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ambassador ID</label>
+                        <input type="text" id="ambassadorId" placeholder="creative-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="ambassadorName" placeholder="CreativeBot">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="ambassadorDisplayName" placeholder="Creative Companion">
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ambassadorDescription" placeholder="Your imagination companion! Helps generate innovative ideas..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Tagline</label>
+                    <input type="text" id="ambassadorTagline" placeholder="Where creativity meets AI">
+                </div>
+
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" id="ambassadorRole" placeholder="Creative Guide">
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (comma separated)</label>
+                    <input type="text" id="ambassadorTags" placeholder="creative, design, innovation">
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="appearance">
+                <div class="form-group">
+                    <label>Avatar Type</label>
+                    <select id="avatarType">
+                        <option value="emoji">Emoji</option>
+                        <option value="creature">Creature</option>
+                        <option value="shape">Abstract Shape</option>
+                        <option value="typography">Typography</option>
+                        <option value="cultural">Cultural Symbol</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Primary Avatar</label>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <input type="text" id="avatarValue" placeholder="🎨" style="width: 100px; text-align: center; font-size: 32px;">
+                        <button class="btn btn-secondary" onclick="showEmojiPicker()">Choose Emoji</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Alternative Avatars (comma separated)</label>
+                    <input type="text" id="avatarAlternatives" placeholder="🖌️, 🎭, ✨">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Primary Color</label>
+                        <div class="color-picker">
+                            <input type="color" id="primaryColor" value="#6366f1">
+                            <input type="text" id="primaryColorHex" value="#6366f1" style="width: 100px;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Secondary Color</label>
+                        <div class="color-picker">
+                            <input type="color" id="secondaryColor" value="#8b5cf6">
+                            <input type="text" id="secondaryColorHex" value="#8b5cf6" style="width: 100px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Theme</label>
+                    <select id="brandingTheme">
+                        <option value="creative">Creative</option>
+                        <option value="professional">Professional</option>
+                        <option value="playful">Playful</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="tech">Tech</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="world">
+                <div class="form-group">
+                    <label>World Type</label>
+                    <select id="worldType">
+                        <option value="creative_studio">Creative Studio</option>
+                        <option value="tech_lab">Tech Lab</option>
+                        <option value="library">Library</option>
+                        <option value="garden">Garden</option>
+                        <option value="space_station">Space Station</option>
+                        <option value="cafe">Cafe</option>
+                        <option value="gallery">Gallery</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>World Name</label>
+                    <input type="text" id="worldName" placeholder="The Imagination Lab">
+                </div>
+
+                <div class="form-group">
+                    <label>World Description</label>
+                    <textarea id="worldDescription" placeholder="A vibrant space filled with creative tools and inspiration"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Background Style</label>
+                    <input type="text" id="worldBackground" placeholder="gradient(purple, pink)">
+                </div>
+
+                <div class="form-group">
+                    <label>Music/Ambience</label>
+                    <input type="text" id="worldMusic" placeholder="ambient-creative.mp3">
+                </div>
+
+                <div class="form-group">
+                    <label>Visual Effects (comma separated)</label>
+                    <input type="text" id="worldEffects" placeholder="floating-ideas, sparkles">
+                </div>
+
+                <div class="world-preview" id="worldPreview">
+                    <h3>Preview: The Imagination Lab</h3>
+                    <p>Experience your custom world design</p>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="capabilities">
+                <div class="form-group">
+                    <label>Capabilities</label>
+                    <div id="capabilitiesList">
+                        <div class="capability-item">
+                            <span class="capability-icon">💡</span>
+                            <div style="flex: 1;">
+                                <input type="text" placeholder="Capability name" class="capability-name" style="margin-bottom: 8px;">
+                                <textarea placeholder="Description" class="capability-desc"></textarea>
+                            </div>
+                            <button class="btn btn-danger" onclick="removeCapability(this)">Remove</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="addCapability()" style="margin-top: 10px;">Add Capability</button>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="agent">
+                <div class="form-group">
+                    <label>Base Agent</label>
+                    <select id="baseAgent">
+                        <option value="BasicAgent">BasicAgent</option>
+                        <option value="ContextMemoryAgent">ContextMemoryAgent</option>
+                        <option value="ManageMemoryAgent">ManageMemoryAgent</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Custom Agent Name</label>
+                    <input type="text" id="customAgent" placeholder="CreativeIdeationAgent">
+                </div>
+
+                <div class="form-group">
+                    <label>Agent File</label>
+                    <input type="text" id="agentFile" placeholder="creative_ideation_agent.py">
+                </div>
+
+                <div class="form-group">
+                    <label>Function Name</label>
+                    <input type="text" id="functionName" placeholder="CreativeIdeation">
+                </div>
+
+                <div class="form-group">
+                    <label>Agent Parameters (JSON)</label>
+                    <textarea id="agentParameters" placeholder='{"temperature": 0.8, "max_tokens": 1000}'></textarea>
+                </div>
+            </div>
+
+            <div class="tab-content" data-content="demo">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enableSeededDemo">
+                        Enable Seeded Demo (Reproducible Experience)
+                    </label>
+                </div>
+
+                <div id="demoConfigSection" style="display: none;">
+                    <div class="form-group">
+                        <label>Demo User GUID</label>
+                        <input type="text" id="demoUserGuid" placeholder="demo-creative-001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Memory Seed ID</label>
+                        <input type="text" id="memorySeedId" placeholder="creative_demo_v1">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input type="text" id="demoModel" placeholder="gpt-4" value="gpt-4">
+                        </div>
+                        <div class="form-group">
+                            <label>Temperature</label>
+                            <input type="number" id="demoTemperature" placeholder="0.8" step="0.1" value="0.8">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Max Tokens</label>
+                        <input type="number" id="demoMaxTokens" placeholder="1000" value="1000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveAmbassador()">Save Ambassador</button>
+                <button class="btn btn-secondary" onclick="closeModal('ambassadorModal')">Cancel</button>
+                <button class="btn btn-secondary" onclick="exportAmbassador()">Export JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Generator Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Generate QR Code</h2>
+                <button class="close-btn" onclick="closeModal('qrModal')">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>Select Ambassador</label>
+                <select id="qrAmbassador">
+                    <!-- Populated by JavaScript -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Location/Source Identifier</label>
+                <input type="text" id="qrLocation" placeholder="store_nyc_5th">
+            </div>
+
+            <div class="form-group">
+                <label>Short URL (optional)</label>
+                <input type="text" id="qrShortUrl" placeholder="https://aiamb.co/creative">
+            </div>
+
+            <div class="qr-preview">
+                <div class="qr-code" id="qrCodePreview">
+                    <div style="width: 250px; height: 250px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                        QR Code Preview
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>URL:</strong> <span id="qrUrl">-</span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="generateQR()">Generate QR Code</button>
+                <button class="btn btn-secondary" onclick="downloadQR()">Download PNG</button>
+                <button class="btn btn-secondary" onclick="downloadQRSVG()">Download SVG</button>
+                <button class="btn btn-secondary" onclick="closeModal('qrModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Seed Editor Modal -->
+    <div id="memorySeedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Memory Seed</h2>
+                <button class="close-btn" onclick="closeModal('memorySeedModal')">&times;</button>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Seed ID</label>
+                    <input type="text" id="seedId" placeholder="creative_demo_v1">
+                </div>
+                <div class="form-group">
+                    <label>Version</label>
+                    <input type="text" id="seedVersion" placeholder="1.0" value="1.0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="seedDescription" placeholder="Seeded memory for CreativeBot demos"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Associated Ambassador</label>
+                <select id="seedAmbassador">
+                    <!-- Populated by JavaScript -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Synthetic Memories (JSON)</label>
+                <div class="memory-editor" id="memoryEditor" contenteditable="true">
+[
+  {
+    "message": "User prefers bold, modern design aesthetics",
+    "theme": "preferences",
+    "mood": "neutral",
+    "importance": 5
+  },
+  {
+    "message": "Previous project: Logo design for tech startup",
+    "theme": "history",
+    "mood": "positive",
+    "importance": 4
+  }
+]
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="saveMemorySeed()">Save Memory Seed</button>
+                <button class="btn btn-secondary" onclick="validateJSON()">Validate JSON</button>
+                <button class="btn btn-secondary" onclick="closeModal('memorySeedModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emoji Picker Modal -->
+    <div id="emojiPickerModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Choose Emoji</h2>
+                <button class="close-btn" onclick="closeModal('emojiPickerModal')">&times;</button>
+            </div>
+
+            <div class="emoji-picker" id="emojiPicker">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        // Global state
+        let ambassadors = [];
+        let qrCodes = [];
+        let memorySeeds = [];
+        let currentAmbassador = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMockData();
+            setupEventListeners();
+            updateStats();
+            renderAmbassadors();
+            renderTopAmbassadors();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const view = this.dataset.view;
+                    switchView(view);
+                });
+            });
+
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    switchTab(this.closest('.modal-content, .content-area'), tabName);
+                });
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterAmbassadors(this.dataset.filter);
+                });
+            });
+
+            // Search
+            document.getElementById('ambassadorSearch')?.addEventListener('input', function(e) {
+                searchAmbassadors(e.target.value);
+            });
+
+            // Color pickers sync
+            document.getElementById('primaryColor')?.addEventListener('input', function(e) {
+                document.getElementById('primaryColorHex').value = e.target.value;
+            });
+
+            document.getElementById('secondaryColor')?.addEventListener('input', function(e) {
+                document.getElementById('secondaryColorHex').value = e.target.value;
+            });
+
+            // Demo config toggle
+            document.getElementById('enableSeededDemo')?.addEventListener('change', function(e) {
+                document.getElementById('demoConfigSection').style.display = e.target.checked ? 'block' : 'none';
+            });
+        }
+
+        // Switch view
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewName).classList.add('active');
+        }
+
+        // Switch tab
+        function switchTab(container, tabName) {
+            container.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            container.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            container.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            container.querySelector(`[data-content="${tabName}"]`).classList.add('active');
+        }
+
+        // Load mock data
+        function loadMockData() {
+            ambassadors = [
+                {
+                    id: 'creative-001',
+                    name: 'CreativeBot',
+                    displayName: 'Creative Companion',
+                    description: 'Your imagination companion! Helps generate innovative ideas and creative solutions.',
+                    avatar: { type: 'emoji', value: '🎨', alternatives: ['🖌️', '🎭', '✨'] },
+                    branding: { primaryColor: '#6366f1', secondaryColor: '#8b5cf6', theme: 'creative' },
+                    tags: ['creative', 'design', 'innovation'],
+                    status: 'active',
+                    scans: 2847,
+                    interactions: 15234,
+                    satisfaction: 4.7
+                },
+                {
+                    id: 'tech-002',
+                    name: 'TechGuru',
+                    displayName: 'Tech Expert',
+                    description: 'Your technology companion for all things tech!',
+                    avatar: { type: 'emoji', value: '🚀', alternatives: ['💻', '⚡', '🔧'] },
+                    branding: { primaryColor: '#3b82f6', secondaryColor: '#06b6d4', theme: 'tech' },
+                    tags: ['tech', 'innovation', 'code'],
+                    status: 'active',
+                    scans: 1923,
+                    interactions: 8901,
+                    satisfaction: 4.5
+                },
+                {
+                    id: 'learn-003',
+                    name: 'LearnBuddy',
+                    displayName: 'Learning Companion',
+                    description: 'Makes learning fun and interactive!',
+                    avatar: { type: 'emoji', value: '📚', alternatives: ['🎓', '✏️', '🧠'] },
+                    branding: { primaryColor: '#10b981', secondaryColor: '#059669', theme: 'educational' },
+                    tags: ['education', 'learning', 'knowledge'],
+                    status: 'active',
+                    scans: 1456,
+                    interactions: 6234,
+                    satisfaction: 4.8
+                }
+            ];
+
+            qrCodes = [
+                {
+                    id: 'qr-001',
+                    ambassadorId: 'creative-001',
+                    location: 'store_nyc_5th',
+                    url: 'https://ai-ambassadors.app/enter/creative-001?source=store_nyc_5th',
+                    scans: 847,
+                    created: '2025-01-15'
+                },
+                {
+                    id: 'qr-002',
+                    ambassadorId: 'creative-001',
+                    location: 'conf_2025',
+                    url: 'https://ai-ambassadors.app/enter/creative-001?source=conf_2025',
+                    scans: 523,
+                    created: '2025-01-10'
+                }
+            ];
+
+            memorySeeds = [
+                {
+                    id: 'creative_demo_v1',
+                    version: '1.0',
+                    description: 'Seeded memory for CreativeBot demos',
+                    ambassadorId: 'creative-001',
+                    memories: [
+                        {
+                            message: "User prefers bold, modern design aesthetics",
+                            theme: "preferences",
+                            mood: "neutral",
+                            importance: 5
+                        }
+                    ]
+                }
+            ];
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalAmbassadors').textContent = ambassadors.length;
+            const totalScans = ambassadors.reduce((sum, a) => sum + a.scans, 0);
+            document.getElementById('totalScans').textContent = totalScans.toLocaleString();
+            document.getElementById('activeUsers').textContent = Math.floor(totalScans * 0.65).toLocaleString();
+        }
+
+        // Render ambassadors
+        function renderAmbassadors() {
+            const grid = document.getElementById('ambassadorGrid');
+            grid.innerHTML = '';
+
+            ambassadors.forEach(ambassador => {
+                const card = document.createElement('div');
+                card.className = 'ambassador-card';
+                card.style.background = `linear-gradient(135deg, ${ambassador.branding.primaryColor} 0%, ${ambassador.branding.secondaryColor} 100%)`;
+                card.onclick = () => editAmbassador(ambassador);
+
+                card.innerHTML = `
+                    <span class="ambassador-avatar">${ambassador.avatar.value}</span>
+                    <div class="ambassador-name">${ambassador.displayName}</div>
+                    <div class="ambassador-description">${ambassador.description}</div>
+                    <div class="ambassador-tags">
+                        ${ambassador.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Render top ambassadors table
+        function renderTopAmbassadors() {
+            const tbody = document.getElementById('topAmbassadors');
+            tbody.innerHTML = '';
+
+            const sorted = [...ambassadors].sort((a, b) => b.scans - a.scans);
+
+            sorted.forEach(ambassador => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 24px;">${ambassador.avatar.value}</span>
+                            <strong>${ambassador.displayName}</strong>
+                        </div>
+                    </td>
+                    <td>${ambassador.scans.toLocaleString()}</td>
+                    <td>${ambassador.interactions.toLocaleString()}</td>
+                    <td>${ambassador.satisfaction}/5.0</td>
+                    <td><span class="badge badge-success">${ambassador.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show create ambassador modal
+        function showCreateAmbassador() {
+            currentAmbassador = null;
+            document.getElementById('modalTitle').textContent = 'Create New Ambassador';
+            resetAmbassadorForm();
+            openModal('ambassadorModal');
+        }
+
+        // Edit ambassador
+        function editAmbassador(ambassador) {
+            currentAmbassador = ambassador;
+            document.getElementById('modalTitle').textContent = 'Edit Ambassador';
+            populateAmbassadorForm(ambassador);
+            openModal('ambassadorModal');
+        }
+
+        // Reset ambassador form
+        function resetAmbassadorForm() {
+            document.getElementById('ambassadorId').value = '';
+            document.getElementById('ambassadorName').value = '';
+            document.getElementById('ambassadorDisplayName').value = '';
+            document.getElementById('ambassadorDescription').value = '';
+            document.getElementById('ambassadorTagline').value = '';
+            document.getElementById('ambassadorRole').value = '';
+            document.getElementById('ambassadorTags').value = '';
+            document.getElementById('avatarValue').value = '🤖';
+            document.getElementById('avatarAlternatives').value = '';
+            document.getElementById('primaryColor').value = '#6366f1';
+            document.getElementById('primaryColorHex').value = '#6366f1';
+            document.getElementById('secondaryColor').value = '#8b5cf6';
+            document.getElementById('secondaryColorHex').value = '#8b5cf6';
+            document.getElementById('worldName').value = '';
+            document.getElementById('worldDescription').value = '';
+        }
+
+        // Populate ambassador form
+        function populateAmbassadorForm(ambassador) {
+            document.getElementById('ambassadorId').value = ambassador.id;
+            document.getElementById('ambassadorName').value = ambassador.name;
+            document.getElementById('ambassadorDisplayName').value = ambassador.displayName;
+            document.getElementById('ambassadorDescription').value = ambassador.description;
+            document.getElementById('ambassadorTags').value = ambassador.tags.join(', ');
+            document.getElementById('avatarValue').value = ambassador.avatar.value;
+            document.getElementById('avatarAlternatives').value = ambassador.avatar.alternatives.join(', ');
+            document.getElementById('primaryColor').value = ambassador.branding.primaryColor;
+            document.getElementById('primaryColorHex').value = ambassador.branding.primaryColor;
+            document.getElementById('secondaryColor').value = ambassador.branding.secondaryColor;
+            document.getElementById('secondaryColorHex').value = ambassador.branding.secondaryColor;
+        }
+
+        // Save ambassador
+        function saveAmbassador() {
+            const ambassador = {
+                id: document.getElementById('ambassadorId').value,
+                name: document.getElementById('ambassadorName').value,
+                displayName: document.getElementById('ambassadorDisplayName').value,
+                description: document.getElementById('ambassadorDescription').value,
+                tagline: document.getElementById('ambassadorTagline').value,
+                role: document.getElementById('ambassadorRole').value,
+                tags: document.getElementById('ambassadorTags').value.split(',').map(t => t.trim()),
+                avatar: {
+                    type: document.getElementById('avatarType').value,
+                    value: document.getElementById('avatarValue').value,
+                    alternatives: document.getElementById('avatarAlternatives').value.split(',').map(a => a.trim())
+                },
+                branding: {
+                    primaryColor: document.getElementById('primaryColor').value,
+                    secondaryColor: document.getElementById('secondaryColor').value,
+                    theme: document.getElementById('brandingTheme').value
+                },
+                world: {
+                    type: document.getElementById('worldType').value,
+                    name: document.getElementById('worldName').value,
+                    description: document.getElementById('worldDescription').value,
+                    environment: {
+                        background: document.getElementById('worldBackground').value,
+                        music: document.getElementById('worldMusic').value,
+                        effects: document.getElementById('worldEffects').value.split(',').map(e => e.trim())
+                    }
+                },
+                agentMapping: {
+                    baseAgent: document.getElementById('baseAgent').value,
+                    customAgent: document.getElementById('customAgent').value,
+                    agentFile: document.getElementById('agentFile').value,
+                    functionName: document.getElementById('functionName').value
+                },
+                status: 'active',
+                scans: currentAmbassador ? currentAmbassador.scans : 0,
+                interactions: currentAmbassador ? currentAmbassador.interactions : 0,
+                satisfaction: currentAmbassador ? currentAmbassador.satisfaction : 0
+            };
+
+            if (document.getElementById('enableSeededDemo').checked) {
+                ambassador.demoConfiguration = {
+                    seededRun: true,
+                    parameters: {
+                        userGuid: document.getElementById('demoUserGuid').value,
+                        memorySeed: document.getElementById('memorySeedId').value,
+                        model: document.getElementById('demoModel').value,
+                        temperature: parseFloat(document.getElementById('demoTemperature').value),
+                        maxTokens: parseInt(document.getElementById('demoMaxTokens').value)
+                    }
+                };
+            }
+
+            if (currentAmbassador) {
+                const index = ambassadors.findIndex(a => a.id === currentAmbassador.id);
+                ambassadors[index] = ambassador;
+            } else {
+                ambassadors.push(ambassador);
+            }
+
+            renderAmbassadors();
+            updateStats();
+            closeModal('ambassadorModal');
+
+            showAlert('success', 'Ambassador saved successfully!');
+        }
+
+        // Export ambassador
+        function exportAmbassador() {
+            const ambassador = {
+                ambassador: {
+                    id: document.getElementById('ambassadorId').value,
+                    name: document.getElementById('ambassadorName').value,
+                    displayName: document.getElementById('ambassadorDisplayName').value,
+                    description: document.getElementById('ambassadorDescription').value,
+                    tagline: document.getElementById('ambassadorTagline').value,
+                    role: document.getElementById('ambassadorRole').value,
+                    tags: document.getElementById('ambassadorTags').value.split(',').map(t => t.trim()),
+                    avatar: {
+                        type: document.getElementById('avatarType').value,
+                        value: document.getElementById('avatarValue').value,
+                        alternatives: document.getElementById('avatarAlternatives').value.split(',').map(a => a.trim())
+                    },
+                    branding: {
+                        primaryColor: document.getElementById('primaryColor').value,
+                        secondaryColor: document.getElementById('secondaryColor').value,
+                        theme: document.getElementById('brandingTheme').value
+                    },
+                    world: {
+                        type: document.getElementById('worldType').value,
+                        name: document.getElementById('worldName').value,
+                        description: document.getElementById('worldDescription').value
+                    }
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(ambassador, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${ambassador.ambassador.id}.json`;
+            a.click();
+        }
+
+        // Add capability
+        function addCapability() {
+            const list = document.getElementById('capabilitiesList');
+            const item = document.createElement('div');
+            item.className = 'capability-item';
+            item.innerHTML = `
+                <span class="capability-icon">💡</span>
+                <div style="flex: 1;">
+                    <input type="text" placeholder="Capability name" class="capability-name" style="margin-bottom: 8px; width: 100%; padding: 8px; border: 2px solid var(--border); border-radius: 8px;">
+                    <textarea placeholder="Description" class="capability-desc" style="width: 100%; padding: 8px; border: 2px solid var(--border); border-radius: 8px;"></textarea>
+                </div>
+                <button class="btn btn-danger" onclick="removeCapability(this)">Remove</button>
+            `;
+            list.appendChild(item);
+        }
+
+        // Remove capability
+        function removeCapability(btn) {
+            btn.closest('.capability-item').remove();
+        }
+
+        // Show QR generator
+        function showQRGenerator() {
+            const select = document.getElementById('qrAmbassador');
+            select.innerHTML = ambassadors.map(a =>
+                `<option value="${a.id}">${a.displayName}</option>`
+            ).join('');
+
+            openModal('qrModal');
+        }
+
+        // Generate QR code
+        function generateQR() {
+            const ambassadorId = document.getElementById('qrAmbassador').value;
+            const location = document.getElementById('qrLocation').value;
+            const baseUrl = document.getElementById('qrBaseUrl')?.value || 'https://ai-ambassadors.app/enter/';
+
+            const url = `${baseUrl}${ambassadorId}?source=${location}`;
+            document.getElementById('qrUrl').textContent = url;
+
+            const qrContainer = document.getElementById('qrCodePreview');
+            qrContainer.innerHTML = '';
+
+            QRCode.toCanvas(url, { width: 250, margin: 2 }, (error, canvas) => {
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+                qrContainer.appendChild(canvas);
+            });
+
+            showAlert('success', 'QR Code generated successfully!');
+        }
+
+        // Download QR as PNG
+        function downloadQR() {
+            const canvas = document.querySelector('#qrCodePreview canvas');
+            if (canvas) {
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `qr-${document.getElementById('qrAmbassador').value}.png`;
+                a.click();
+            }
+        }
+
+        // Download QR as SVG
+        function downloadQRSVG() {
+            const ambassadorId = document.getElementById('qrAmbassador').value;
+            const location = document.getElementById('qrLocation').value;
+            const baseUrl = document.getElementById('qrBaseUrl')?.value || 'https://ai-ambassadors.app/enter/';
+            const url = `${baseUrl}${ambassadorId}?source=${location}`;
+
+            QRCode.toString(url, { type: 'svg' }, (error, svg) => {
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `qr-${ambassadorId}.svg`;
+                a.click();
+            });
+        }
+
+        // Show create memory seed
+        function showCreateMemorySeed() {
+            const select = document.getElementById('seedAmbassador');
+            select.innerHTML = ambassadors.map(a =>
+                `<option value="${a.id}">${a.displayName}</option>`
+            ).join('');
+
+            openModal('memorySeedModal');
+        }
+
+        // Save memory seed
+        function saveMemorySeed() {
+            try {
+                const memoriesText = document.getElementById('memoryEditor').textContent;
+                const memories = JSON.parse(memoriesText);
+
+                const seed = {
+                    id: document.getElementById('seedId').value,
+                    version: document.getElementById('seedVersion').value,
+                    description: document.getElementById('seedDescription').value,
+                    ambassadorId: document.getElementById('seedAmbassador').value,
+                    memories: memories
+                };
+
+                memorySeeds.push(seed);
+                closeModal('memorySeedModal');
+                showAlert('success', 'Memory seed saved successfully!');
+
+                // Export to file
+                const blob = new Blob([JSON.stringify(seed, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${seed.id}.json`;
+                a.click();
+            } catch (error) {
+                showAlert('danger', 'Invalid JSON format! Please check your memory configuration.');
+            }
+        }
+
+        // Validate JSON
+        function validateJSON() {
+            try {
+                const text = document.getElementById('memoryEditor').textContent;
+                JSON.parse(text);
+                showAlert('success', 'JSON is valid!');
+            } catch (error) {
+                showAlert('danger', `JSON Error: ${error.message}`);
+            }
+        }
+
+        // Show emoji picker
+        function showEmojiPicker() {
+            const emojis = ['😀', '😃', '😄', '😁', '🎨', '🎭', '🎪', '🎬', '🎮', '🎯', '🎲', '🎰', '🎳', '🚀', '✈️', '🚁', '🛸', '🚢', '⛵', '🏎️', '🚜', '🚲', '🛴', '🏍️', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✨', '⭐', '🌟', '💫', '🔥', '💥', '🎆', '🎇', '🌈', '☀️', '⛅', '⛈️', '🌤️', '🌥️', '🌦️', '🌧️', '⛆', '☔', '💧', '💦', '🌊', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🌺', '🌻', '🌼', '🌷', '🌹', '🥀', '🌸', '💐', '🏵️', '🌱', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🦋', '🐛', '🐝', '🐞', '🦗', '🕷️', '🦂', '🦟', '🦠', '🐚', '🦀', '🦞', '🦐', '🦑', '🐙', '🦈', '🐬', '🐳', '🐋', '🐟', '🐠', '🐡', '🦭', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🪶', '🐓', '🦃', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🦩', '🦚', '🦜', '🐦', '🐧', '🐥', '🐤', '🐣', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '💾', '💿', '📀', '📱', '📲', '☎️', '📞', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⏳', '⏲️', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '💰', '💳', '⚖️', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🧱', '⛓️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️', '⚱️', '🏺', '🔮', '📿', '🧿', '💈', '⚗️', '🔭', '🔬', '🕳️', '💊', '💉', '🩹', '🩺', '🌡️', '🧬', '🦠'];
+
+            const picker = document.getElementById('emojiPicker');
+            picker.innerHTML = emojis.map(emoji =>
+                `<div class="emoji-option" onclick="selectEmoji('${emoji}')">${emoji}</div>`
+            ).join('');
+
+            openModal('emojiPickerModal');
+        }
+
+        // Select emoji
+        function selectEmoji(emoji) {
+            document.getElementById('avatarValue').value = emoji;
+            closeModal('emojiPickerModal');
+        }
+
+        // Filter ambassadors
+        function filterAmbassadors(filter) {
+            const grid = document.getElementById('ambassadorGrid');
+            const cards = grid.querySelectorAll('.ambassador-card');
+
+            cards.forEach((card, index) => {
+                const ambassador = ambassadors[index];
+                if (filter === 'all' || ambassador.status === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Search ambassadors
+        function searchAmbassadors(query) {
+            const grid = document.getElementById('ambassadorGrid');
+            const cards = grid.querySelectorAll('.ambassador-card');
+
+            cards.forEach((card, index) => {
+                const ambassador = ambassadors[index];
+                const searchText = `${ambassador.name} ${ambassador.displayName} ${ambassador.description} ${ambassador.tags.join(' ')}`.toLowerCase();
+
+                if (searchText.includes(query.toLowerCase())) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Settings functions
+        function saveSettings() {
+            const settings = {
+                azureFunctionUrl: document.getElementById('azureFunctionUrl').value,
+                functionKey: document.getElementById('functionKey').value,
+                qrBaseUrl: document.getElementById('qrBaseUrl').value,
+                analyticsEnabled: document.getElementById('analyticsEnabled').value === 'true'
+            };
+
+            localStorage.setItem('ambassadorSettings', JSON.stringify(settings));
+            showAlert('success', 'Settings saved successfully!');
+        }
+
+        function exportData() {
+            const data = {
+                ambassadors: ambassadors,
+                qrCodes: qrCodes,
+                memorySeeds: memorySeeds,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ambassador-data-${Date.now()}.json`;
+            a.click();
+
+            showAlert('success', 'Data exported successfully!');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        ambassadors = data.ambassadors || ambassadors;
+                        qrCodes = data.qrCodes || qrCodes;
+                        memorySeeds = data.memorySeeds || memorySeeds;
+
+                        renderAmbassadors();
+                        updateStats();
+                        showAlert('success', 'Data imported successfully!');
+                    } catch (error) {
+                        showAlert('danger', 'Failed to import data. Invalid JSON format.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Alert function
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '10000';
+            alertDiv.style.minWidth = '300px';
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        // Load settings on startup
+        function loadSettings() {
+            const settings = localStorage.getItem('ambassadorSettings');
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                if (document.getElementById('azureFunctionUrl')) {
+                    document.getElementById('azureFunctionUrl').value = parsed.azureFunctionUrl || '';
+                    document.getElementById('functionKey').value = parsed.functionKey || '';
+                    document.getElementById('qrBaseUrl').value = parsed.qrBaseUrl || 'https://ai-ambassadors.app/enter/';
+                    document.getElementById('analyticsEnabled').value = parsed.analyticsEnabled ? 'true' : 'false';
+                }
+            }
+        }
+
+        // Initialize settings
+        setTimeout(loadSettings, 100);
+    </script>
+</body>
+</html>

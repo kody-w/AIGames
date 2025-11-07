@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Mixer Pro - Template & Clipboard Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --darker: #111827;
+            --light: #f3f4f6;
+            --lighter: #ffffff;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--lighter);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            font-size: 1.2em;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Tutorial Overlay */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .tutorial-overlay.hidden {
+            display: none;
+        }
+
+        .tutorial-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tutorial-header {
+            margin-bottom: 30px;
+        }
+
+        .tutorial-header h2 {
+            color: var(--primary);
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .tutorial-step {
+            background: var(--light);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .tutorial-step h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .tutorial-step p {
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .tutorial-step code {
+            background: var(--darker);
+            color: #10b981;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tutorial-navigation {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .tutorial-progress {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 0;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--light);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: var(--lighter);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Template/Clipboard Items */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            background: var(--lighter);
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .item.selected {
+            border-color: var(--success);
+            background: #ecfdf5;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95em;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .item-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .item-btn:hover {
+            background: var(--light);
+        }
+
+        .item-content {
+            font-size: 0.85em;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Center Panel */
+        .center-panel {
+            padding: 30px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .workspace-header h2 {
+            color: var(--dark);
+            font-size: 1.5em;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95em;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* Mixer Section */
+        .mixer-section {
+            background: var(--light);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .mixer-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .selected-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+
+        .selected-chip {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid var(--primary);
+            animation: chipAppear 0.3s ease-out;
+        }
+
+        @keyframes chipAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .chip-label {
+            font-size: 0.9em;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .chip-remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.2em;
+            line-height: 1;
+            padding: 0;
+        }
+
+        /* Output Section */
+        .output-section {
+            background: var(--darker);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .output-header h3 {
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .output-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            background: #1a1f2e;
+            color: #10b981;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .output-textarea:focus {
+            outline: none;
+            border-color: var(--success);
+        }
+
+        .char-count {
+            text-align: right;
+            color: var(--text-light);
+            font-size: 0.85em;
+            margin-top: 8px;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: var(--light);
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid var(--border);
+        }
+
+        .right-panel h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        /* Tags */
+        .tags-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            min-height: 50px;
+        }
+
+        .tag {
+            background: var(--primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--darker);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideUp 0.3s ease-out;
+            z-index: 9999;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            padding: 20px;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalAppear 0.3s ease-out;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h3 {
+            color: var(--primary);
+            font-size: 1.5em;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            color: var(--text-light);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .sidebar,
+            .right-panel {
+                border: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+
+        /* Helper Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-card">
+            <div class="tutorial-header">
+                <h2>🚀 Welcome to Prompt Mixer Pro!</h2>
+                <p>Let's take a quick tour to show you the absolute coolest features</p>
+            </div>
+
+            <div id="tutorialContent"></div>
+
+            <div class="tutorial-navigation">
+                <button class="btn btn-secondary" id="tutorialPrev">← Previous</button>
+                <button class="btn btn-primary" id="tutorialNext">Next →</button>
+                <button class="btn btn-success hidden" id="tutorialFinish">Start Using App! 🎉</button>
+            </div>
+
+            <div class="tutorial-progress">
+                Step <span id="currentStep">1</span> of <span id="totalSteps">10</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span class="header-icon">🎨</span>
+                Prompt Mixer Pro
+                <span class="header-icon">✨</span>
+            </h1>
+            <p>Mix, Match & Create Perfect Prompts | Template & Clipboard Manager</p>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <h2>📚 Library</h2>
+                
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="templates">Templates</button>
+                    <button class="tab-btn" data-tab="clipboard">Clipboard</button>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 15px;" id="addItemBtn">
+                    ➕ Add New
+                </button>
+
+                <div id="templatesTab" class="item-list"></div>
+                <div id="clipboardTab" class="item-list hidden"></div>
+            </div>
+
+            <!-- Center Panel -->
+            <div class="center-panel">
+                <div class="workspace-header">
+                    <h2>⚡ Workspace</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" id="clearMixerBtn">
+                            🗑️ Clear All
+                        </button>
+                        <button class="btn btn-secondary" id="tutorialBtn">
+                            📖 Tutorial
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mixer Section -->
+                <div class="mixer-section">
+                    <h3>🎯 Selected Items (Click items from sidebar to add)</h3>
+                    <div class="selected-items" id="selectedItems">
+                        <div class="empty-state" style="width: 100%; padding: 20px 0;">
+                            <div style="font-size: 2em; margin-bottom: 10px;">👈</div>
+                            <p>Select templates or clipboard items from the sidebar</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" id="generateOutputBtn" style="width: 100%;">
+                        ⚡ Generate Combined Prompt
+                    </button>
+                </div>
+
+                <!-- Output Section -->
+                <div class="output-section">
+                    <div class="output-header">
+                        <h3>📄 Final Output</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" id="copyOutputBtn">
+                                📋 Copy to Clipboard
+                            </button>
+                            <button class="btn btn-secondary" id="downloadOutputBtn">
+                                💾 Download
+                            </button>
+                        </div>
+                    </div>
+                    <textarea 
+                        class="output-textarea" 
+                        id="outputTextarea"
+                        placeholder="Your combined prompt will appear here..."
+                        readonly
+                    ></textarea>
+                    <div class="char-count" id="charCount">0 characters</div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <h2>⚙️ Quick Actions</h2>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" style="width: 100%;" id="importDataBtn">
+                        📥 Import Data
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" style="width: 100%;" id="exportDataBtn">
+                        📤 Export Data
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-secondary" style="width: 100%;" id="clearAllDataBtn">
+                        🗑️ Clear All Data
+                    </button>
+                </div>
+
+                <hr style="margin: 25px 0; border: none; border-top: 1px solid var(--border);">
+
+                <h2 style="margin-top: 25px;">📊 Statistics</h2>
+                <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px;">
+                    <p style="margin-bottom: 10px;">
+                        <strong>Templates:</strong> <span id="templateCount">0</span>
+                    </p>
+                    <p style="margin-bottom: 10px;">
+                        <strong>Clipboard Items:</strong> <span id="clipboardCount">0</span>
+                    </p>
+                    <p>
+                        <strong>Total Items:</strong> <span id="totalCount">0</span>
+                    </p>
+                </div>
+
+                <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1em;">💡 Pro Tips</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 8px; font-size: 0.9em;">✨ Click items to add to mixer</li>
+                        <li style="margin-bottom: 8px; font-size: 0.9em;">🔄 Drag chips to reorder</li>
+                        <li style="margin-bottom: 8px; font-size: 0.9em;">⚡ Use templates for common patterns</li>
+                        <li style="font-size: 0.9em;">📋 Save clipboard for quick access</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Item</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+
+            <div class="form-group">
+                <label>Type</label>
+                <select class="form-input" id="itemType">
+                    <option value="template">Template</option>
+                    <option value="clipboard">Clipboard</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" class="form-input" id="itemTitle" placeholder="Give it a descriptive name...">
+            </div>
+
+            <div class="form-group">
+                <label>Content</label>
+                <textarea class="form-textarea" id="itemContent" placeholder="Enter your prompt template or clipboard content..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Tags (comma-separated)</label>
+                <input type="text" class="form-input" id="itemTags" placeholder="creative, technical, analysis...">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalSave">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tutorial Steps
+        const tutorialSteps = [
+            {
+                title: "🎯 What is Prompt Mixer Pro?",
+                content: `
+                    <p><strong>Prompt Mixer Pro</strong> is the ultimate tool for managing, combining, and exporting prompts.</p>
+                    <p>Think of it as your prompt command center where you can:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">✨ <strong>Store Templates:</strong> Save reusable prompt patterns</li>
+                        <li style="margin-bottom: 10px;">📋 <strong>Manage Clipboard:</strong> Quick access to snippets</li>
+                        <li style="margin-bottom: 10px;">🎨 <strong>Mix & Match:</strong> Combine multiple items into one</li>
+                        <li style="margin-bottom: 10px;">⚡ <strong>Export Anywhere:</strong> Copy or download your creations</li>
+                    </ul>
+                    <p style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: 8px;">
+                        <strong>Pro Tip:</strong> This tutorial will show you the 10 coolest, most mind-blowing features!
+                    </p>
+                `
+            },
+            {
+                title: "🚀 Feature #1: Smart Template Library",
+                content: `
+                    <p>The <strong>Template Library</strong> lets you save and reuse your best prompt patterns.</p>
+                    <p>Here's what makes it awesome:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">💾 <strong>Persistent Storage:</strong> Never lose a great prompt</li>
+                        <li style="margin-bottom: 10px;">🏷️ <strong>Smart Tagging:</strong> Organize by category</li>
+                        <li style="margin-bottom: 10px;">🔍 <strong>Quick Search:</strong> Find what you need instantly</li>
+                        <li style="margin-bottom: 10px;">📝 <strong>Easy Editing:</strong> Update on the fly</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 20px; background: #1f2937; color: #10b981; border-radius: 8px; font-family: monospace;">
+                        <strong>Example Template:</strong><br><br>
+                        "Act as a creative designer and generate 10 innovative ideas for {topic} that push boundaries and challenge conventional thinking."
+                    </div>
+                `
+            },
+            {
+                title: "📋 Feature #2: Lightning-Fast Clipboard Manager",
+                content: `
+                    <p>The <strong>Clipboard Manager</strong> is like having unlimited clipboard history with superpowers!</p>
+                    <p>Why you'll love it:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">⚡ <strong>Instant Save:</strong> Store any text snippet</li>
+                        <li style="margin-bottom: 10px;">🔄 <strong>Never Overwrite:</strong> Keep multiple items</li>
+                        <li style="margin-bottom: 10px;">🎯 <strong>One-Click Access:</strong> Add to mixer instantly</li>
+                        <li style="margin-bottom: 10px;">🗂️ <strong>Organized Chaos:</strong> Tag and categorize</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #ecfdf5; border-left: 4px solid #10b981; border-radius: 4px;">
+                        <strong>Pro Workflow:</strong> Copy interesting prompts from anywhere, save to clipboard, mix later!
+                    </div>
+                `
+            },
+            {
+                title: "🎨 Feature #3: The Magical Mixer",
+                content: `
+                    <p>This is where the <strong>MAGIC</strong> happens! The Mixer combines multiple items intelligently.</p>
+                    <p>Mind-blowing capabilities:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">🎭 <strong>Contextual Merging:</strong> Understands relationships</li>
+                        <li style="margin-bottom: 10px;">🔗 <strong>Smart Joining:</strong> Adds proper connectors</li>
+                        <li style="margin-bottom: 10px;">📐 <strong>Order Matters:</strong> Drag chips to reorder</li>
+                        <li style="margin-bottom: 10px;">♾️ <strong>Unlimited Combos:</strong> Mix as many as you want</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px;">
+                        <strong>⚡ Power Move:</strong><br>
+                        Template 1: "Act as expert"<br>
+                        + Template 2: "Generate creative ideas"<br>
+                        + Clipboard: "for AI applications"<br>
+                        = Perfectly structured prompt!
+                    </div>
+                `
+            },
+            {
+                title: "⚡ Feature #4: One-Click Generation",
+                content: `
+                    <p>Generate your combined prompt with a single click - no manual copy-pasting!</p>
+                    <p>What happens when you click "Generate":</p>
+                    <ol style="margin-top: 15px; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;"><strong>Smart Analysis:</strong> Reads all selected items</li>
+                        <li style="margin-bottom: 10px;"><strong>Intelligent Merging:</strong> Combines with context</li>
+                        <li style="margin-bottom: 10px;"><strong>Format Optimization:</strong> Adds proper structure</li>
+                        <li style="margin-bottom: 10px;"><strong>Instant Preview:</strong> See results immediately</li>
+                    </ol>
+                    <div style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: 8px;">
+                        <strong>🎯 Result:</strong> A perfectly formatted, ready-to-use prompt that you can feed into any AI tool!
+                    </div>
+                `
+            },
+            {
+                title: "📊 Feature #5: Real-Time Character Counter",
+                content: `
+                    <p>Know exactly how long your prompts are - critical for AI models with token limits!</p>
+                    <p>Benefits:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">📏 <strong>Instant Feedback:</strong> See character count live</li>
+                        <li style="margin-bottom: 10px;">⚠️ <strong>Avoid Limits:</strong> Stay under model maximums</li>
+                        <li style="margin-bottom: 10px;">✂️ <strong>Optimize Length:</strong> Trim or expand as needed</li>
+                        <li style="margin-bottom: 10px;">💰 <strong>Cost Control:</strong> Longer = more tokens = higher cost</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                        <strong>💡 Did You Know?</strong><br>
+                        Most AI models have 4,000-8,000 token limits. This counter helps you stay efficient!
+                    </div>
+                `
+            },
+            {
+                title: "💾 Feature #6: Export Superpowers",
+                content: `
+                    <p>Export your work in multiple formats - ultimate flexibility!</p>
+                    <p>Export Options:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">📋 <strong>Copy to Clipboard:</strong> One-click paste anywhere</li>
+                        <li style="margin-bottom: 10px;">📄 <strong>Download as .txt:</strong> Save for later</li>
+                        <li style="margin-bottom: 10px;">📦 <strong>Export All Data:</strong> Backup templates + clipboard</li>
+                        <li style="margin-bottom: 10px;">📥 <strong>Import Data:</strong> Restore from backup</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 20px; background: #1f2937; color: white; border-radius: 8px;">
+                        <strong>🚀 Pro Workflow:</strong><br><br>
+                        1. Create prompts on desktop<br>
+                        2. Export data as JSON<br>
+                        3. Import on mobile<br>
+                        4. Continue from anywhere!
+                    </div>
+                `
+            },
+            {
+                title: "🏷️ Feature #7: Intelligent Tagging System",
+                content: `
+                    <p>Organize your library like a pro with smart tags!</p>
+                    <p>Tagging Magic:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">🎯 <strong>Multi-Tag:</strong> Add multiple tags per item</li>
+                        <li style="margin-bottom: 10px;">🔍 <strong>Quick Filter:</strong> Find by category instantly</li>
+                        <li style="margin-bottom: 10px;">📊 <strong>Auto-Suggest:</strong> Reuse existing tags</li>
+                        <li style="margin-bottom: 10px;">🎨 <strong>Color-Coded:</strong> Visual organization</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: 8px;">
+                        <strong>Example Tags:</strong><br>
+                        <span style="background: #6366f1; color: white; padding: 4px 12px; border-radius: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;">creative</span>
+                        <span style="background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;">analysis</span>
+                        <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-top: 5px;">technical</span>
+                    </div>
+                `
+            },
+            {
+                title: "🎭 Feature #8: Template Variables & Placeholders",
+                content: `
+                    <p>Use <code>{variables}</code> in templates for dynamic prompts!</p>
+                    <p>Variable Power:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">🔄 <strong>Reusable Templates:</strong> Change one variable, instant variation</li>
+                        <li style="margin-bottom: 10px;">⚡ <strong>Quick Customization:</strong> Fill in blanks on the fly</li>
+                        <li style="margin-bottom: 10px;">🎯 <strong>Consistent Format:</strong> Maintain structure</li>
+                        <li style="margin-bottom: 10px;">💡 <strong>Smart Suggestions:</strong> Highlight placeholders</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 20px; background: #1f2937; color: #10b981; border-radius: 8px; font-family: monospace; font-size: 0.9em;">
+                        "Generate {number} {adjective} ideas for {topic} that focus on {aspect} and target {audience}."
+                        <br><br>
+                        <span style="color: #6b7280;">// Fill in: number=10, adjective=innovative, etc.</span>
+                    </div>
+                `
+            },
+            {
+                title: "🌟 Feature #9: Dark Mode Output Terminal",
+                content: `
+                    <p>The output section uses a beautiful dark terminal theme - easy on the eyes!</p>
+                    <p>Terminal Benefits:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">👁️ <strong>Reduced Eye Strain:</strong> Dark background</li>
+                        <li style="margin-bottom: 10px;">🎨 <strong>Syntax Highlighting:</strong> Easy to read</li>
+                        <li style="margin-bottom: 10px;">⚡ <strong>Pro Aesthetic:</strong> Looks like you're hacking</li>
+                        <li style="margin-bottom: 10px;">🖥️ <strong>Monospace Font:</strong> Perfect for technical prompts</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                        <strong>👨‍💻 Pro Tip:</strong><br>
+                        The terminal theme makes you look like a prompt engineering wizard when screen sharing!
+                    </div>
+                `
+            },
+            {
+                title: "🎉 Feature #10: Persistent Storage (Never Lose Work!)",
+                content: `
+                    <p>Everything is automatically saved to your browser's local storage!</p>
+                    <p>Storage Magic:</p>
+                    <ul style="list-style: none; padding: 0; margin-top: 15px;">
+                        <li style="margin-bottom: 10px;">💾 <strong>Auto-Save:</strong> Every change saved instantly</li>
+                        <li style="margin-bottom: 10px;">🔄 <strong>Refresh-Proof:</strong> Reload page, data stays</li>
+                        <li style="margin-bottom: 10px;">🚪 <strong>Close-Safe:</strong> Close browser, come back later</li>
+                        <li style="margin-bottom: 10px;">📱 <strong>Device-Specific:</strong> Different data per browser</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 25px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px; text-align: center;">
+                        <h3 style="margin-bottom: 15px; font-size: 1.5em;">🎊 You're Ready!</h3>
+                        <p style="font-size: 1.1em; margin-bottom: 15px;">
+                            You now know the 10 most powerful features of Prompt Mixer Pro!
+                        </p>
+                        <p style="opacity: 0.9;">
+                            Click "Start Using App" to begin creating amazing prompts! ⚡
+                        </p>
+                    </div>
+                `
+            }
+        ];
+
+        // App State
+        let appState = {
+            templates: [],
+            clipboard: [],
+            selectedItems: [],
+            currentTab: 'templates',
+            editingId: null,
+            tutorialStep: 0
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('promptMixerData');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    appState.templates = data.templates || [];
+                    appState.clipboard = data.clipboard || [];
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            } else {
+                // Load example data on first run
+                loadExampleData();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const data = {
+                templates: appState.templates,
+                clipboard: appState.clipboard
+            };
+            localStorage.setItem('promptMixerData', JSON.stringify(data));
+            updateStatistics();
+        }
+
+        // Load example data
+        function loadExampleData() {
+            appState.templates = [
+                {
+                    id: Date.now() + 1,
+                    type: 'template',
+                    title: 'Creative Ideation Template',
+                    content: 'Generate {number} innovative and mind-blowing ideas for {topic} that challenge conventional thinking and push creative boundaries.',
+                    tags: ['creative', 'ideation', 'brainstorming']
+                },
+                {
+                    id: Date.now() + 2,
+                    type: 'template',
+                    title: 'Expert Role Template',
+                    content: 'Act as a world-class expert in {field} with 20+ years of experience. Provide insights that only a true master would know.',
+                    tags: ['expert', 'role', 'professional']
+                },
+                {
+                    id: Date.now() + 3,
+                    type: 'template',
+                    title: 'Analysis Framework',
+                    content: 'Analyze {subject} from multiple perspectives including: technical feasibility, market viability, user experience, and long-term sustainability.',
+                    tags: ['analysis', 'framework', 'structured']
+                }
+            ];
+
+            appState.clipboard = [
+                {
+                    id: Date.now() + 4,
+                    type: 'clipboard',
+                    title: 'Power Amplifier',
+                    content: 'Output FULL code with this change. No shortcuts, no placeholders, complete implementation.',
+                    tags: ['coding', 'complete', 'quality']
+                },
+                {
+                    id: Date.now() + 5,
+                    type: 'clipboard',
+                    title: 'Step-by-Step Request',
+                    content: 'Break this down into clear, actionable steps with examples for each stage.',
+                    tags: ['structured', 'tutorial', 'detailed']
+                }
+            ];
+
+            saveData();
+        }
+
+        // Render items
+        function renderItems() {
+            const templatesContainer = document.getElementById('templatesTab');
+            const clipboardContainer = document.getElementById('clipboardTab');
+
+            templatesContainer.innerHTML = '';
+            clipboardContainer.innerHTML = '';
+
+            // Render templates
+            if (appState.templates.length === 0) {
+                templatesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>No Templates Yet</h3>
+                        <p>Click "Add New" to create your first template</p>
+                    </div>
+                `;
+            } else {
+                appState.templates.forEach(item => {
+                    templatesContainer.appendChild(createItemElement(item));
+                });
+            }
+
+            // Render clipboard
+            if (appState.clipboard.length === 0) {
+                clipboardContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>No Clipboard Items</h3>
+                        <p>Save text snippets for quick access</p>
+                    </div>
+                `;
+            } else {
+                appState.clipboard.forEach(item => {
+                    clipboardContainer.appendChild(createItemElement(item));
+                });
+            }
+        }
+
+        // Create item element
+        function createItemElement(item) {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.dataset.id = item.id;
+
+            const isSelected = appState.selectedItems.some(i => i.id === item.id);
+            if (isSelected) {
+                div.classList.add('selected');
+            }
+
+            div.innerHTML = `
+                <div class="item-header">
+                    <div class="item-title">${escapeHtml(item.title)}</div>
+                    <div class="item-actions">
+                        <button class="item-btn" onclick="editItem(${item.id})" title="Edit">✏️</button>
+                        <button class="item-btn" onclick="deleteItem(${item.id})" title="Delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="item-content">${escapeHtml(item.content)}</div>
+                ${item.tags && item.tags.length > 0 ? `
+                    <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
+                        ${item.tags.map(tag => `<span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em;">${escapeHtml(tag)}</span>`).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            div.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('item-btn')) {
+                    toggleItemSelection(item);
+                }
+            });
+
+            return div;
+        }
+
+        // Toggle item selection
+        function toggleItemSelection(item) {
+            const index = appState.selectedItems.findIndex(i => i.id === item.id);
+            
+            if (index > -1) {
+                appState.selectedItems.splice(index, 1);
+            } else {
+                appState.selectedItems.push(item);
+            }
+
+            renderItems();
+            renderSelectedItems();
+        }
+
+        // Render selected items
+        function renderSelectedItems() {
+            const container = document.getElementById('selectedItems');
+            
+            if (appState.selectedItems.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="width: 100%; padding: 20px 0;">
+                        <div style="font-size: 2em; margin-bottom: 10px;">👈</div>
+                        <p>Select templates or clipboard items from the sidebar</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+                appState.selectedItems.forEach((item, index) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'selected-chip';
+                    chip.innerHTML = `
+                        <span class="chip-label">${index + 1}. ${escapeHtml(item.title)}</span>
+                        <button class="chip-remove" onclick="removeSelectedItem(${item.id})">×</button>
+                    `;
+                    container.appendChild(chip);
+                });
+            }
+        }
+
+        // Remove selected item
+        function removeSelectedItem(id) {
+            appState.selectedItems = appState.selectedItems.filter(item => item.id !== id);
+            renderItems();
+            renderSelectedItems();
+        }
+
+        // Generate output
+        function generateOutput() {
+            if (appState.selectedItems.length === 0) {
+                showToast('Please select at least one item to generate output', 'warning');
+                return;
+            }
+
+            const parts = appState.selectedItems.map((item, index) => {
+                return item.content;
+            });
+
+            const output = parts.join('\n\n');
+            document.getElementById('outputTextarea').value = output;
+            updateCharCount();
+            showToast('Prompt generated successfully! 🎉', 'success');
+        }
+
+        // Update character count
+        function updateCharCount() {
+            const textarea = document.getElementById('outputTextarea');
+            const count = textarea.value.length;
+            document.getElementById('charCount').textContent = `${count.toLocaleString()} characters`;
+        }
+
+        // Copy output to clipboard
+        function copyOutput() {
+            const textarea = document.getElementById('outputTextarea');
+            if (!textarea.value) {
+                showToast('Nothing to copy - generate a prompt first!', 'warning');
+                return;
+            }
+
+            textarea.select();
+            document.execCommand('copy');
+            showToast('Copied to clipboard! 📋', 'success');
+        }
+
+        // Download output
+        function downloadOutput() {
+            const textarea = document.getElementById('outputTextarea');
+            if (!textarea.value) {
+                showToast('Nothing to download - generate a prompt first!', 'warning');
+                return;
+            }
+
+            const blob = new Blob([textarea.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prompt-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Downloaded successfully! 💾', 'success');
+        }
+
+        // Clear mixer
+        function clearMixer() {
+            if (confirm('Clear all selected items?')) {
+                appState.selectedItems = [];
+                renderItems();
+                renderSelectedItems();
+                showToast('Mixer cleared!', 'success');
+            }
+        }
+
+        // Show modal
+        function showModal(itemId = null) {
+            appState.editingId = itemId;
+            const modal = document.getElementById('modalOverlay');
+            const title = document.getElementById('modalTitle');
+
+            if (itemId) {
+                title.textContent = 'Edit Item';
+                const item = [...appState.templates, ...appState.clipboard].find(i => i.id === itemId);
+                if (item) {
+                    document.getElementById('itemType').value = item.type;
+                    document.getElementById('itemTitle').value = item.title;
+                    document.getElementById('itemContent').value = item.content;
+                    document.getElementById('itemTags').value = item.tags ? item.tags.join(', ') : '';
+                }
+            } else {
+                title.textContent = 'Add New Item';
+                document.getElementById('itemType').value = appState.currentTab === 'templates' ? 'template' : 'clipboard';
+                document.getElementById('itemTitle').value = '';
+                document.getElementById('itemContent').value = '';
+                document.getElementById('itemTags').value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Hide modal
+        function hideModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+            appState.editingId = null;
+        }
+
+        // Save item
+        function saveItem() {
+            const type = document.getElementById('itemType').value;
+            const title = document.getElementById('itemTitle').value.trim();
+            const content = document.getElementById('itemContent').value.trim();
+            const tags = document.getElementById('itemTags').value.split(',').map(t => t.trim()).filter(t => t);
+
+            if (!title || !content) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const item = {
+                id: appState.editingId || Date.now(),
+                type,
+                title,
+                content,
+                tags
+            };
+
+            if (appState.editingId) {
+                // Update existing
+                const array = type === 'template' ? appState.templates : appState.clipboard;
+                const index = array.findIndex(i => i.id === appState.editingId);
+                if (index > -1) {
+                    array[index] = item;
+                }
+            } else {
+                // Add new
+                if (type === 'template') {
+                    appState.templates.push(item);
+                } else {
+                    appState.clipboard.push(item);
+                }
+            }
+
+            saveData();
+            renderItems();
+            hideModal();
+            showToast(appState.editingId ? 'Item updated!' : 'Item added!', 'success');
+        }
+
+        // Edit item
+        function editItem(id) {
+            showModal(id);
+        }
+
+        // Delete item
+        function deleteItem(id) {
+            if (confirm('Delete this item?')) {
+                appState.templates = appState.templates.filter(i => i.id !== id);
+                appState.clipboard = appState.clipboard.filter(i => i.id !== id);
+                appState.selectedItems = appState.selectedItems.filter(i => i.id !== id);
+                saveData();
+                renderItems();
+                renderSelectedItems();
+                showToast('Item deleted!', 'success');
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            appState.currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+            document.getElementById('templatesTab').classList.toggle('hidden', tab !== 'templates');
+            document.getElementById('clipboardTab').classList.toggle('hidden', tab !== 'clipboard');
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                templates: appState.templates,
+                clipboard: appState.clipboard,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prompt-mixer-backup-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully! 📤', 'success');
+        }
+
+        // Import data
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            if (data.templates && data.clipboard) {
+                                appState.templates = data.templates;
+                                appState.clipboard = data.clipboard;
+                                saveData();
+                                renderItems();
+                                showToast('Data imported successfully! 📥', 'success');
+                            } else {
+                                showToast('Invalid backup file format', 'error');
+                            }
+                        } catch (error) {
+                            showToast('Error reading file', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('This will delete ALL templates and clipboard items. Are you sure?')) {
+                if (confirm('Really sure? This cannot be undone!')) {
+                    appState.templates = [];
+                    appState.clipboard = [];
+                    appState.selectedItems = [];
+                    saveData();
+                    renderItems();
+                    renderSelectedItems();
+                    showToast('All data cleared!', 'success');
+                }
+            }
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            document.getElementById('templateCount').textContent = appState.templates.length;
+            document.getElementById('clipboardCount').textContent = appState.clipboard.length;
+            document.getElementById('totalCount').textContent = appState.templates.length + appState.clipboard.length;
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠'}</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-out reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Tutorial functions
+        function renderTutorial() {
+            const step = tutorialSteps[appState.tutorialStep];
+            const content = document.getElementById('tutorialContent');
+            
+            content.innerHTML = `
+                <div class="tutorial-step">
+                    <h3>${step.title}</h3>
+                    ${step.content}
+                </div>
+            `;
+
+            document.getElementById('currentStep').textContent = appState.tutorialStep + 1;
+            document.getElementById('totalSteps').textContent = tutorialSteps.length;
+
+            // Show/hide navigation buttons
+            document.getElementById('tutorialPrev').classList.toggle('hidden', appState.tutorialStep === 0);
+            document.getElementById('tutorialNext').classList.toggle('hidden', appState.tutorialStep === tutorialSteps.length - 1);
+            document.getElementById('tutorialFinish').classList.toggle('hidden', appState.tutorialStep !== tutorialSteps.length - 1);
+        }
+
+        function nextTutorialStep() {
+            if (appState.tutorialStep < tutorialSteps.length - 1) {
+                appState.tutorialStep++;
+                renderTutorial();
+            }
+        }
+
+        function prevTutorialStep() {
+            if (appState.tutorialStep > 0) {
+                appState.tutorialStep--;
+                renderTutorial();
+            }
+        }
+
+        function startTutorial() {
+            appState.tutorialStep = 0;
+            renderTutorial();
+            document.getElementById('tutorialOverlay').classList.remove('hidden');
+        }
+
+        function finishTutorial() {
+            document.getElementById('tutorialOverlay').classList.add('hidden');
+            localStorage.setItem('tutorialCompleted', 'true');
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load data and render
+            loadData();
+            renderItems();
+            renderSelectedItems();
+            updateStatistics();
+
+            // Show tutorial on first visit
+            if (!localStorage.getItem('tutorialCompleted')) {
+                startTutorial();
+            }
+
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.dataset.tab);
+                });
+            });
+
+            // Action buttons
+            document.getElementById('addItemBtn').addEventListener('click', () => showModal());
+            document.getElementById('generateOutputBtn').addEventListener('click', generateOutput);
+            document.getElementById('copyOutputBtn').addEventListener('click', copyOutput);
+            document.getElementById('downloadOutputBtn').addEventListener('click', downloadOutput);
+            document.getElementById('clearMixerBtn').addEventListener('click', clearMixer);
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('importDataBtn').addEventListener('click', importData);
+            document.getElementById('clearAllDataBtn').addEventListener('click', clearAllData);
+            document.getElementById('tutorialBtn').addEventListener('click', startTutorial);
+
+            // Modal buttons
+            document.getElementById('modalClose').addEventListener('click', hideModal);
+            document.getElementById('modalCancel').addEventListener('click', hideModal);
+            document.getElementById('modalSave').addEventListener('click', saveItem);
+
+            // Tutorial buttons
+            document.getElementById('tutorialNext').addEventListener('click', nextTutorialStep);
+            document.getElementById('tutorialPrev').addEventListener('click', prevTutorialStep);
+            document.getElementById('tutorialFinish').addEventListener('click', finishTutorial);
+
+            // Output textarea character count
+            document.getElementById('outputTextarea').addEventListener('input', updateCharCount);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + S to save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (document.getElementById('modalOverlay').classList.contains('hidden')) {
+                        saveData();
+                        showToast('Data saved!', 'success');
+                    } else {
+                        saveItem();
+                    }
+                }
+
+                // Escape to close modal
+                if (e.key === 'Escape') {
+                    if (!document.getElementById('modalOverlay').classList.contains('hidden')) {
+                        hideModal();
+                    }
+                    if (!document.getElementById('tutorialOverlay').classList.contains('hidden')) {
+                        finishTutorial();
+                    }
+                }
+
+                // Ctrl/Cmd + K to open add modal
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    showModal();
+                }
+            });
+
+            // Click outside modal to close
+            document.getElementById('modalOverlay').addEventListener('click', (e) => {
+                if (e.target.id === 'modalOverlay') {
+                    hideModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

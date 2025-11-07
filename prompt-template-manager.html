@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Template Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --dark-light: #374151;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --border: #e5e7eb;
+            --text: #111827;
+            --text-light: #6b7280;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            height: calc(100vh - 40px);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            font-size: 32px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--light);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--white);
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* Template List */
+        .template-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-item {
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .template-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .template-item.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        }
+
+        .template-item.tutorial {
+            border-color: var(--success);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+        }
+
+        .template-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .template-item-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .template-item-category {
+            font-size: 11px;
+            padding: 2px 8px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .template-item-preview {
+            font-size: 12px;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Center Panel */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--white);
+        }
+
+        .panel-header {
+            padding: 20px 32px;
+            border-bottom: 2px solid var(--border);
+            background: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+        }
+
+        /* Tutorial Steps */
+        .tutorial-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tutorial-step {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .tutorial-step.completed {
+            border-color: var(--success);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+        }
+
+        .step-badge {
+            position: absolute;
+            top: -12px;
+            left: 24px;
+            background: var(--primary);
+            color: var(--white);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .tutorial-step.completed .step-badge {
+            background: var(--success);
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 8px 0 12px 0;
+            color: var(--text);
+        }
+
+        .step-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .step-action {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Editor Area */
+        .editor-container {
+            margin-bottom: 24px;
+        }
+
+        .editor-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .editor-label label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .editor-input, .editor-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: var(--white);
+        }
+
+        .editor-input:focus, .editor-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .editor-textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            line-height: 1.6;
+        }
+
+        .editor-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .editor-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            background: var(--light);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .clipboard-section, .mixer-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            padding: 16px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .section-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        /* Clipboard Items */
+        .clipboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .clipboard-item {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .clipboard-item:hover {
+            border-color: var(--secondary);
+            box-shadow: var(--shadow);
+        }
+
+        .clipboard-item.selected {
+            border-color: var(--secondary);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+        }
+
+        .clipboard-item-time {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .clipboard-item-text {
+            font-size: 12px;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            line-height: 1.4;
+        }
+
+        .clipboard-item-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: none;
+        }
+
+        .clipboard-item:hover .clipboard-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* Mixer Section */
+        .mixer-preview {
+            background: var(--white);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text);
+        }
+
+        .mixer-preview.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .selected-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .selected-item-tag {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selected-item-tag button {
+            background: none;
+            border: none;
+            color: var(--white);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--white);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.success {
+            border-left-color: var(--success);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: scaleIn 0.2s;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .empty-state-description {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Export Preview */
+        .export-preview {
+            background: var(--dark);
+            color: #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        /* Tutorial Progress */
+        .tutorial-progress {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s;
+        }
+
+        .progress-dot.completed {
+            background: var(--success);
+        }
+
+        .progress-dot.active {
+            background: var(--primary);
+            transform: scale(1.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+
+            .sidebar, .right-sidebar {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span class="header-icon">📝</span>
+                Prompt Template Manager
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="showTutorial()">
+                    📚 Tutorial
+                </button>
+                <button class="btn btn-primary" onclick="createNewTemplate()">
+                    ➕ New Template
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar - Templates -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2>My Templates</h2>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn-sm btn-primary" onclick="createNewTemplate()">
+                            ➕ New
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="importTemplate()">
+                            📥 Import
+                        </button>
+                    </div>
+                </div>
+                <div class="sidebar-content">
+                    <div class="template-list" id="templateList">
+                        <!-- Templates will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Editor/Tutorial -->
+            <div class="center-panel">
+                <div class="panel-header">
+                    <h2 id="panelTitle">Welcome</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-sm btn-success" onclick="saveCurrentTemplate()" id="saveBtn" style="display: none;">
+                            💾 Save
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCurrentTemplate()" id="deleteBtn" style="display: none;">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content" id="panelContent">
+                    <!-- Content will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Clipboard & Mixer -->
+            <div class="right-sidebar">
+                <!-- Clipboard Section -->
+                <div class="clipboard-section">
+                    <div class="section-header">
+                        <h3>📋 Clipboard History</h3>
+                        <button class="btn btn-icon btn-sm" onclick="clearClipboard()" title="Clear All">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="clipboard-list" id="clipboardList">
+                            <!-- Clipboard items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixer Section -->
+                <div class="mixer-section">
+                    <div class="section-header">
+                        <h3>🎨 Mixer</h3>
+                        <button class="btn btn-icon btn-sm" onclick="clearMixer()" title="Clear Mixer">
+                            ✖️
+                        </button>
+                    </div>
+                    <div class="section-content">
+                        <div class="selected-items-list" id="selectedItemsList">
+                            <!-- Selected items tags will appear here -->
+                        </div>
+                        <div class="mixer-preview empty" id="mixerPreview">
+                            Select templates and clipboard items to mix
+                        </div>
+                        <button class="btn btn-secondary" onclick="exportMixedPrompt()" style="width: 100%;">
+                            📤 Export Mixed Prompt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📤 Export Prompt</h2>
+            </div>
+            <div class="modal-body">
+                <div class="export-preview" id="exportPreview"></div>
+                <div class="editor-container">
+                    <div class="editor-label">
+                        <label>Filename</label>
+                    </div>
+                    <input type="text" class="editor-input" id="exportFilename" value="mixed-prompt.txt">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeExportModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="copyToClipboard()">📋 Copy</button>
+                <button class="btn btn-success" onclick="downloadExport()">💾 Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const AppState = {
+            templates: [],
+            clipboardHistory: [],
+            selectedTemplate: null,
+            selectedClipboardItems: [],
+            selectedTemplatesForMix: [],
+            tutorialMode: false,
+            tutorialStep: 0
+        };
+
+        // Tutorial Steps
+        const TutorialSteps = [
+            {
+                title: "Welcome to Prompt Template Manager",
+                description: "This tutorial will guide you through creating, managing, and mixing prompt templates for creative design workflows. Let's start by creating your first template!",
+                action: "Create First Template",
+                actionFn: () => {
+                    createNewTemplate();
+                    AppState.tutorialStep++;
+                    renderTutorial();
+                }
+            },
+            {
+                title: "Name Your Template",
+                description: "Give your template a descriptive name. For this tutorial, we'll create a 'Creative Brief Generator' template. Type a name and category, then click Next.",
+                action: "Next",
+                actionFn: () => {
+                    const title = document.getElementById('templateTitle').value;
+                    if (title.trim()) {
+                        AppState.tutorialStep++;
+                        renderTutorial();
+                        showToast('success', 'Great!', 'Template named successfully');
+                    } else {
+                        showToast('warning', 'Hold on', 'Please enter a template name first');
+                    }
+                }
+            },
+            {
+                title: "Write Your Prompt Template",
+                description: "Now write your prompt template. Use variables like {project_name}, {target_audience}, {key_message} that you can fill in later. For example: 'Create a creative brief for {project_name} targeting {target_audience} with the key message: {key_message}'",
+                action: "Save Template",
+                actionFn: () => {
+                    saveCurrentTemplate();
+                    AppState.tutorialStep++;
+                    renderTutorial();
+                }
+            },
+            {
+                title: "Add to Clipboard History",
+                description: "The Clipboard History automatically tracks text you copy. Let's simulate adding some sample data. Click below to add sample clipboard entries.",
+                action: "Add Sample Data",
+                actionFn: () => {
+                    addSampleClipboardData();
+                    AppState.tutorialStep++;
+                    renderTutorial();
+                }
+            },
+            {
+                title: "Select Items to Mix",
+                description: "Now you can select your template and clipboard items to mix together. Click on templates and clipboard items to add them to the mixer. Try selecting your template and a clipboard item!",
+                action: "Continue",
+                actionFn: () => {
+                    if (AppState.selectedTemplatesForMix.length > 0 || AppState.selectedClipboardItems.length > 0) {
+                        AppState.tutorialStep++;
+                        renderTutorial();
+                        showToast('success', 'Perfect!', 'Items added to mixer');
+                    } else {
+                        showToast('warning', 'Not yet', 'Please select at least one item first');
+                    }
+                }
+            },
+            {
+                title: "Export Your Mixed Prompt",
+                description: "Finally, click 'Export Mixed Prompt' in the Mixer section to generate your combined prompt. You can copy it to clipboard or download it as a file.",
+                action: "Finish Tutorial",
+                actionFn: () => {
+                    AppState.tutorialMode = false;
+                    AppState.tutorialStep = 0;
+                    showWelcome();
+                    showToast('success', 'Tutorial Complete!', 'You\'re ready to create amazing prompts');
+                }
+            }
+        ];
+
+        // Initialize App
+        function init() {
+            loadFromStorage();
+            renderTemplateList();
+            renderClipboardList();
+            showWelcome();
+            setupClipboardMonitor();
+        }
+
+        // Local Storage
+        function saveToStorage() {
+            localStorage.setItem('promptTemplates', JSON.stringify(AppState.templates));
+            localStorage.setItem('clipboardHistory', JSON.stringify(AppState.clipboardHistory));
+        }
+
+        function loadFromStorage() {
+            const templates = localStorage.getItem('promptTemplates');
+            const clipboard = localStorage.getItem('clipboardHistory');
+            
+            if (templates) {
+                AppState.templates = JSON.parse(templates);
+            } else {
+                // Add default tutorial template
+                AppState.templates = [{
+                    id: 'tutorial-' + Date.now(),
+                    title: 'Tutorial: Creative Brief',
+                    category: 'Design',
+                    content: 'Create a creative brief for {project_name} targeting {target_audience}.\n\nKey Message: {key_message}\n\nObjectives:\n- {objective_1}\n- {objective_2}\n- {objective_3}\n\nDeliverables:\n{deliverables}',
+                    created: new Date().toISOString(),
+                    modified: new Date().toISOString(),
+                    isTutorial: true
+                }];
+            }
+            
+            if (clipboard) {
+                AppState.clipboardHistory = JSON.parse(clipboard);
+            }
+        }
+
+        // Template Management
+        function createNewTemplate() {
+            AppState.selectedTemplate = {
+                id: 'new-' + Date.now(),
+                title: '',
+                category: 'General',
+                content: '',
+                created: new Date().toISOString(),
+                modified: new Date().toISOString(),
+                isNew: true
+            };
+            renderTemplateEditor();
+        }
+
+        function selectTemplate(templateId) {
+            const template = AppState.templates.find(t => t.id === templateId);
+            if (template) {
+                AppState.selectedTemplate = { ...template };
+                renderTemplateEditor();
+            }
+        }
+
+        function saveCurrentTemplate() {
+            if (!AppState.selectedTemplate) return;
+
+            const title = document.getElementById('templateTitle').value.trim();
+            const category = document.getElementById('templateCategory').value;
+            const content = document.getElementById('templateContent').value.trim();
+
+            if (!title || !content) {
+                showToast('warning', 'Incomplete', 'Please fill in title and content');
+                return;
+            }
+
+            AppState.selectedTemplate.title = title;
+            AppState.selectedTemplate.category = category;
+            AppState.selectedTemplate.content = content;
+            AppState.selectedTemplate.modified = new Date().toISOString();
+
+            if (AppState.selectedTemplate.isNew) {
+                delete AppState.selectedTemplate.isNew;
+                AppState.templates.unshift(AppState.selectedTemplate);
+            } else {
+                const index = AppState.templates.findIndex(t => t.id === AppState.selectedTemplate.id);
+                if (index !== -1) {
+                    AppState.templates[index] = AppState.selectedTemplate;
+                }
+            }
+
+            saveToStorage();
+            renderTemplateList();
+            showToast('success', 'Saved!', 'Template saved successfully');
+        }
+
+        function deleteCurrentTemplate() {
+            if (!AppState.selectedTemplate || AppState.selectedTemplate.isNew) return;
+
+            if (confirm('Are you sure you want to delete this template?')) {
+                AppState.templates = AppState.templates.filter(t => t.id !== AppState.selectedTemplate.id);
+                saveToStorage();
+                renderTemplateList();
+                showWelcome();
+                showToast('success', 'Deleted', 'Template deleted successfully');
+            }
+        }
+
+        function toggleTemplateForMix(templateId) {
+            const index = AppState.selectedTemplatesForMix.indexOf(templateId);
+            if (index > -1) {
+                AppState.selectedTemplatesForMix.splice(index, 1);
+            } else {
+                AppState.selectedTemplatesForMix.push(templateId);
+            }
+            renderTemplateList();
+            updateMixer();
+        }
+
+        // Clipboard Management
+        function setupClipboardMonitor() {
+            // Simulate clipboard monitoring with button
+            document.addEventListener('paste', (e) => {
+                const text = e.clipboardData.getData('text');
+                if (text && text.trim()) {
+                    addToClipboard(text);
+                }
+            });
+        }
+
+        function addToClipboard(text) {
+            const item = {
+                id: 'clip-' + Date.now(),
+                text: text.trim(),
+                timestamp: new Date().toISOString()
+            };
+            
+            AppState.clipboardHistory.unshift(item);
+            
+            // Limit to 50 items
+            if (AppState.clipboardHistory.length > 50) {
+                AppState.clipboardHistory = AppState.clipboardHistory.slice(0, 50);
+            }
+            
+            saveToStorage();
+            renderClipboardList();
+        }
+
+        function toggleClipboardItem(itemId) {
+            const index = AppState.selectedClipboardItems.indexOf(itemId);
+            if (index > -1) {
+                AppState.selectedClipboardItems.splice(index, 1);
+            } else {
+                AppState.selectedClipboardItems.push(itemId);
+            }
+            renderClipboardList();
+            updateMixer();
+        }
+
+        function deleteClipboardItem(itemId) {
+            AppState.clipboardHistory = AppState.clipboardHistory.filter(c => c.id !== itemId);
+            AppState.selectedClipboardItems = AppState.selectedClipboardItems.filter(id => id !== itemId);
+            saveToStorage();
+            renderClipboardList();
+            updateMixer();
+        }
+
+        function clearClipboard() {
+            if (confirm('Clear all clipboard history?')) {
+                AppState.clipboardHistory = [];
+                AppState.selectedClipboardItems = [];
+                saveToStorage();
+                renderClipboardList();
+                updateMixer();
+                showToast('success', 'Cleared', 'Clipboard history cleared');
+            }
+        }
+
+        function addSampleClipboardData() {
+            const samples = [
+                "Project Name: Urban Coffee Co. Rebrand",
+                "Target Audience: Millennials and Gen Z, urban professionals, coffee enthusiasts aged 25-40",
+                "Key Message: Premium, sustainable coffee experience for the modern urban lifestyle",
+                "Objective: Increase brand awareness by 40% in metropolitan areas",
+                "Deliverables: New logo, brand guidelines, packaging design, social media templates"
+            ];
+
+            samples.forEach((text, index) => {
+                setTimeout(() => {
+                    addToClipboard(text);
+                }, index * 200);
+            });
+
+            showToast('success', 'Added', 'Sample data added to clipboard');
+        }
+
+        // Mixer Functions
+        function updateMixer() {
+            const selectedItems = [];
+            
+            // Add selected templates
+            AppState.selectedTemplatesForMix.forEach(templateId => {
+                const template = AppState.templates.find(t => t.id === templateId);
+                if (template) {
+                    selectedItems.push({
+                        type: 'template',
+                        id: template.id,
+                        title: template.title,
+                        content: template.content
+                    });
+                }
+            });
+            
+            // Add selected clipboard items
+            AppState.selectedClipboardItems.forEach(itemId => {
+                const item = AppState.clipboardHistory.find(c => c.id === itemId);
+                if (item) {
+                    selectedItems.push({
+                        type: 'clipboard',
+                        id: item.id,
+                        title: item.text.substring(0, 30) + '...',
+                        content: item.text
+                    });
+                }
+            });
+            
+            // Render selected items tags
+            const selectedItemsList = document.getElementById('selectedItemsList');
+            if (selectedItems.length === 0) {
+                selectedItemsList.innerHTML = '';
+            } else {
+                selectedItemsList.innerHTML = selectedItems.map(item => `
+                    <div class="selected-item-tag">
+                        <span>${item.type === 'template' ? '📝' : '📋'} ${item.title}</span>
+                        <button onclick="removeFromMixer('${item.type}', '${item.id}')">✖</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Update preview
+            const mixerPreview = document.getElementById('mixerPreview');
+            if (selectedItems.length === 0) {
+                mixerPreview.className = 'mixer-preview empty';
+                mixerPreview.textContent = 'Select templates and clipboard items to mix';
+            } else {
+                mixerPreview.className = 'mixer-preview';
+                mixerPreview.textContent = generateMixedPrompt(selectedItems);
+            }
+        }
+
+        function removeFromMixer(type, id) {
+            if (type === 'template') {
+                AppState.selectedTemplatesForMix = AppState.selectedTemplatesForMix.filter(tid => tid !== id);
+            } else {
+                AppState.selectedClipboardItems = AppState.selectedClipboardItems.filter(cid => cid !== id);
+            }
+            renderTemplateList();
+            renderClipboardList();
+            updateMixer();
+        }
+
+        function clearMixer() {
+            AppState.selectedTemplatesForMix = [];
+            AppState.selectedClipboardItems = [];
+            renderTemplateList();
+            renderClipboardList();
+            updateMixer();
+            showToast('success', 'Cleared', 'Mixer cleared');
+        }
+
+        function generateMixedPrompt(items) {
+            let prompt = '';
+            let separator = '\n\n---\n\n';
+            
+            items.forEach((item, index) => {
+                if (index > 0) prompt += separator;
+                
+                if (item.type === 'template') {
+                    prompt += `[TEMPLATE: ${item.title}]\n\n${item.content}`;
+                } else {
+                    prompt += `[DATA]\n${item.content}`;
+                }
+            });
+            
+            return prompt;
+        }
+
+        function exportMixedPrompt() {
+            const selectedItems = [];
+            
+            AppState.selectedTemplatesForMix.forEach(templateId => {
+                const template = AppState.templates.find(t => t.id === templateId);
+                if (template) {
+                    selectedItems.push({
+                        type: 'template',
+                        id: template.id,
+                        title: template.title,
+                        content: template.content
+                    });
+                }
+            });
+            
+            AppState.selectedClipboardItems.forEach(itemId => {
+                const item = AppState.clipboardHistory.find(c => c.id === itemId);
+                if (item) {
+                    selectedItems.push({
+                        type: 'clipboard',
+                        id: item.id,
+                        title: item.text.substring(0, 30) + '...',
+                        content: item.text
+                    });
+                }
+            });
+            
+            if (selectedItems.length === 0) {
+                showToast('warning', 'Nothing to Export', 'Please select items to mix first');
+                return;
+            }
+            
+            const exportPreview = document.getElementById('exportPreview');
+            exportPreview.textContent = generateMixedPrompt(selectedItems);
+            
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('exportPreview').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('success', 'Copied!', 'Prompt copied to clipboard');
+                closeExportModal();
+            });
+        }
+
+        function downloadExport() {
+            const text = document.getElementById('exportPreview').textContent;
+            const filename = document.getElementById('exportFilename').value || 'mixed-prompt.txt';
+            
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('success', 'Downloaded!', 'Prompt downloaded successfully');
+            closeExportModal();
+        }
+
+        // Rendering Functions
+        function renderTemplateList() {
+            const templateList = document.getElementById('templateList');
+            
+            if (AppState.templates.length === 0) {
+                templateList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-title">No Templates Yet</div>
+                        <div class="empty-state-description">Create your first template to get started</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            templateList.innerHTML = AppState.templates.map(template => `
+                <div class="template-item ${AppState.selectedTemplate && AppState.selectedTemplate.id === template.id ? 'active' : ''} ${template.isTutorial ? 'tutorial' : ''} ${AppState.selectedTemplatesForMix.includes(template.id) ? 'selected' : ''}"
+                     onclick="selectTemplate('${template.id}')">
+                    <div class="template-item-header">
+                        <span class="template-item-title">${template.title || 'Untitled'}</span>
+                        <span class="template-item-category">${template.category}</span>
+                    </div>
+                    <div class="template-item-preview">${template.content.substring(0, 60)}...</div>
+                    ${!AppState.tutorialMode ? `
+                        <button class="btn btn-sm btn-secondary" 
+                                style="margin-top: 8px; width: 100%;"
+                                onclick="event.stopPropagation(); toggleTemplateForMix('${template.id}')">
+                            ${AppState.selectedTemplatesForMix.includes(template.id) ? '✓ Added' : '+ Add to Mix'}
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderClipboardList() {
+            const clipboardList = document.getElementById('clipboardList');
+            
+            if (AppState.clipboardHistory.length === 0) {
+                clipboardList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-title">No Clipboard History</div>
+                        <div class="empty-state-description">Paste text to add it here</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            clipboardList.innerHTML = AppState.clipboardHistory.map(item => `
+                <div class="clipboard-item ${AppState.selectedClipboardItems.includes(item.id) ? 'selected' : ''}"
+                     onclick="toggleClipboardItem('${item.id}')">
+                    <div class="clipboard-item-time">${new Date(item.timestamp).toLocaleString()}</div>
+                    <div class="clipboard-item-text">${item.text}</div>
+                    <div class="clipboard-item-actions">
+                        <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteClipboardItem('${item.id}')">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTemplateEditor() {
+            const panelContent = document.getElementById('panelContent');
+            const panelTitle = document.getElementById('panelTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+            
+            panelTitle.textContent = AppState.selectedTemplate.isNew ? 'New Template' : 'Edit Template';
+            saveBtn.style.display = 'block';
+            deleteBtn.style.display = AppState.selectedTemplate.isNew ? 'none' : 'block';
+            
+            const charCount = AppState.selectedTemplate.content.length;
+            
+            panelContent.innerHTML = `
+                <div class="editor-container">
+                    <div class="editor-label">
+                        <label for="templateTitle">Template Name *</label>
+                    </div>
+                    <input type="text" 
+                           id="templateTitle" 
+                           class="editor-input" 
+                           placeholder="e.g., Creative Brief Generator"
+                           value="${AppState.selectedTemplate.title}"
+                           ${AppState.tutorialMode && AppState.tutorialStep === 1 ? 'autofocus' : ''}>
+                </div>
+                
+                <div class="editor-container">
+                    <div class="editor-label">
+                        <label for="templateCategory">Category</label>
+                    </div>
+                    <select id="templateCategory" class="editor-select">
+                        <option value="General" ${AppState.selectedTemplate.category === 'General' ? 'selected' : ''}>General</option>
+                        <option value="Design" ${AppState.selectedTemplate.category === 'Design' ? 'selected' : ''}>Design</option>
+                        <option value="Writing" ${AppState.selectedTemplate.category === 'Writing' ? 'selected' : ''}>Writing</option>
+                        <option value="Code" ${AppState.selectedTemplate.category === 'Code' ? 'selected' : ''}>Code</option>
+                        <option value="Marketing" ${AppState.selectedTemplate.category === 'Marketing' ? 'selected' : ''}>Marketing</option>
+                        <option value="Research" ${AppState.selectedTemplate.category === 'Research' ? 'selected' : ''}>Research</option>
+                        <option value="Business" ${AppState.selectedTemplate.category === 'Business' ? 'selected' : ''}>Business</option>
+                    </select>
+                </div>
+                
+                <div class="editor-container">
+                    <div class="editor-label">
+                        <label for="templateContent">Template Content *</label>
+                        <span class="char-count">${charCount} characters</span>
+                    </div>
+                    <textarea id="templateContent" 
+                              class="editor-textarea" 
+                              placeholder="Write your prompt template here...
+
+Use {variables} for dynamic content:
+- {project_name}
+- {target_audience}
+- {key_message}
+
+Example:
+Create a creative brief for {project_name} targeting {target_audience}.
+Key message: {key_message}"
+                              ${AppState.tutorialMode && AppState.tutorialStep === 2 ? 'autofocus' : ''}>${AppState.selectedTemplate.content}</textarea>
+                </div>
+                
+                <div style="background: var(--light); padding: 16px; border-radius: 8px; margin-top: 16px;">
+                    <strong>💡 Pro Tips:</strong>
+                    <ul style="margin-top: 8px; padding-left: 20px; line-height: 1.8;">
+                        <li>Use <code>{variable_name}</code> syntax for placeholders</li>
+                        <li>Break complex prompts into sections</li>
+                        <li>Include examples in your templates</li>
+                        <li>Mix templates with clipboard data for powerful combinations</li>
+                    </ul>
+                </div>
+            `;
+            
+            // Add character counter
+            document.getElementById('templateContent').addEventListener('input', (e) => {
+                const count = e.target.value.length;
+                document.querySelector('.char-count').textContent = `${count} characters`;
+            });
+            
+            renderTemplateList();
+        }
+
+        function showWelcome() {
+            const panelContent = document.getElementById('panelContent');
+            const panelTitle = document.getElementById('panelTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+            
+            panelTitle.textContent = 'Welcome to Prompt Template Manager';
+            saveBtn.style.display = 'none';
+            deleteBtn.style.display = 'none';
+            
+            panelContent.innerHTML = `
+                <div style="max-width: 700px; margin: 0 auto; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">🚀</div>
+                        <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">
+                            Supercharge Your Prompts
+                        </h2>
+                        <p style="font-size: 18px; color: var(--text-light); line-height: 1.6;">
+                            Create, organize, and mix prompt templates with clipboard data to generate powerful, reusable prompts for any AI tool.
+                        </p>
+                    </div>
+                    
+                    <div style="display: grid; gap: 24px; margin-bottom: 40px;">
+                        <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); 
+                                    padding: 24px; border-radius: 12px; border: 2px solid var(--primary);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">📝</div>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Template Library</h3>
+                            <p style="color: var(--text-light); line-height: 1.6;">
+                                Build a library of reusable prompt templates with variables like {project_name} that you can fill in dynamically.
+                            </p>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%); 
+                                    padding: 24px; border-radius: 12px; border: 2px solid var(--secondary);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">📋</div>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Clipboard Tracking</h3>
+                            <p style="color: var(--text-light); line-height: 1.6;">
+                                Automatically track text you copy. Build up a collection of useful snippets to mix into your prompts.
+                            </p>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); 
+                                    padding: 24px; border-radius: 12px; border: 2px solid var(--success);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🎨</div>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Smart Mixer</h3>
+                            <p style="color: var(--text-light); line-height: 1.6;">
+                                Combine multiple templates and clipboard items into one powerful prompt. Export and use anywhere.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="showTutorial()" style="font-size: 16px; padding: 14px 28px;">
+                            📚 Start Tutorial
+                        </button>
+                        <button class="btn btn-outline" onclick="createNewTemplate()" style="font-size: 16px; padding: 14px 28px;">
+                            ➕ Create Template
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showTutorial() {
+            AppState.tutorialMode = true;
+            AppState.tutorialStep = 0;
+            renderTutorial();
+        }
+
+        function renderTutorial() {
+            const panelContent = document.getElementById('panelContent');
+            const panelTitle = document.getElementById('panelTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+            
+            panelTitle.textContent = '📚 Interactive Tutorial';
+            saveBtn.style.display = 'none';
+            deleteBtn.style.display = 'none';
+            
+            const totalSteps = TutorialSteps.length;
+            
+            panelContent.innerHTML = `
+                <div class="tutorial-container">
+                    <div class="tutorial-progress">
+                        ${TutorialSteps.map((_, index) => `
+                            <div class="progress-dot ${index < AppState.tutorialStep ? 'completed' : ''} ${index === AppState.tutorialStep ? 'active' : ''}"></div>
+                        `).join('')}
+                    </div>
+                    
+                    ${TutorialSteps.map((step, index) => `
+                        <div class="tutorial-step ${index < AppState.tutorialStep ? 'completed' : ''}" 
+                             style="${index === AppState.tutorialStep ? '' : 'display: none;'}">
+                            <div class="step-badge">Step ${index + 1} of ${totalSteps}</div>
+                            <div class="step-title">${step.title}</div>
+                            <div class="step-description">${step.description}</div>
+                            <div class="step-action">
+                                <button class="btn ${index === 0 ? 'btn-primary' : index === totalSteps - 1 ? 'btn-success' : 'btn-primary'}" 
+                                        onclick="TutorialSteps[${index}].actionFn()">
+                                    ${step.action}
+                                </button>
+                                ${index > 0 ? `
+                                    <button class="btn btn-outline" onclick="AppState.tutorialStep--; renderTutorial();">
+                                        ← Back
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Toast Notifications
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type] || icons.info}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Import/Export
+        function importTemplate() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const template = JSON.parse(event.target.result);
+                        template.id = 'imported-' + Date.now();
+                        template.created = new Date().toISOString();
+                        template.modified = new Date().toISOString();
+                        AppState.templates.unshift(template);
+                        saveToStorage();
+                        renderTemplateList();
+                        showToast('success', 'Imported!', 'Template imported successfully');
+                    } catch (error) {
+                        showToast('error', 'Import Failed', 'Invalid template file');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

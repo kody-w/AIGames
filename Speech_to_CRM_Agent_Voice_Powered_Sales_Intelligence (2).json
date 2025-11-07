@@ -1,0 +1,316 @@
+{
+  "demo_name": "Speech to CRM Agent - Voice-Powered Sales Intelligence",
+  "description": "Automated demo showcasing AI-powered speech-to-CRM conversion with ACTUAL contact, opportunity, and task creation in Dynamics 365 through natural conversation.",
+  "version": "3.0",
+  "trigger_phrases": [
+    "I just finished a call with John Smith from TechCorp. He's interested in our enterprise solution and wants a demo next week. Budget is around 100-150k. Please update the CRM."
+  ],
+  "metadata": {
+    "category": "sales_productivity_copilot_with_agents",
+    "industry": "cross_industry",
+    "agent_url": "https://m365.cloud.microsoft/chat",
+    "total_steps": 5,
+    "estimated_duration_seconds": 225,
+    "target_audience": "sales_professionals",
+    "microsoft_integrations": [
+      "Dynamics 365 Sales",
+      "Microsoft 365",
+      "Azure Speech Services",
+      "Azure Cognitive Services",
+      "Microsoft Outlook",
+      "Microsoft Teams"
+    ],
+    "agents_used": [
+      "Dynamics365CRUD",
+      "ContactExtractionAgent",
+      "OpportunityCreationAgent",
+      "ActionItemGeneratorAgent"
+    ],
+    "use_cases": [
+      "post_call_crm_updates",
+      "voice_note_transcription",
+      "automated_contact_creation",
+      "opportunity_qualification",
+      "action_item_tracking"
+    ],
+    "requires_live_crm": true
+  },
+  "conversation_flow": [
+    {
+      "step_number": 1,
+      "user_message": "I just finished a call with John Smith from TechCorp. He's interested in our enterprise solution and wants a demo next week. Budget is around 100-150k. Please update the CRM.",
+      "agent_calls": [
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "contacts",
+          "data": {
+            "firstname": "John",
+            "lastname": "Smith",
+            "jobtitle": "VP of Operations",
+            "emailaddress1": "john.smith@techcorp.com",
+            "telephone1": "+1-555-0123",
+            "parentcustomerid@odata.bind": "/accounts(<TECHCORP_ACCOUNT_ID>)"
+          },
+          "description": "Create contact record for John Smith"
+        },
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "opportunities",
+          "data": {
+            "name": "TechCorp Enterprise Solution",
+            "estimatedvalue": 125000,
+            "estimatedclosedate": "2025-06-30",
+            "closeprobability": 60,
+            "purchaseprocess": 1,
+            "salesstagecode": 0,
+            "description": "Enterprise solution opportunity. Budget: $100-150K. Wants demo next week. Key topics: ROI, Integration, Timeline.",
+            "parentcontactid@odata.bind": "/contacts(<JOHN_SMITH_CONTACT_ID>)"
+          },
+          "description": "Create opportunity record for TechCorp deal"
+        },
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "tasks",
+          "data": {
+            "subject": "Schedule Demo for Next Week",
+            "description": "Schedule product demo for John Smith at TechCorp for next week",
+            "prioritycode": 2,
+            "scheduledstart": "2025-11-10T10:00:00Z",
+            "regardingobjectid@odata.bind": "/opportunities(<TECHCORP_OPP_ID>)"
+          },
+          "description": "Create task: Schedule Demo"
+        },
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "tasks",
+          "data": {
+            "subject": "Send Follow-up Email within 24 hours",
+            "description": "Send personalized follow-up email to John Smith recapping call and next steps",
+            "prioritycode": 2,
+            "scheduledstart": "2025-11-04T09:00:00Z",
+            "regardingobjectid@odata.bind": "/opportunities(<TECHCORP_OPP_ID>)"
+          },
+          "description": "Create task: Follow-up Email"
+        },
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "tasks",
+          "data": {
+            "subject": "Prepare Custom Pricing Proposal",
+            "description": "Prepare tailored pricing proposal for TechCorp enterprise solution ($100-150K range)",
+            "prioritycode": 1,
+            "scheduledstart": "2025-11-06T10:00:00Z",
+            "regardingobjectid@odata.bind": "/opportunities(<TECHCORP_OPP_ID>)"
+          },
+          "description": "Create task: Pricing Proposal"
+        },
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "tasks",
+          "data": {
+            "subject": "Share Relevant Case Studies",
+            "description": "Send industry-relevant case studies to John Smith",
+            "prioritycode": 1,
+            "scheduledstart": "2025-11-07T10:00:00Z",
+            "regardingobjectid@odata.bind": "/opportunities(<TECHCORP_OPP_ID>)"
+          },
+          "description": "Create task: Case Studies"
+        }
+      ],
+      "agent_response": "I'll process that call information and update your CRM with the details from your conversation with John Smith at TechCorp.\n\n✅ **CRM Updated Successfully**\n\n**New Contact Created:**\n- Name: John Smith\n- Company: TechCorp Industries\n- Title: VP of Operations\n- Email: john.smith@techcorp.com\n- Phone: +1-555-0123\n- 🔗 {contact_link}\n\n**Opportunity Created:**\n- Deal Name: TechCorp Enterprise Solution\n- Stage: Qualification\n- Estimated Value: $125,000\n- Close Date: Q2 2025\n- Win Probability: 60%\n- 🔗 {opportunity_link}\n\n**Action Items Generated:**\n- 🔗 {task1_link} (Priority: High)\n- 🔗 {task2_link} (Priority: High)\n- 🔗 {task3_link} (Priority: Medium)\n- 🔗 {task4_link} (Priority: Medium)\n\n**Call Intelligence:**\n- Duration: 45 minutes\n- Sentiment: Positive\n- Key Topics: ROI, Integration, Timeline\n- Competitors Mentioned: None\n\n**Records Created:** 1 Contact, 1 Opportunity, 4 Tasks\n\nWould you like me to draft the follow-up email for John?",
+      "expected_response_keywords": [
+        "updated",
+        "contact",
+        "opportunity",
+        "created",
+        "tasks",
+        "demo",
+        "follow-up",
+        "john"
+      ],
+      "wait_for_response": true,
+      "wait_timeout_seconds": 45,
+      "description": "Process call details and create REAL CRM records in Dynamics 365"
+    },
+    {
+      "step_number": 2,
+      "user_message": "Yes, please draft the follow-up email",
+      "agent_calls": [],
+      "agent_response": "Here's a personalized follow-up email for John Smith:\n\n**Subject:** Great Speaking with You Today - TechCorp Enterprise Solution Next Steps\n\n**Email Body:**\n\nHi John,\n\nIt was great speaking with you today about how our enterprise solution can help TechCorp streamline operations and drive ROI. I'm excited about the potential partnership!\n\nAs discussed, here's a quick recap of our conversation:\n\n• Your team is looking to implement an enterprise solution by Q2 2025\n• Budget range of $100-150K aligns well with our enterprise tier\n• Key priorities: ROI measurement, seamless integration, realistic timeline\n\n**Next Steps:**\n1. Product demo scheduled for next week - I'll send a calendar invite shortly\n2. I'm preparing a custom pricing proposal tailored to your requirements\n3. I'll share case studies from similar companies in your industry\n\n**Quick Question:** Would Tuesday or Thursday next week work better for the demo? I'd like to include our solutions architect to address any technical questions.\n\nLooking forward to showing you what we can do for TechCorp!\n\nBest regards,\n[Your Name]\n\nWould you like me to send this email or make any adjustments?",
+      "expected_response_keywords": [
+        "email",
+        "subject",
+        "john",
+        "demo",
+        "next steps",
+        "proposal",
+        "techcorp",
+        "schedule"
+      ],
+      "wait_for_response": true,
+      "wait_timeout_seconds": 50,
+      "description": "Draft personalized follow-up email"
+    },
+    {
+      "step_number": 3,
+      "user_message": "That looks great! Can you also show me all my upcoming demos this week?",
+      "agent_calls": [
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "query",
+          "entity": "appointments",
+          "fetchxml": "<fetch><entity name='appointment'><attribute name='subject'/><attribute name='scheduledstart'/><attribute name='regardingobjectid'/><filter><condition attribute='scheduledstart' operator='this-week'/><condition attribute='subject' operator='like' value='%demo%'/></filter><order attribute='scheduledstart'/></entity></fetch>",
+          "description": "Query upcoming demo appointments for this week"
+        }
+      ],
+      "agent_response": "Based on your calendar and CRM, here are your upcoming demos this week:\n\n**Tuesday, November 5**\n- 10:00 AM - DataFlow Systems - Sarah Johnson (CFO)\n  - Product: Analytics Platform\n  - Deal Size: $85K\n  - Prep Status: ✅ Slides ready\n\n- 2:00 PM - RetailCo Digital - Mike Peters (CTO) \n  - Product: Cloud Infrastructure\n  - Deal Size: $220K\n  - Prep Status: ⚠️ Demo environment needs setup\n\n**Wednesday, November 6**\n- 11:30 AM - FinTech Partners - Lisa Chen (VP Operations)\n  - Product: Security Suite\n  - Deal Size: $340K\n  - Prep Status: ✅ Complete\n\n**Thursday, November 7**\n- 3:00 PM - Manufacturing Co - Tom Rodriguez (Director IT)\n  - Product: ERP Integration\n  - Deal Size: $190K\n  - Prep Status: ✅ Ready\n\n**Friday, November 8**\n- TechCorp - John Smith (VP Operations) - **TO BE SCHEDULED**\n  - Product: Enterprise Solution\n  - Deal Size: $125K\n  - Prep Status: 🔄 Pending schedule confirmation\n\n**Action Required:** RetailCo demo environment needs setup by tomorrow. Would you like me to create a reminder?",
+      "expected_response_keywords": [
+        "demos",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "schedule",
+        "prep",
+        "ready",
+        "upcoming"
+      ],
+      "wait_for_response": true,
+      "wait_timeout_seconds": 45,
+      "description": "Show upcoming demos from calendar"
+    },
+    {
+      "step_number": 4,
+      "user_message": "Yes, please create a reminder for the RetailCo demo setup",
+      "agent_calls": [
+        {
+          "agent_name": "Dynamics365CRUD",
+          "operation": "create",
+          "entity": "tasks",
+          "data": {
+            "subject": "Setup Demo Environment for RetailCo",
+            "description": "Configure cloud infrastructure demo environment for Mike Peters presentation on Nov 5 at 2:00 PM. Key focus: Cloud migration capabilities and security features.",
+            "prioritycode": 2,
+            "scheduledstart": "2025-11-04T17:00:00Z",
+            "scheduledend": "2025-11-04T17:00:00Z",
+            "regardingobjectid@odata.bind": "/opportunities(<RETAILCO_OPP_ID>)"
+          },
+          "description": "Create high-priority task reminder for RetailCo demo setup"
+        }
+      ],
+      "agent_response": "✅ **Reminder Created**\n\n**Task Details:**\n- Subject: Setup Demo Environment for RetailCo\n- Description: Configure cloud infrastructure demo environment for Mike Peters presentation\n- Due: Tomorrow (November 4) by 5:00 PM\n- Priority: HIGH\n- Related Opportunity: RetailCo Digital Transformation ($220K)\n- 🔗 {task_link}\n\n**Additional Context:**\n- Demo scheduled: Tuesday, Nov 5 at 2:00 PM\n- Contact: Mike Peters (CTO)\n- Key Focus: Cloud migration capabilities and security features\n\n**I've also:**\n- Added calendar reminder for tomorrow at 9:00 AM\n- Flagged as high priority in your task list\n- Linked to the RetailCo opportunity record\n\nYou'll receive a notification tomorrow morning. Anything else you need help with?",
+      "expected_response_keywords": [
+        "reminder",
+        "created",
+        "task",
+        "retailco",
+        "demo",
+        "setup",
+        "tomorrow",
+        "priority"
+      ],
+      "wait_for_response": true,
+      "wait_timeout_seconds": 40,
+      "description": "Create task reminder for demo setup in Dynamics 365"
+    },
+    {
+      "step_number": 5,
+      "user_message": "That's perfect, thank you!",
+      "agent_calls": [],
+      "agent_response": "You're very welcome! I've got your back on managing these opportunities. \n\n**Quick Summary of What We Accomplished:**\n✅ Created CRM records for John Smith/TechCorp deal\n✅ Drafted personalized follow-up email\n✅ Reviewed your full week of demos\n✅ Set up critical reminder for RetailCo prep\n\n**Pro Tip:** I'll continue monitoring your pipeline and will alert you about any upcoming deadlines or opportunities that need attention. Feel free to say \"I just finished a call with...\" anytime you need to log call details quickly!\n\nGood luck with your demos this week! 🎯",
+      "expected_response_keywords": [
+        "welcome",
+        "accomplished",
+        "created",
+        "monitoring",
+        "pipeline",
+        "demos",
+        "opportunities",
+        "alert"
+      ],
+      "wait_for_response": true,
+      "wait_timeout_seconds": 30,
+      "description": "Closing acknowledgment and summary"
+    }
+  ],
+  "implementation_notes": {
+    "dynamic_id_replacement": "The script uses placeholder IDs like <TECHCORP_ACCOUNT_ID>, <JOHN_SMITH_CONTACT_ID>, etc. The implementation must:",
+    "steps": [
+      "1. Create the account first (TechCorp) and capture its GUID",
+      "2. Create the contact and link it to the account using the captured GUID",
+      "3. Create the opportunity and link it to the contact",
+      "4. Create all tasks and link them to the opportunity",
+      "5. Replace placeholder GUIDs in the response message with actual created GUIDs",
+      "6. Replace {dynamics_url} and {app_id} placeholders with actual Dynamics 365 URL and Sales App ID"
+    ],
+    "clickable_links": {
+      "description": "Each created record includes a clickable link that opens directly in Dynamics 365",
+      "link_format": "{dynamics_url}/main.aspx?appid={app_id}&pagetype=entityrecord&etn={entity_type}&id={record_guid}",
+      "parameters": {
+        "dynamics_url": "Your Dynamics 365 organization URL (e.g., https://your-org.crm.dynamics.com)",
+        "app_id": "The Sales Hub app ID (typically 'd365default' or your custom sales app ID)",
+        "entity_type": "The logical name of the entity (contact, opportunity, task, etc.)",
+        "record_guid": "The GUID of the specific record to open"
+      },
+      "environment_variables": {
+        "DYNAMICS_365_RESOURCE": "Base URL of your Dynamics 365 organization",
+        "DYNAMICS_365_SALES_APP_ID": "Optional - Sales Hub App ID (defaults to 'd365default')"
+      },
+      "examples": [
+        "Contact: https://your-org.crm.dynamics.com/main.aspx?appid=d365default&pagetype=entityrecord&etn=contact&id=12345678-1234-1234-1234-123456789abc",
+        "Opportunity: https://your-org.crm.dynamics.com/main.aspx?appid=d365default&pagetype=entityrecord&etn=opportunity&id=87654321-4321-4321-4321-cba987654321",
+        "Task: https://your-org.crm.dynamics.com/main.aspx?appid=d365default&pagetype=entityrecord&etn=task&id=11111111-2222-3333-4444-555555555555"
+      ]
+    },
+    "error_handling": "If any CRM operation fails, the agent should:",
+    "error_steps": [
+      "1. Log the error details",
+      "2. Attempt to continue with remaining operations",
+      "3. Include error information in the response",
+      "4. Suggest manual verification in Dynamics 365"
+    ],
+    "data_mapping": {
+      "contact_fields": {
+        "firstname": "First name of the contact",
+        "lastname": "Last name of the contact",
+        "jobtitle": "Job title",
+        "emailaddress1": "Primary email",
+        "telephone1": "Primary phone",
+        "parentcustomerid": "Link to parent account"
+      },
+      "opportunity_fields": {
+        "name": "Opportunity name",
+        "estimatedvalue": "Estimated deal value in base currency",
+        "estimatedclosedate": "Expected close date (ISO format)",
+        "closeprobability": "Win probability (0-100)",
+        "salesstagecode": "Sales stage (0=Qualify, 1=Develop, 2=Propose, 3=Close)",
+        "description": "Opportunity description and notes"
+      },
+      "task_fields": {
+        "subject": "Task subject/title",
+        "description": "Task description",
+        "prioritycode": "Priority (0=Low, 1=Normal, 2=High)",
+        "scheduledstart": "Scheduled start date/time (ISO format)",
+        "regardingobjectid": "Link to related record (opportunity, contact, etc.)"
+      }
+    }
+  },
+  "notes": "This demo script is designed to showcase the Speech to CRM Agent's capabilities by ACTUALLY creating records in Dynamics 365. The automation will send each user message in sequence and execute the specified agent calls to create real CRM data. Each step includes the exact Dynamics365CRUD agent calls with proper data payloads. The implementation should handle GUID tracking and replacement throughout the flow.",
+  "technical_capabilities_demonstrated": [
+    "natural_language_processing",
+    "contact_information_extraction",
+    "live_crm_record_creation",
+    "opportunity_auto_creation",
+    "intelligent_task_generation",
+    "email_composition",
+    "calendar_integration",
+    "multi_turn_conversation_handling",
+    "dynamics_365_web_api_integration",
+    "guid_tracking_and_linking"
+  ]
+}
