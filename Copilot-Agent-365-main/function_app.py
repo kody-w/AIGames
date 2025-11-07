@@ -860,10 +860,46 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
+        # CONTENT MODERATION - Check user input before processing
+        if not is_guid_only:
+            try:
+                from utils.content_moderation import get_moderator
+                moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+                moderation_result = moderator.check_content(user_input, user_guid, 'user_input')
+
+                # If content is flagged as block or ban, reject immediately
+                if moderation_result.action in ['block', 'ban']:
+                    return func.HttpResponse(
+                        json.dumps({
+                            "error": "Content policy violation",
+                            "severity": moderation_result.severity,
+                            "action": moderation_result.action,
+                            "message": "Your message violates our content policy. Please review our guidelines and try again with appropriate content.",
+                            "reasons": moderation_result.reasons,
+                            "flagged": True
+                        }),
+                        status_code=400,
+                        mimetype="application/json",
+                        headers=cors_headers
+                    )
+
+                # If content is filtered, use the filtered version
+                if moderation_result.action == 'filter' and moderation_result.filtered_content:
+                    user_input = moderation_result.filtered_content
+                    logging.info(f"User input filtered for user {user_guid}")
+
+                # If warned, continue but log
+                if moderation_result.action == 'warn':
+                    logging.warning(f"User input warning for user {user_guid}: {moderation_result.reasons}")
+
+            except Exception as e:
+                # Don't fail the entire request if moderation fails
+                logging.error(f"Moderation check failed: {e}")
+
         agents = load_agents_from_folder(user_guid)
         # Create a new Assistant instance for each request
         assistant = Assistant(agents)
-        
+
         # Set user_guid if provided in the request or found in input
         if user_guid:
             assistant.user_guid = user_guid
@@ -872,9 +908,30 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             assistant.user_guid = user_input.strip()
             assistant._initialize_context_memory(user_input.strip())
         # Otherwise, the default GUID will be used (already set in __init__)
-            
+
         assistant_response, voice_response, agent_logs = assistant.get_response(
             user_input, conversation_history)
+
+        # CONTENT MODERATION - Check AI output before returning
+        try:
+            from utils.content_moderation import get_moderator
+            moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+            output_moderation = moderator.check_content(str(assistant_response), user_guid, 'ai_output')
+
+            # If AI output is flagged, filter it
+            if output_moderation.flagged:
+                logging.warning(f"AI output moderation triggered: {output_moderation.severity} - {output_moderation.reasons}")
+
+                if output_moderation.action == 'filter' and output_moderation.filtered_content:
+                    assistant_response = output_moderation.filtered_content
+                elif output_moderation.action in ['block', 'ban']:
+                    # Replace with safe fallback response
+                    assistant_response = "I apologize, but I'm unable to provide that response. Let me try to help you in a different way."
+                    voice_response = "Sorry, I can't provide that response. How else can I help?"
+
+        except Exception as e:
+            # Don't fail the entire request if moderation fails
+            logging.error(f"Output moderation check failed: {e}")
 
         # Include GUID and voice response in output
         response = {
@@ -896,6 +953,196 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         }
         return func.HttpResponse(
             json.dumps(error_response),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+# =============================================================================
+# CONTENT MODERATION API ENDPOINTS
+# =============================================================================
+
+@app.route(route="moderation/check", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_check(req: func.HttpRequest) -> func.HttpResponse:
+    """Check content for policy violations"""
+    logging.info('Moderation check request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        content = req_body.get('content', '')
+        user_guid = req_body.get('user_guid')
+        context = req_body.get('context', 'user_input')
+
+        if not content:
+            return func.HttpResponse(
+                json.dumps({"error": "Content is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        from utils.content_moderation import get_moderator
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+        result = moderator.check_content(content, user_guid, context)
+
+        return func.HttpResponse(
+            json.dumps(result.to_dict()),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation check error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/flagged", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_flagged(req: func.HttpRequest) -> func.HttpResponse:
+    """Get flagged content for review"""
+    logging.info('Get flagged content request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        severity = req.params.get('severity', 'all')
+        category = req.params.get('category', 'all')
+        limit = int(req.params.get('limit', '50'))
+
+        flagged_items = {
+            "items": [],
+            "total": 0,
+            "filters": {"severity": severity, "category": category},
+            "message": "Flagged content tracking requires database integration"
+        }
+
+        return func.HttpResponse(
+            json.dumps(flagged_items),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Get flagged content error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/ban", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
+def moderation_ban(req: func.HttpRequest) -> func.HttpResponse:
+    """Ban or unban a user"""
+    logging.info('Moderation ban request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        user_guid = req_body.get('user_guid')
+        action = req_body.get('action', 'ban')
+        duration = req_body.get('duration')
+
+        if not user_guid:
+            return func.HttpResponse(
+                json.dumps({"error": "user_guid is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        from utils.content_moderation import get_moderator
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        if action == 'ban':
+            if duration:
+                moderator._temp_ban_user(user_guid)
+                message = f"User {user_guid} temporarily banned for {duration} hours"
+            else:
+                moderator._ban_user(user_guid)
+                message = f"User {user_guid} permanently banned"
+        elif action == 'unban':
+            moderator.unban_user(user_guid)
+            message = f"User {user_guid} unbanned"
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": "Invalid action"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        return func.HttpResponse(
+            json.dumps({"user_guid": user_guid, "action": action, "message": message, "timestamp": datetime.utcnow().isoformat()}),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation ban error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/user-violations", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_user_violations(req: func.HttpRequest) -> func.HttpResponse:
+    """Get user violation history"""
+    logging.info('Get user violations request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        user_guid = req.params.get('user_guid')
+
+        if not user_guid:
+            return func.HttpResponse(
+                json.dumps({"error": "user_guid parameter is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        from utils.content_moderation import get_moderator
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        violations = moderator.get_user_violations(user_guid)
+        is_banned = moderator._is_user_banned(user_guid)
+
+        return func.HttpResponse(
+            json.dumps({"user_guid": user_guid, "is_banned": is_banned, "violation_count": len(violations), "violations": violations}),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Get user violations error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
             status_code=500,
             mimetype="application/json",
             headers=cors_headers

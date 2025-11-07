@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Deployment Guide - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar"><div class="logo"><h1>AI Ambassador</h1></div></nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Deployment Guide</h1>
+            <p class="subtitle">Deploy to Azure production environment</p>
+        </header>
+        <section>
+            <h2>Prerequisites</h2>
+            <ul>
+                <li>Azure subscription with credits</li>
+                <li>Azure CLI installed (<code>az --version</code>)</li>
+                <li>Python 3.11 installed</li>
+                <li>Azure Functions Core Tools v4</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Step 1: Deploy Infrastructure</h2>
+            <pre><code># Login to Azure
+az login
+
+# Create resource group
+az group create \
+  --name aibast-prod-rg \
+  --location eastus
+
+# Deploy Bicep template
+az deployment group create \
+  --resource-group aibast-prod-rg \
+  --template-file main.bicep \
+  --parameters parameters/prod.parameters.json</code></pre>
+        </section>
+        <section>
+            <h2>Step 2: Create Azure OpenAI Resource</h2>
+            <pre><code>az cognitiveservices account create \
+  --name aibast-openai-prod \
+  --resource-group aibast-prod-rg \
+  --kind OpenAI \
+  --sku S0 \
+  --location eastus \
+  --custom-domain aibast-openai-prod
+
+# Deploy GPT-4 model
+az cognitiveservices account deployment create \
+  --name aibast-openai-prod \
+  --resource-group aibast-prod-rg \
+  --deployment-name gpt-4 \
+  --model-name gpt-4 \
+  --model-version "0613" \
+  --model-format OpenAI \
+  --sku-capacity 10 \
+  --sku-name "Standard"</code></pre>
+        </section>
+        <section>
+            <h2>Step 3: Create Storage Account</h2>
+            <pre><code>az storage account create \
+  --name aibastprodstore \
+  --resource-group aibast-prod-rg \
+  --location eastus \
+  --sku Standard_LRS
+
+# Create file shares
+az storage share create \
+  --name ambassadors \
+  --account-name aibastprodstore
+
+az storage share create \
+  --name users \
+  --account-name aibastprodstore
+
+az storage share create \
+  --name agents \
+  --account-name aibastprodstore</code></pre>
+        </section>
+        <section>
+            <h2>Step 4: Deploy Function App</h2>
+            <pre><code>cd Copilot-Agent-365-main
+
+# Create function app
+az functionapp create \
+  --resource-group aibast-prod-rg \
+  --consumption-plan-location eastus \
+  --runtime python \
+  --runtime-version 3.11 \
+  --functions-version 4 \
+  --name aibast-function-prod \
+  --storage-account aibastprodstore
+
+# Deploy code
+func azure functionapp publish aibast-function-prod</code></pre>
+        </section>
+        <section>
+            <h2>Step 5: Configure Application Settings</h2>
+            <pre><code>az functionapp config appsettings set \
+  --name aibast-function-prod \
+  --resource-group aibast-prod-rg \
+  --settings \
+    "AZURE_OPENAI_API_KEY=@Microsoft.KeyVault(SecretUri=https://your-keyvault.vault.azure.net/secrets/openai-key/)" \
+    "AZURE_OPENAI_ENDPOINT=https://aibast-openai-prod.openai.azure.com/" \
+    "AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4" \
+    "AZURE_FILES_SHARE_NAME=ambassadors" \
+    "ASSISTANT_NAME=AI Ambassador"</code></pre>
+        </section>
+        <section>
+            <h2>Step 6: Setup Custom Domain</h2>
+            <pre><code># Add custom domain
+az functionapp config hostname add \
+  --webapp-name aibast-function-prod \
+  --resource-group aibast-prod-rg \
+  --hostname ai-ambassadors.app
+
+# Enable HTTPS
+az functionapp config ssl bind \
+  --name aibast-function-prod \
+  --resource-group aibast-prod-rg \
+  --certificate-thumbprint {thumbprint} \
+  --ssl-type SNI</code></pre>
+        </section>
+        <section>
+            <h2>Step 7: Production Checklist</h2>
+            <ul style="list-style: none;">
+                <li>✅ All Azure resources deployed</li>
+                <li>✅ Environment variables configured</li>
+                <li>✅ API keys stored in Key Vault</li>
+                <li>✅ Custom domain configured with SSL</li>
+                <li>✅ Application Insights enabled</li>
+                <li>✅ Alert rules configured</li>
+                <li>✅ Backup strategy implemented</li>
+                <li>✅ Auto-scaling enabled</li>
+                <li>✅ CORS configured properly</li>
+                <li>✅ Rate limiting enabled</li>
+                <li>✅ Load testing completed</li>
+                <li>✅ Disaster recovery plan documented</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Cost Optimization</h2>
+            <table>
+                <thead>
+                    <tr><th>Service</th><th>Strategy</th><th>Monthly Savings</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Azure Functions</td><td>Use consumption plan</td><td>~$50-100</td></tr>
+                    <tr><td>Azure OpenAI</td><td>Cache common responses</td><td>~$200-500</td></tr>
+                    <tr><td>Storage</td><td>Use lifecycle policies</td><td>~$20-50</td></tr>
+                    <tr><td>App Insights</td><td>Sample telemetry (90%)</td><td>~$30-60</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <section>
+            <h2>CI/CD Setup with GitHub Actions</h2>
+            <pre><code>name: Deploy to Azure
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          pip install -r requirements.txt
+      
+      - name: Deploy to Azure
+        uses: Azure/functions-action@v1
+        with:
+          app-name: aibast-function-prod
+          package: Copilot-Agent-365-main
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}</code></pre>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

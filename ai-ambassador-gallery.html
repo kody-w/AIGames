@@ -1521,5 +1521,29 @@
             }
         });
     </script>
+
+    <!-- Analytics Tracking -->
+    <script src="analytics-tracker.js"></script>
+    <script>
+        // Initialize analytics tracker
+        AnalyticsTracker.init('http://localhost:7071/api', {
+            autoTrack: true,
+            debugMode: false
+        });
+
+        // Track gallery view
+        AnalyticsTracker.trackGalleryView({
+            page: 'ambassador_gallery'
+        });
+
+        // Override openModal to track ambassador interactions
+        const originalOpenModal = window.openModal;
+        window.openModal = function(ambassadorId) {
+            AnalyticsTracker.trackAmbassadorEntry(ambassadorId, {
+                source: 'gallery'
+            });
+            originalOpenModal(ambassadorId);
+        };
+    </script>
 </body>
 </html>

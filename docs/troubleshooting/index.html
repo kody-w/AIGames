@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Troubleshooting - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar"><div class="logo"><h1>AI Ambassador</h1></div></nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Troubleshooting Guide</h1>
+            <p class="subtitle">Common issues and solutions</p>
+        </header>
+        <section>
+            <h2>Function App Issues</h2>
+            <h3>Error: "Function not found"</h3>
+            <p><strong>Symptoms:</strong> 404 error when calling API</p>
+            <p><strong>Solution:</strong></p>
+            <pre><code># Check function deployment
+az functionapp function list \
+  --name your-function-app \
+  --resource-group your-rg
+
+# Redeploy if needed
+cd Copilot-Agent-365-main
+func azure functionapp publish your-function-app</code></pre>
+
+            <h3>Error: "Python version mismatch"</h3>
+            <p><strong>Symptoms:</strong> Import errors, module not found</p>
+            <p><strong>Solution:</strong> Ensure Python 3.11 is used everywhere</p>
+            <pre><code>python --version  # Should be 3.11.x
+
+# Update function app runtime
+az functionapp config set \
+  --name your-function-app \
+  --resource-group your-rg \
+  --linux-fx-version "Python|3.11"</code></pre>
+
+            <h3>Error: "Timeout executing function"</h3>
+            <p><strong>Symptoms:</strong> 500 error after 5 minutes</p>
+            <p><strong>Solution:</strong> Increase function timeout</p>
+            <pre><code># In host.json
+{
+  "functionTimeout": "00:10:00"
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>Azure OpenAI Issues</h2>
+            <h3>Error: "Rate limit exceeded"</h3>
+            <p><strong>Symptoms:</strong> 429 status code</p>
+            <p><strong>Solution:</strong> Implement retry logic and increase quota</p>
+            <pre><code>import time
+from openai import RateLimitError
+
+max_retries = 3
+for attempt in range(max_retries):
+    try:
+        response = openai.ChatCompletion.create(...)
+        break
+    except RateLimitError:
+        if attempt < max_retries - 1:
+            time.sleep(2 ** attempt)  # Exponential backoff
+        else:
+            raise</code></pre>
+
+            <h3>Error: "Invalid API key"</h3>
+            <p><strong>Symptoms:</strong> 401 authentication error</p>
+            <p><strong>Solution:</strong> Verify key and endpoint</p>
+            <pre><code># Test OpenAI connection
+curl https://your-endpoint.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2025-01-01-preview \
+  -H "api-key: your-key" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"test"}]}'</code></pre>
+        </section>
+
+        <section>
+            <h2>Storage Issues</h2>
+            <h3>Error: "File share not found"</h3>
+            <p><strong>Symptoms:</strong> Ambassador configurations not loading</p>
+            <p><strong>Solution:</strong> Create missing file shares</p>
+            <pre><code>az storage share create \
+  --name ambassadors \
+  --account-name your-storage
+
+az storage share create \
+  --name users \
+  --account-name your-storage</code></pre>
+
+            <h3>Error: "Permission denied"</h3>
+            <p><strong>Symptoms:</strong> Cannot read/write files</p>
+            <p><strong>Solution:</strong> Check storage account keys</p>
+            <pre><code>az storage account keys list \
+  --account-name your-storage \
+  --resource-group your-rg</code></pre>
+        </section>
+
+        <section>
+            <h2>Memory Issues</h2>
+            <h3>Problem: Ambassador doesn't remember context</h3>
+            <p><strong>Symptoms:</strong> Conversations don't persist</p>
+            <p><strong>Solution:</strong> Verify user GUID is being passed</p>
+            <pre><code># Check if user_guid is in request
+{
+  "user_input": "Hello",
+  "user_guid": "user-12345"  // Must be present
+}</code></pre>
+
+            <h3>Problem: Memory growing too large</h3>
+            <p><strong>Symptoms:</strong> Slow responses, high token usage</p>
+            <p><strong>Solution:</strong> Implement memory trimming</p>
+            <pre><code># Keep only last 20 messages
+if len(conversation_history) > 20:
+    conversation_history = conversation_history[-20:]</code></pre>
+        </section>
+
+        <section>
+            <h2>Performance Issues</h2>
+            <h3>Problem: Slow response times</h3>
+            <p><strong>Diagnosis:</strong></p>
+            <ul>
+                <li>Check Application Insights for bottlenecks</li>
+                <li>Monitor OpenAI response times</li>
+                <li>Review storage access patterns</li>
+            </ul>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Cache common responses</li>
+                <li>Use streaming for long responses</li>
+                <li>Optimize agent loading</li>
+                <li>Scale up Function App plan</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>QR Code Issues</h2>
+            <h3>Problem: QR code not scanning</h3>
+            <p><strong>Symptoms:</strong> Camera doesn't recognize code</p>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Increase QR code size (minimum 2" x 2")</li>
+                <li>Use higher error correction (Level H)</li>
+                <li>Ensure high contrast (black on white)</li>
+                <li>Add quiet zone (white border)</li>
+                <li>Test with multiple devices</li>
+            </ul>
+
+            <h3>Problem: QR code redirects to wrong page</h3>
+            <p><strong>Symptoms:</strong> Wrong ambassador loads</p>
+            <p><strong>Solution:</strong> Verify URL format</p>
+            <pre><code># Correct format
+https://ai-ambassadors.app/enter/{ambassador_id}?source={location}
+
+# Not this
+https://ai-ambassadors.app/{ambassador_id}</code></pre>
+        </section>
+
+        <section>
+            <h2>Debug Mode</h2>
+            <h3>Enable Debug Logging</h3>
+            <pre><code># In local.settings.json or App Settings
+{
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "PYTHON_ENABLE_DEBUG_LOGGING": "1",
+    "LOGGING_LEVEL": "DEBUG"
+  }
+}</code></pre>
+
+            <h3>View Logs</h3>
+            <pre><code># Stream live logs
+az functionapp log tail \
+  --name your-function-app \
+  --resource-group your-rg
+
+# Query Application Insights
+az monitor app-insights query \
+  --app your-app-insights \
+  --analytics-query "traces | where timestamp > ago(1h) | order by timestamp desc"</code></pre>
+        </section>
+
+        <section>
+            <h2>Common Error Messages</h2>
+            <table>
+                <thead>
+                    <tr><th>Error</th><th>Cause</th><th>Solution</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>"NoneType has no attribute"</td>
+                        <td>Missing content sanitization</td>
+                        <td>Use ensure_string_content() helper</td>
+                    </tr>
+                    <tr>
+                        <td>"Module not found"</td>
+                        <td>Missing dependencies</td>
+                        <td>Run pip install -r requirements.txt</td>
+                    </tr>
+                    <tr>
+                        <td>"Connection refused"</td>
+                        <td>Service not running</td>
+                        <td>Start with func start or ./run.sh</td>
+                    </tr>
+                    <tr>
+                        <td>"Insufficient quota"</td>
+                        <td>OpenAI rate limit</td>
+                        <td>Request quota increase in Azure portal</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Getting Help</h2>
+            <ul>
+                <li><a href="../faq/index.html">Check FAQ</a></li>
+                <li><a href="https://github.com/yourusername/aigames/issues">File GitHub Issue</a></li>
+                <li><a href="https://github.com/yourusername/aigames/discussions">Community Discussions</a></li>
+                <li><a href="mailto:support@ai-ambassadors.app">Email Support</a></li>
+            </ul>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

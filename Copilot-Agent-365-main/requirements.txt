@@ -31,6 +31,9 @@ msal>=1.20.0
 python-dateutil>=2.8.2
 pydantic==1.10.13
 
+# Caching dependencies (optional Redis support)
+redis>=5.0.0
+
 # PowerPoint agent dependencies
 python-pptx>=0.6.21
 
