@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "जमा करें",
+      "cancel": "रद्द करें",
+      "save": "सहेजें",
+      "delete": "हटाएं",
+      "edit": "संपादित करें",
+      "close": "बंद करें",
+      "back": "वापस",
+      "next": "अगला",
+      "finish": "समाप्त",
+      "send": "भेजें",
+      "retry": "पुनः प्रयास करें",
+      "refresh": "ताज़ा करें",
+      "download": "डाउनलोड करें",
+      "upload": "अपलोड करें",
+      "share": "साझा करें",
+      "copy": "कॉपी करें",
+      "start": "शुरू करें",
+      "stop": "रोकें",
+      "pause": "विराम दें",
+      "resume": "फिर से शुरू करें"
+    },
+    "labels": {
+      "language": "भाषा",
+      "welcome": "स्वागत है",
+      "ambassador": "राजदूत",
+      "chat": "चैट",
+      "settings": "सेटिंग्स",
+      "profile": "प्रोफ़ाइल",
+      "help": "सहायता",
+      "about": "के बारे में",
+      "search": "खोजें",
+      "filter": "फ़िल्टर करें",
+      "sort": "क्रमबद्ध करें",
+      "name": "नाम",
+      "email": "ईमेल",
+      "password": "पासवर्ड",
+      "date": "तारीख",
+      "time": "समय",
+      "location": "स्थान",
+      "status": "स्थिति",
+      "type": "प्रकार",
+      "category": "श्रेणी",
+      "description": "विवरण",
+      "loading": "लोड हो रहा है...",
+      "processing": "प्रक्रिया हो रही है...",
+      "saving": "सहेजा जा रहा है...",
+      "deleting": "हटाया जा रहा है..."
+    },
+    "navigation": {
+      "home": "होम",
+      "ambassadors": "राजदूत",
+      "discover": "खोजें",
+      "collections": "मेरे संग्रह",
+      "history": "इतिहास",
+      "favorites": "पसंदीदा",
+      "notifications": "सूचनाएं",
+      "logout": "लॉगआउट"
+    },
+    "language_selector": {
+      "title": "भाषा चुनें",
+      "current": "वर्तमान भाषा",
+      "change": "भाषा बदलें"
+    }
+  },
+  "system": {
+    "welcome_message": "AI Ambassadors में आपका स्वागत है!",
+    "scan_qr_prompt": "AI राजदूत खोजने के लिए QR कोड स्कैन करें",
+    "connecting": "राजदूत से कनेक्ट हो रहा है...",
+    "connection_success": "सफलतापूर्वक कनेक्ट हुआ!",
+    "initialization": "आपके अनुभव को शुरू किया जा रहा है...",
+    "ready": "चैट के लिए तैयार!",
+    "thinking": "राजदूत सोच रहा है...",
+    "typing": "राजदूत टाइप कर रहा है..."
+  },
+  "errors": {
+    "generic": "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+    "network": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "timeout": "अनुरोध समाप्त हो गया। कृपया पुनः प्रयास करें।",
+    "not_found": "संसाधन नहीं मिला।",
+    "unauthorized": "आप इस संसाधन तक पहुंचने के लिए अधिकृत नहीं हैं।",
+    "forbidden": "पहुंच निषिद्ध है।",
+    "validation": "कृपया अपना इनपुट जांचें और पुनः प्रयास करें।",
+    "server": "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।",
+    "ambassador_not_found": "राजदूत नहीं मिला। कृपया QR कोड जांचें।",
+    "invalid_qr": "अमान्य QR कोड। कृपया एक मान्य राजदूत कोड स्कैन करें।",
+    "session_expired": "आपका सत्र समाप्त हो गया है। कृपया फिर से स्कैन करें।",
+    "translation_error": "अनुवाद उपलब्ध नहीं है। डिफ़ॉल्ट भाषा का उपयोग किया जा रहा है।",
+    "file_too_large": "फ़ाइल बहुत बड़ी है। अधिकतम आकार: {max_size}।",
+    "invalid_format": "अमान्य फ़ाइल प्रारूप। स्वीकृत प्रारूप: {formats}।",
+    "connection_lost": "कनेक्शन खो गया। फिर से कनेक्ट हो रहा है..."
+  },
+  "help": {
+    "getting_started": "शुरू करना",
+    "how_to_scan": "QR कोड कैसे स्कैन करें",
+    "chat_tips": "चैट टिप्स",
+    "troubleshooting": "समस्या निवारण",
+    "faq": "अक्सर पूछे जाने वाले प्रश्न",
+    "contact_support": "सहायता से संपर्क करें",
+    "privacy_policy": "गोपनीयता नीति",
+    "terms_of_service": "सेवा की शर्तें"
+  },
+  "ambassadors": {
+    "greeting": "नमस्ते! मैं {name} हूं, आपका AI राजदूत।",
+    "introduction": "मैं {purpose} में आपकी मदद के लिए यहां हूं।",
+    "capabilities": "मैं इसमें आपकी मदद कर सकता हूं:",
+    "ask_anything": "मुझसे कुछ भी पूछें!",
+    "examples": "यहां कुछ चीजें हैं जो आप आज़मा सकते हैं:",
+    "unavailable": "यह राजदूत वर्तमान में उपलब्ध नहीं है।",
+    "offline": "राजदूत ऑफ़लाइन है।",
+    "busy": "राजदूत व्यस्त है। कृपया प्रतीक्षा करें...",
+    "ended": "यह बातचीत समाप्त हो गई है।",
+    "new_conversation": "नई बातचीत शुरू करें",
+    "share_conversation": "इस बातचीत को साझा करें",
+    "report": "समस्या की रिपोर्ट करें",
+    "rating_prompt": "आपका अनुभव कैसा रहा?",
+    "feedback_thanks": "आपकी प्रतिक्रिया के लिए धन्यवाद!"
+  },
+  "demo": {
+    "title": "डेमो मोड",
+    "description": "यह पूर्व-लोड किए गए संदर्भ के साथ एक प्रदर्शन है।",
+    "disclaimer": "डेमो डेटा सिंथेटिक है और केवल प्रदर्शन उद्देश्यों के लिए है।",
+    "exit": "डेमो से बाहर निकलें",
+    "restart": "डेमो पुनः प्रारंभ करें",
+    "scenario": "डेमो परिदृश्य: {scenario}"
+  },
+  "notifications": {
+    "new_message": "{name} से नया संदेश",
+    "ambassador_available": "{name} अब उपलब्ध है",
+    "update_available": "अपडेट उपलब्ध है",
+    "session_ending": "सत्र {time} मिनट में समाप्त हो रहा है",
+    "saved": "सफलतापूर्वक सहेजा गया!",
+    "deleted": "सफलतापूर्वक हटा दिया गया!",
+    "copied": "क्लिपबोर्ड पर कॉपी किया गया!",
+    "shared": "सफलतापूर्वक साझा किया गया!",
+    "translation_changed": "भाषा {language} में बदल गई"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "AI Ambassadors में आपका स्वागत है!",
+      "greeting": "नमस्ते {name},",
+      "body": "AI Ambassadors में शामिल होने के लिए धन्यवाद। QR कोड स्कैन करके अपने क्षेत्र में AI साथियों को खोजना शुरू करें।",
+      "cta": "राजदूतों को खोजें",
+      "signature": "AI Ambassadors टीम"
+    },
+    "password_reset": {
+      "subject": "अपना पासवर्ड रीसेट करें",
+      "greeting": "नमस्ते {name},",
+      "body": "हमें आपका पासवर्ड रीसेट करने का अनुरोध मिला है। नया पासवर्ड बनाने के लिए नीचे दिए गए बटन पर क्लिक करें।",
+      "cta": "पासवर्ड रीसेट करें",
+      "expires": "यह लिंक {hours} घंटों में समाप्त हो जाता है।",
+      "ignore": "यदि आपने इसका अनुरोध नहीं किया है, तो कृपया इस ईमेल को अनदेखा करें।"
+    },
+    "new_ambassador": {
+      "subject": "नया राजदूत उपलब्ध: {name}",
+      "greeting": "नमस्ते {name},",
+      "body": "आपके क्षेत्र में एक नया AI राजदूत उपलब्ध है: {ambassador_name}। कनेक्ट करने के लिए QR कोड स्कैन करें!",
+      "cta": "और जानें"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, one {# आइटम} other {# आइटम}}",
+    "ambassadors": "{count, plural, one {# राजदूत} other {# राजदूत}}",
+    "messages": "{count, plural, one {# संदेश} other {# संदेश}}",
+    "users": "{count, plural, one {# उपयोगकर्ता} other {# उपयोगकर्ता}}",
+    "days": "{count, plural, one {# दिन} other {# दिन}}",
+    "hours": "{count, plural, one {# घंटा} other {# घंटे}}",
+    "minutes": "{count, plural, one {# मिनट} other {# मिनट}}",
+    "seconds": "{count, plural, one {# सेकंड} other {# सेकंड}}"
+  },
+  "time": {
+    "just_now": "अभी",
+    "minutes_ago": "{minutes} मिनट पहले",
+    "hours_ago": "{hours} घंटे पहले",
+    "days_ago": "{days} दिन पहले",
+    "yesterday": "कल",
+    "today": "आज",
+    "tomorrow": "कल",
+    "morning": "सुबह",
+    "afternoon": "दोपहर",
+    "evening": "शाम",
+    "night": "रात"
+  },
+  "cultural": {
+    "greeting_formal": "नमस्ते",
+    "greeting_informal": "हाय",
+    "farewell_formal": "नमस्ते",
+    "farewell_informal": "बाय",
+    "please": "कृपया",
+    "thank_you": "धन्यवाद",
+    "yes": "हां",
+    "no": "नहीं",
+    "sorry": "क्षमा करें",
+    "excuse_me": "माफ़ कीजिए"
+  }
+}

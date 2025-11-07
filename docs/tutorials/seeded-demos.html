@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Seeded Demos - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar">
+        <div class="logo"><h1>AI Ambassador</h1></div>
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../getting-started/index.html">Getting Started</a></li>
+            <li><a href="index.html">Tutorials</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Creating Seeded Demos</h1>
+            <p class="subtitle">Build reproducible demo experiences with synthetic memory</p>
+        </header>
+        <section>
+            <h2>What Are Seeded Demos?</h2>
+            <p>Seeded demos use synthetic memory to create reproducible experiences for sales presentations, trade shows, and testing.</p>
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Sales presentations with consistent narratives</li>
+                <li>Trade show demonstrations</li>
+                <li>User onboarding walkthroughs</li>
+                <li>Testing and development</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Demo Configuration</h2>
+            <pre><code>"demo_configuration": {
+  "seeded_run": true,
+  "parameters": {
+    "user_guid": "demo-sales-001",
+    "scenario": "returning_customer"
+  },
+  "synthetic_memory": {
+    "memories": [
+      {
+        "id": "mem_001",
+        "type": "preference",
+        "content": "Prefers dark roast coffee",
+        "timestamp": "2025-01-10T10:00:00Z"
+      },
+      {
+        "id": "mem_002",
+        "type": "purchase",
+        "content": "Purchased Ethiopian Yirgacheffe last visit",
+        "timestamp": "2025-01-12T14:30:00Z"
+      },
+      {
+        "id": "mem_003",
+        "type": "interaction",
+        "content": "Interested in pour-over brewing methods",
+        "timestamp": "2025-01-12T14:35:00Z"
+      }
+    ]
+  }
+}</code></pre>
+        </section>
+        <section>
+            <h2>Demo Initialization</h2>
+            <pre><code>def initialize_seeded_demo(ambassador_id, demo_guid):
+    """Load synthetic memory for demo"""
+    config = load_ambassador_config(ambassador_id)
+    
+    if config['demo_configuration']['seeded_run']:
+        synthetic_memory = config['demo_configuration']['synthetic_memory']
+        storage_manager = AzureFileStorageManager()
+        storage_manager.set_memory_context(demo_guid)
+        
+        for memory in synthetic_memory['memories']:
+            storage_manager.write_memory(memory['id'], memory)
+    
+    return config</code></pre>
+        </section>
+        <section>
+            <h2>Demo Scenarios</h2>
+            <table>
+                <thead>
+                    <tr><th>Scenario</th><th>Description</th><th>Memory Items</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>First Time Visitor</td><td>New user exploration</td><td>0-2</td></tr>
+                    <tr><td>Returning Customer</td><td>Previous interactions</td><td>3-5</td></tr>
+                    <tr><td>VIP Customer</td><td>Extensive history</td><td>10+</td></tr>
+                    <tr><td>Problem Resolution</td><td>Issue follow-up</td><td>2-4</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

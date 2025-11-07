@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>A/B Testing - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar"><div class="logo"><h1>AI Ambassador</h1></div></nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>A/B Testing Ambassadors</h1>
+            <p class="subtitle">Test configurations and measure performance</p>
+        </header>
+        <section>
+            <h2>A/B Test Setup</h2>
+            <pre><code>{
+  "test_id": "greeting-style-test",
+  "variants": [
+    {
+      "id": "variant-a-formal",
+      "ambassador_id": "coffee-ambassador-formal",
+      "traffic_percentage": 50
+    },
+    {
+      "id": "variant-b-casual",
+      "ambassador_id": "coffee-ambassador-casual",
+      "traffic_percentage": 50
+    }
+  ],
+  "metrics": [
+    "conversation_length",
+    "user_satisfaction",
+    "conversion_rate"
+  ]
+}</code></pre>
+        </section>
+        <section>
+            <h2>Metrics to Track</h2>
+            <ul>
+                <li><strong>Engagement:</strong> Conversation length, follow-up questions</li>
+                <li><strong>Satisfaction:</strong> Explicit feedback, return visits</li>
+                <li><strong>Conversion:</strong> Goal completion rate</li>
+                <li><strong>Performance:</strong> Response time, error rate</li>
+            </ul>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

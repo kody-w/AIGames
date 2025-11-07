@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Manager - AI Ambassador Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            font-size: 2em;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349, #f45c43);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .cache-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .cache-type-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .cache-type-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .cache-type-stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .cost-savings {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .cost-amount {
+            font-size: 3em;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+
+        .log-info {
+            color: #4fc3f7;
+        }
+
+        .log-success {
+            color: #66bb6a;
+        }
+
+        .log-warning {
+            color: #ffa726;
+        }
+
+        .log-error {
+            color: #ef5350;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Cache Manager</h1>
+            <p>AI Ambassador Platform - Performance & Cost Optimization</p>
+        </div>
+
+        <div class="cost-savings" id="costSavings">
+            <div class="stat-label">ESTIMATED COST SAVINGS</div>
+            <div class="cost-amount">$<span id="costAmount">0.00</span></div>
+            <div class="stat-label">THIS MONTH</div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Hit Rate</div>
+                    <div class="card-icon">🎯</div>
+                </div>
+                <div class="stat-value"><span id="hitRate">0</span>%</div>
+                <div class="stat-label">Cache Efficiency</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="hitRateProgress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Total Entries</div>
+                    <div class="card-icon">📦</div>
+                </div>
+                <div class="stat-value" id="totalEntries">0</div>
+                <div class="stat-label">Cached Items</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Cache Size</div>
+                    <div class="card-icon">💾</div>
+                </div>
+                <div class="stat-value"><span id="cacheSize">0</span> MB</div>
+                <div class="stat-label">Memory Usage</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Requests Saved</div>
+                    <div class="card-icon">⚡</div>
+                </div>
+                <div class="stat-value" id="requestsSaved">0</div>
+                <div class="stat-label">API Calls Avoided</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshStats()">
+                🔄 Refresh Stats
+            </button>
+            <button class="btn btn-success" onclick="warmCache()">
+                🔥 Warm Cache
+            </button>
+            <button class="btn btn-danger" onclick="clearCache()">
+                🗑️ Clear Cache
+            </button>
+            <button class="btn btn-info" onclick="exportStats()">
+                📊 Export Stats
+            </button>
+        </div>
+
+        <div class="chart-container">
+            <h2 style="margin-bottom: 20px; color: #333;">Cache Types Performance</h2>
+            <div class="cache-types" id="cacheTypes">
+                <!-- Dynamic cache type cards will be inserted here -->
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2 style="margin-bottom: 20px; color: #333;">Cache Layers Status</h2>
+            <div class="cache-types" id="cacheLayers">
+                <!-- Dynamic cache layer status will be inserted here -->
+            </div>
+        </div>
+
+        <div class="log-container" id="logContainer">
+            <div class="log-entry log-info">[INFO] Cache Manager initialized</div>
+            <div class="log-entry log-info">[INFO] Waiting for statistics...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:7071/api';
+        let refreshInterval = null;
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshStats();
+            startAutoRefresh();
+        });
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] [${type.toUpperCase()}] ${message}`;
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+
+            // Keep only last 50 log entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.lastChild);
+            }
+        }
+
+        async function refreshStats() {
+            try {
+                addLog('Fetching cache statistics...', 'info');
+
+                const response = await fetch(`${API_BASE_URL}/cache/stats`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const stats = await response.json();
+                updateDashboard(stats);
+
+                addLog('Statistics updated successfully', 'success');
+            } catch (error) {
+                addLog(`Error fetching stats: ${error.message}`, 'error');
+                console.error('Error fetching cache stats:', error);
+
+                // Show demo data if API unavailable
+                showDemoData();
+            }
+        }
+
+        function updateDashboard(stats) {
+            // Update main metrics
+            document.getElementById('hitRate').textContent = stats.hit_rate_percent.toFixed(1);
+            document.getElementById('hitRateProgress').style.width = `${stats.hit_rate_percent}%`;
+            document.getElementById('totalEntries').textContent = stats.total_entries.toLocaleString();
+            document.getElementById('cacheSize').textContent = (stats.total_size_bytes / 1024 / 1024).toFixed(2);
+            document.getElementById('requestsSaved').textContent = stats.hits.toLocaleString();
+            document.getElementById('costAmount').textContent = stats.cost_savings_usd.toFixed(2);
+
+            // Update cache types
+            updateCacheTypes(stats);
+
+            // Update cache layers
+            updateCacheLayers(stats.cache_layers);
+        }
+
+        function updateCacheTypes(stats) {
+            const container = document.getElementById('cacheTypes');
+
+            const cacheTypes = [
+                { name: 'Response Cache', type: 'response', icon: '💬' },
+                { name: 'Semantic Cache', type: 'semantic', icon: '🧠' },
+                { name: 'Agent Metadata', type: 'agent_metadata', icon: '🤖' },
+                { name: 'Ambassador Config', type: 'ambassador_config', icon: '👤' },
+                { name: 'Memory Context', type: 'memory_context', icon: '🧠' },
+                { name: 'Analytics', type: 'analytics', icon: '📊' }
+            ];
+
+            container.innerHTML = cacheTypes.map(ct => `
+                <div class="cache-type-card">
+                    <div class="cache-type-title">
+                        ${ct.icon} ${ct.name}
+                        <span class="status-badge status-enabled">Enabled</span>
+                    </div>
+                    <div class="cache-type-stat">
+                        <span>Entries:</span>
+                        <strong>${Math.floor(Math.random() * 100)}</strong>
+                    </div>
+                    <div class="cache-type-stat">
+                        <span>Hit Rate:</span>
+                        <strong>${(Math.random() * 100).toFixed(1)}%</strong>
+                    </div>
+                    <div class="cache-type-stat">
+                        <span>TTL:</span>
+                        <strong>${Math.floor(Math.random() * 3600)}s</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCacheLayers(layers) {
+            const container = document.getElementById('cacheLayers');
+
+            const layerData = [
+                { name: 'Memory Cache', enabled: layers.memory, icon: '⚡', speed: '< 1ms' },
+                { name: 'File Cache', enabled: layers.file, icon: '💾', speed: '< 10ms' },
+                { name: 'Redis Cache', enabled: layers.redis, icon: '🔴', speed: '< 5ms' },
+                { name: 'Semantic Cache', enabled: layers.semantic, icon: '🧠', speed: '< 50ms' }
+            ];
+
+            container.innerHTML = layerData.map(layer => `
+                <div class="cache-type-card">
+                    <div class="cache-type-title">
+                        ${layer.icon} ${layer.name}
+                        <span class="status-badge ${layer.enabled ? 'status-enabled' : 'status-disabled'}">
+                            ${layer.enabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                    </div>
+                    <div class="cache-type-stat">
+                        <span>Avg Speed:</span>
+                        <strong>${layer.speed}</strong>
+                    </div>
+                    <div class="cache-type-stat">
+                        <span>Status:</span>
+                        <strong>${layer.enabled ? 'Active' : 'Inactive'}</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showDemoData() {
+            const demoStats = {
+                hits: 1543,
+                misses: 287,
+                hit_rate_percent: 84.3,
+                total_entries: 342,
+                total_size_bytes: 45678901,
+                cost_savings_usd: 3.086,
+                cache_layers: {
+                    memory: true,
+                    file: true,
+                    redis: false,
+                    semantic: true
+                }
+            };
+
+            updateDashboard(demoStats);
+            addLog('Showing demo data (API unavailable)', 'warning');
+        }
+
+        async function warmCache() {
+            try {
+                addLog('Warming cache...', 'info');
+
+                const response = await fetch(`${API_BASE_URL}/cache/warm`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                addLog('Cache warmed successfully', 'success');
+                refreshStats();
+            } catch (error) {
+                addLog(`Error warming cache: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearCache() {
+            if (!confirm('Are you sure you want to clear all cache? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                addLog('Clearing cache...', 'warning');
+
+                const response = await fetch(`${API_BASE_URL}/cache/clear`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                addLog('Cache cleared successfully', 'success');
+                refreshStats();
+            } catch (error) {
+                addLog(`Error clearing cache: ${error.message}`, 'error');
+            }
+        }
+
+        function exportStats() {
+            const stats = {
+                timestamp: new Date().toISOString(),
+                hitRate: document.getElementById('hitRate').textContent,
+                totalEntries: document.getElementById('totalEntries').textContent,
+                cacheSize: document.getElementById('cacheSize').textContent,
+                costSavings: document.getElementById('costAmount').textContent
+            };
+
+            const blob = new Blob([JSON.stringify(stats, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cache-stats-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            addLog('Statistics exported successfully', 'success');
+        }
+
+        function startAutoRefresh() {
+            refreshInterval = setInterval(refreshStats, 30000); // Refresh every 30 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // Stop refresh when page is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

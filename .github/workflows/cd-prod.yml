@@ -1,0 +1,384 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        type: string
+
+env:
+  ENVIRONMENT: prod
+  AZURE_REGION: eastus
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  pre-deployment-validation:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate version tag
+        if: github.event_name == 'release'
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          echo "Deploying version: $VERSION"
+
+          # Validate semantic versioning
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format. Must be vX.Y.Z"
+            exit 1
+          fi
+
+      - name: Check changelog
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "CHANGELOG.md not found"
+            exit 1
+          fi
+
+      - name: Validate configuration
+        run: |
+          echo "Validating production configuration..."
+          # Add validation logic
+
+  create-backup:
+    name: Create Full Backup
+    runs-on: ubuntu-latest
+    needs: pre-deployment-validation
+    environment: prod
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Create comprehensive backup
+        run: |
+          RG_NAME="aibast-prod-rg"
+          BACKUP_NAME="prod-backup-$(date +%Y%m%d-%H%M%S)"
+
+          echo "Creating production backup..."
+
+          # Backup resource group
+          az group export \
+            --name "$RG_NAME" \
+            --output json > "$BACKUP_NAME-resources.json"
+
+          # Backup Function App settings
+          FUNC_APPS=$(az functionapp list -g "$RG_NAME" --query "[].name" -o tsv)
+          for FUNC_APP in $FUNC_APPS; do
+            az functionapp config appsettings list \
+              --name "$FUNC_APP" \
+              --resource-group "$RG_NAME" \
+              --output json > "$BACKUP_NAME-$FUNC_APP-settings.json"
+          done
+
+          # Backup storage data
+          STORAGE_ACCOUNT=$(az storage account list -g "$RG_NAME" --query "[0].name" -o tsv)
+          echo "Storage account: $STORAGE_ACCOUNT"
+
+          # Upload backups to backup storage
+          echo "Backup completed: $BACKUP_NAME"
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-backup
+          path: prod-backup-*
+          retention-days: 90
+
+  deploy-infrastructure:
+    name: Deploy Production Infrastructure
+    runs-on: ubuntu-latest
+    needs: create-backup
+    environment: prod-deployment
+    outputs:
+      function-app-name: ${{ steps.deploy.outputs.functionAppName }}
+      resource-group: ${{ steps.deploy.outputs.resourceGroupName }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Deploy infrastructure with canary strategy
+        id: deploy
+        run: |
+          DEPLOYMENT_NAME="prod-deployment-$(date +%Y%m%d-%H%M%S)"
+
+          az deployment sub create \
+            --name "$DEPLOYMENT_NAME" \
+            --location ${{ env.AZURE_REGION }} \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters infrastructure/bicep/parameters/prod.bicepparam \
+            --output json > deployment-output.json
+
+          FUNC_APP_NAME=$(jq -r '.properties.outputs.functionAppName.value' deployment-output.json)
+          RG_NAME=$(jq -r '.properties.outputs.resourceGroupName.value' deployment-output.json)
+
+          echo "functionAppName=$FUNC_APP_NAME" >> $GITHUB_OUTPUT
+          echo "resourceGroupName=$RG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload deployment outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-outputs
+          path: deployment-output.json
+
+  canary-deployment:
+    name: Canary Deployment (10%)
+    runs-on: ubuntu-latest
+    needs: deploy-infrastructure
+    environment: prod-canary
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Deploy to staging slot (canary)
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ needs.deploy-infrastructure.outputs.function-app-name }}
+          slot-name: staging
+          package: Copilot-Agent-365-main
+          scm-do-build-during-deployment: true
+          enable-oryx-build: true
+
+      - name: Configure traffic routing (10% to canary)
+        run: |
+          FUNC_APP_NAME="${{ needs.deploy-infrastructure.outputs.function-app-name }}"
+          RG_NAME="${{ needs.deploy-infrastructure.outputs.resource-group }}"
+
+          # Route 10% of traffic to staging slot
+          az functionapp traffic-routing set \
+            --name "$FUNC_APP_NAME" \
+            --resource-group "$RG_NAME" \
+            --distribution staging=10
+
+          echo "Canary deployment active with 10% traffic"
+
+  canary-monitoring:
+    name: Monitor Canary Metrics
+    runs-on: ubuntu-latest
+    needs: canary-deployment
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Monitor canary for 15 minutes
+        run: |
+          echo "Monitoring canary deployment for 15 minutes..."
+
+          for i in {1..15}; do
+            echo "Monitoring minute $i/15..."
+
+            # Check error rates, response times, etc.
+            # Add monitoring logic using Azure Monitor/Application Insights
+
+            sleep 60
+          done
+
+          echo "Canary monitoring completed"
+
+      - name: Validate canary metrics
+        run: |
+          echo "Validating canary metrics..."
+          # Add metric validation logic
+          # If error rate > threshold, fail the deployment
+
+  increase-canary-traffic:
+    name: Increase Canary Traffic (50%)
+    runs-on: ubuntu-latest
+    needs: canary-monitoring
+    environment: prod-approval
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Increase traffic to 50%
+        run: |
+          FUNC_APP_NAME="${{ needs.deploy-infrastructure.outputs.function-app-name }}"
+          RG_NAME="${{ needs.deploy-infrastructure.outputs.resource-group }}"
+
+          az functionapp traffic-routing set \
+            --name "$FUNC_APP_NAME" \
+            --resource-group "$RG_NAME" \
+            --distribution staging=50
+
+          echo "Traffic increased to 50%"
+
+      - name: Monitor for 10 minutes
+        run: |
+          echo "Monitoring 50% canary for 10 minutes..."
+          sleep 600
+          echo "Monitoring completed"
+
+  full-deployment:
+    name: Full Production Deployment
+    runs-on: ubuntu-latest
+    needs: increase-canary-traffic
+    environment: prod-final-approval
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Swap to full production
+        run: |
+          FUNC_APP_NAME="${{ needs.deploy-infrastructure.outputs.function-app-name }}"
+          RG_NAME="${{ needs.deploy-infrastructure.outputs.resource-group }}"
+
+          echo "Swapping to full production..."
+
+          az functionapp deployment slot swap \
+            --name "$FUNC_APP_NAME" \
+            --resource-group "$RG_NAME" \
+            --slot staging \
+            --target-slot production
+
+          echo "Full production deployment completed!"
+
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure, full-deployment]
+
+    steps:
+      - name: Download deployment outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-outputs
+
+      - name: Run comprehensive tests
+        run: |
+          FUNC_APP_HOSTNAME=$(jq -r '.properties.outputs.functionAppHostname.value' deployment-output.json)
+
+          echo "Running production validation tests..."
+
+          # Health check
+          curl -f "https://${FUNC_APP_HOSTNAME}/api/health"
+
+          # Functional tests
+          curl -X POST "https://${FUNC_APP_HOSTNAME}/api/businessinsightbot_function" \
+            -H "Content-Type: application/json" \
+            -d '{"user_input": "Production test", "conversation_history": []}'
+
+          echo "Production validation completed successfully"
+
+  rollback:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    needs: [full-deployment, post-deployment-validation]
+    if: failure()
+    environment: prod-rollback
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Execute rollback
+        run: |
+          FUNC_APP_NAME="${{ needs.deploy-infrastructure.outputs.function-app-name }}"
+          RG_NAME="${{ needs.deploy-infrastructure.outputs.resource-group }}"
+
+          echo "EMERGENCY ROLLBACK IN PROGRESS"
+
+          # Swap back to previous version
+          az functionapp deployment slot swap \
+            --name "$FUNC_APP_NAME" \
+            --resource-group "$RG_NAME" \
+            --slot staging \
+            --target-slot production
+
+          # Reset traffic routing
+          az functionapp traffic-routing clear \
+            --name "$FUNC_APP_NAME" \
+            --resource-group "$RG_NAME"
+
+          echo "Rollback completed"
+
+      - name: Alert operations team
+        run: |
+          echo "CRITICAL: Production deployment rolled back"
+          # Send critical alerts via PagerDuty, Slack, etc.
+
+  create-deployment-record:
+    name: Create Deployment Record
+    runs-on: ubuntu-latest
+    needs: [post-deployment-validation]
+    if: success()
+
+    steps:
+      - name: Record deployment
+        run: |
+          VERSION="${{ github.event.release.tag_name || github.event.inputs.version }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          echo "Recording deployment:"
+          echo "  Version: $VERSION"
+          echo "  Timestamp: $TIMESTAMP"
+          echo "  Environment: prod"
+
+          # Store deployment record in database or file system
+
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [post-deployment-validation]
+    if: success()
+
+    steps:
+      - name: Send success notification
+        run: |
+          echo "Production deployment successful!"
+          # Send notifications to Slack, email, PagerDuty, etc.
+
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure, canary-deployment, full-deployment]
+    if: failure()
+
+    steps:
+      - name: Send failure notification
+        run: |
+          echo "CRITICAL: Production deployment failed!"
+          # Send critical alerts

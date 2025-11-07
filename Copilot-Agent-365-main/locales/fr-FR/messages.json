@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "Soumettre",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "close": "Fermer",
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer",
+      "send": "Envoyer",
+      "retry": "Réessayer",
+      "refresh": "Actualiser",
+      "download": "Télécharger",
+      "upload": "Téléverser",
+      "share": "Partager",
+      "copy": "Copier",
+      "start": "Démarrer",
+      "stop": "Arrêter",
+      "pause": "Pause",
+      "resume": "Reprendre"
+    },
+    "labels": {
+      "language": "Langue",
+      "welcome": "Bienvenue",
+      "ambassador": "Ambassadeur",
+      "chat": "Chat",
+      "settings": "Paramètres",
+      "profile": "Profil",
+      "help": "Aide",
+      "about": "À propos",
+      "search": "Rechercher",
+      "filter": "Filtrer",
+      "sort": "Trier",
+      "name": "Nom",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "date": "Date",
+      "time": "Heure",
+      "location": "Lieu",
+      "status": "Statut",
+      "type": "Type",
+      "category": "Catégorie",
+      "description": "Description",
+      "loading": "Chargement...",
+      "processing": "Traitement...",
+      "saving": "Enregistrement...",
+      "deleting": "Suppression..."
+    },
+    "navigation": {
+      "home": "Accueil",
+      "ambassadors": "Ambassadeurs",
+      "discover": "Découvrir",
+      "collections": "Mes Collections",
+      "history": "Historique",
+      "favorites": "Favoris",
+      "notifications": "Notifications",
+      "logout": "Déconnexion"
+    },
+    "language_selector": {
+      "title": "Choisir la langue",
+      "current": "Langue actuelle",
+      "change": "Changer de langue"
+    }
+  },
+  "system": {
+    "welcome_message": "Bienvenue sur AI Ambassadors !",
+    "scan_qr_prompt": "Scannez un code QR pour découvrir un Ambassadeur IA",
+    "connecting": "Connexion à l'ambassadeur...",
+    "connection_success": "Connecté avec succès !",
+    "initialization": "Initialisation de votre expérience...",
+    "ready": "Prêt à discuter !",
+    "thinking": "L'ambassadeur réfléchit...",
+    "typing": "L'ambassadeur tape..."
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer.",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "timeout": "Délai d'attente dépassé. Veuillez réessayer.",
+    "not_found": "Ressource non trouvée.",
+    "unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource.",
+    "forbidden": "Accès interdit.",
+    "validation": "Veuillez vérifier votre saisie et réessayer.",
+    "server": "Erreur serveur. Veuillez réessayer plus tard.",
+    "ambassador_not_found": "Ambassadeur non trouvé. Veuillez vérifier le code QR.",
+    "invalid_qr": "Code QR invalide. Veuillez scanner un code d'ambassadeur valide.",
+    "session_expired": "Votre session a expiré. Veuillez scanner à nouveau.",
+    "translation_error": "Traduction non disponible. Utilisation de la langue par défaut.",
+    "file_too_large": "Le fichier est trop volumineux. Taille maximale : {max_size}.",
+    "invalid_format": "Format de fichier invalide. Formats acceptés : {formats}.",
+    "connection_lost": "Connexion perdue. Reconnexion..."
+  },
+  "help": {
+    "getting_started": "Commencer",
+    "how_to_scan": "Comment scanner les codes QR",
+    "chat_tips": "Conseils de chat",
+    "troubleshooting": "Dépannage",
+    "faq": "Questions fréquentes",
+    "contact_support": "Contacter le support",
+    "privacy_policy": "Politique de confidentialité",
+    "terms_of_service": "Conditions d'utilisation"
+  },
+  "ambassadors": {
+    "greeting": "Bonjour ! Je suis {name}, votre Ambassadeur IA.",
+    "introduction": "Je suis là pour vous aider avec {purpose}.",
+    "capabilities": "Je peux vous aider avec :",
+    "ask_anything": "Posez-moi n'importe quelle question !",
+    "examples": "Voici quelques choses que vous pouvez essayer :",
+    "unavailable": "Cet ambassadeur n'est actuellement pas disponible.",
+    "offline": "L'ambassadeur est hors ligne.",
+    "busy": "L'ambassadeur est occupé. Veuillez patienter...",
+    "ended": "Cette conversation est terminée.",
+    "new_conversation": "Démarrer une nouvelle conversation",
+    "share_conversation": "Partager cette conversation",
+    "report": "Signaler un problème",
+    "rating_prompt": "Comment était votre expérience ?",
+    "feedback_thanks": "Merci pour votre retour !"
+  },
+  "demo": {
+    "title": "Mode Démo",
+    "description": "Ceci est une démonstration avec un contexte préchargé.",
+    "disclaimer": "Les données de démonstration sont synthétiques et à des fins de présentation uniquement.",
+    "exit": "Quitter la Démo",
+    "restart": "Redémarrer la Démo",
+    "scenario": "Scénario de Démo : {scenario}"
+  },
+  "notifications": {
+    "new_message": "Nouveau message de {name}",
+    "ambassador_available": "{name} est maintenant disponible",
+    "update_available": "Mise à jour disponible",
+    "session_ending": "Session se termine dans {time} minutes",
+    "saved": "Enregistré avec succès !",
+    "deleted": "Supprimé avec succès !",
+    "copied": "Copié dans le presse-papiers !",
+    "shared": "Partagé avec succès !",
+    "translation_changed": "Langue changée en {language}"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "Bienvenue sur AI Ambassadors !",
+      "greeting": "Bonjour {name},",
+      "body": "Merci de rejoindre AI Ambassadors. Commencez à découvrir des compagnons IA dans votre région en scannant des codes QR.",
+      "cta": "Découvrir les Ambassadeurs",
+      "signature": "L'équipe AI Ambassadors"
+    },
+    "password_reset": {
+      "subject": "Réinitialisez votre mot de passe",
+      "greeting": "Bonjour {name},",
+      "body": "Nous avons reçu une demande de réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.",
+      "cta": "Réinitialiser le mot de passe",
+      "expires": "Ce lien expire dans {hours} heures.",
+      "ignore": "Si vous n'avez pas demandé cela, veuillez ignorer cet e-mail."
+    },
+    "new_ambassador": {
+      "subject": "Nouvel Ambassadeur Disponible : {name}",
+      "greeting": "Bonjour {name},",
+      "body": "Un nouvel Ambassadeur IA est disponible dans votre région : {ambassador_name}. Scannez le code QR pour vous connecter !",
+      "cta": "En savoir plus"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, zero {# article} one {# article} other {# articles}}",
+    "ambassadors": "{count, plural, zero {# ambassadeur} one {# ambassadeur} other {# ambassadeurs}}",
+    "messages": "{count, plural, zero {# message} one {# message} other {# messages}}",
+    "users": "{count, plural, zero {# utilisateur} one {# utilisateur} other {# utilisateurs}}",
+    "days": "{count, plural, zero {# jour} one {# jour} other {# jours}}",
+    "hours": "{count, plural, zero {# heure} one {# heure} other {# heures}}",
+    "minutes": "{count, plural, zero {# minute} one {# minute} other {# minutes}}",
+    "seconds": "{count, plural, zero {# seconde} one {# seconde} other {# secondes}}"
+  },
+  "time": {
+    "just_now": "À l'instant",
+    "minutes_ago": "Il y a {minutes} minutes",
+    "hours_ago": "Il y a {hours} heures",
+    "days_ago": "Il y a {days} jours",
+    "yesterday": "Hier",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "morning": "Matin",
+    "afternoon": "Après-midi",
+    "evening": "Soir",
+    "night": "Nuit"
+  },
+  "cultural": {
+    "greeting_formal": "Bonjour",
+    "greeting_informal": "Salut",
+    "farewell_formal": "Au revoir",
+    "farewell_informal": "Salut",
+    "please": "S'il vous plaît",
+    "thank_you": "Merci",
+    "yes": "Oui",
+    "no": "Non",
+    "sorry": "Désolé",
+    "excuse_me": "Excusez-moi"
+  }
+}

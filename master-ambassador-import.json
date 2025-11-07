@@ -1,0 +1,258 @@
+{
+  "ambassadors": [
+    {
+      "id": "creative-001",
+      "name": "CreativeBot",
+      "displayName": "Creative Companion",
+      "description": "Your imagination companion! Helps generate innovative ideas, provides design feedback, and solves creative challenges with AI-powered insights.",
+      "avatar": {
+        "type": "emoji",
+        "value": "🎨",
+        "alternatives": ["🖌️", "🎭", "✨"]
+      },
+      "branding": {
+        "primaryColor": "#6366f1",
+        "secondaryColor": "#8b5cf6",
+        "theme": "creative"
+      },
+      "tags": ["creative", "design", "innovation", "branding", "art"],
+      "status": "active",
+      "scans": 2847,
+      "interactions": 15234,
+      "satisfaction": 4.7,
+      "world": {
+        "type": "creative_studio",
+        "name": "The Imagination Lab",
+        "description": "A vibrant space filled with creative tools, floating ideas, and endless inspiration."
+      },
+      "agentMapping": {
+        "baseAgent": "BasicAgent",
+        "customAgent": "CreativeIdeationAgent",
+        "agentFile": "creative_ideation_agent.py",
+        "functionName": "CreativeIdeation"
+      },
+      "demoConfiguration": {
+        "seededRun": true,
+        "parameters": {
+          "userGuid": "demo-creative-001",
+          "memorySeed": "creative_demo_v1",
+          "model": "gpt-4",
+          "temperature": 0.0,
+          "maxTokens": 1000
+        }
+      }
+    },
+    {
+      "id": "sales-002",
+      "name": "SalesGenius",
+      "displayName": "Sales Intelligence Pro",
+      "description": "Your AI-powered sales companion! Analyzes deals, provides winning strategies, and helps close more business with data-driven insights.",
+      "avatar": {
+        "type": "emoji",
+        "value": "💼",
+        "alternatives": ["📊", "🎯", "💰"]
+      },
+      "branding": {
+        "primaryColor": "#10b981",
+        "secondaryColor": "#059669",
+        "theme": "professional"
+      },
+      "tags": ["sales", "crm", "strategy", "b2b", "revenue"],
+      "status": "active",
+      "scans": 3124,
+      "interactions": 18956,
+      "satisfaction": 4.8,
+      "world": {
+        "type": "executive_boardroom",
+        "name": "The Revenue Engine",
+        "description": "A sleek, modern boardroom with live sales dashboards and strategic insights."
+      },
+      "agentMapping": {
+        "baseAgent": "BasicAgent",
+        "customAgent": "SalesIntelligenceAgent",
+        "agentFile": "sales_intelligence_agent.py",
+        "functionName": "SalesIntelligence"
+      },
+      "demoConfiguration": {
+        "seededRun": true,
+        "parameters": {
+          "userGuid": "demo-sales-002",
+          "memorySeed": "sales_demo_v1",
+          "model": "gpt-4",
+          "temperature": 0.0,
+          "maxTokens": 1200
+        }
+      }
+    }
+  ],
+  "qrCodes": [
+    {
+      "id": "qr-creative-001",
+      "ambassadorId": "creative-001",
+      "location": "design_conference_2025",
+      "url": "https://ai-ambassadors.app/enter/creative-001?source=design_conference_2025",
+      "scans": 1247,
+      "created": "2025-01-15"
+    },
+    {
+      "id": "qr-creative-002",
+      "ambassadorId": "creative-001",
+      "location": "art_gallery_nyc",
+      "url": "https://ai-ambassadors.app/enter/creative-001?source=art_gallery_nyc",
+      "scans": 892,
+      "created": "2025-01-10"
+    },
+    {
+      "id": "qr-sales-001",
+      "ambassadorId": "sales-002",
+      "location": "sales_summit_vegas",
+      "url": "https://ai-ambassadors.app/enter/sales-002?source=sales_summit_vegas",
+      "scans": 1834,
+      "created": "2025-01-12"
+    },
+    {
+      "id": "qr-sales-002",
+      "ambassadorId": "sales-002",
+      "location": "enterprise_expo_sf",
+      "url": "https://ai-ambassadors.app/enter/sales-002?source=enterprise_expo_sf",
+      "scans": 1290,
+      "created": "2025-01-08"
+    }
+  ],
+  "memorySeeds": [
+    {
+      "id": "creative_demo_v1",
+      "version": "1.0",
+      "description": "Seeded memory for CreativeBot demos - Brand identity project for TechFlow",
+      "ambassadorId": "creative-001",
+      "memories": [
+        {
+          "message": "User is Sarah Chen, Marketing Director at TechFlow, a B2B SaaS startup",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 5
+        },
+        {
+          "message": "User prefers bold, modern design aesthetics with vibrant colors",
+          "theme": "preferences",
+          "mood": "neutral",
+          "importance": 5
+        },
+        {
+          "message": "Previous successful project: Logo design for NovaTech resulted in 40% brand recognition increase",
+          "theme": "history",
+          "mood": "positive",
+          "importance": 4
+        },
+        {
+          "message": "Target audience: Enterprise CTOs and IT Directors, ages 35-55",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 4
+        },
+        {
+          "message": "Brand values: Innovation, Trust, Efficiency, Scalability",
+          "theme": "preferences",
+          "mood": "neutral",
+          "importance": 5
+        },
+        {
+          "message": "Deadline: Logo and brand assets needed within 2 weeks for product launch",
+          "theme": "constraint",
+          "mood": "urgent",
+          "importance": 4
+        },
+        {
+          "message": "Budget: $8,000-12,000 for complete brand identity package",
+          "theme": "constraint",
+          "mood": "neutral",
+          "importance": 4
+        },
+        {
+          "message": "Competitors: Salesforce, HubSpot, Monday.com - need differentiation",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 3
+        }
+      ]
+    },
+    {
+      "id": "sales_demo_v1",
+      "version": "1.0",
+      "description": "Seeded memory for SalesGenius demos - Enterprise deal with DataCorp",
+      "ambassadorId": "sales-002",
+      "memories": [
+        {
+          "message": "User is Marcus Rodriguez, Account Executive at CloudSecure Solutions",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 5
+        },
+        {
+          "message": "Currently working on deal with DataCorp Inc. - $250K annual contract value",
+          "theme": "context",
+          "mood": "focused",
+          "importance": 5
+        },
+        {
+          "message": "Prospect: Jennifer Wang, CTO at DataCorp Inc., 500 employees",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 4
+        },
+        {
+          "message": "Main pain point: Current security solution from Competitor XYZ is too complex and expensive",
+          "theme": "insight",
+          "mood": "opportunity",
+          "importance": 5
+        },
+        {
+          "message": "Budget: $300K approved for security infrastructure this fiscal year",
+          "theme": "constraint",
+          "mood": "positive",
+          "importance": 5
+        },
+        {
+          "message": "Timeline: Needs solution deployed before Q2 (8 weeks)",
+          "theme": "constraint",
+          "mood": "urgent",
+          "importance": 4
+        },
+        {
+          "message": "Objection received: Jennifer concerned about migration complexity from current provider",
+          "theme": "objection",
+          "mood": "challenge",
+          "importance": 5
+        },
+        {
+          "message": "Decision committee: Jennifer (CTO), David Chen (CFO), Sarah Miller (CISO)",
+          "theme": "context",
+          "mood": "neutral",
+          "importance": 4
+        },
+        {
+          "message": "Previous success: Closed TechVentures deal with similar objections using migration guarantee",
+          "theme": "history",
+          "mood": "confident",
+          "importance": 3
+        },
+        {
+          "message": "User prefers data-driven approach with ROI calculations and case studies",
+          "theme": "preferences",
+          "mood": "neutral",
+          "importance": 4
+        }
+      ]
+    }
+  ],
+  "exportDate": "2025-01-16T10:30:00.000Z",
+  "version": "1.0.0",
+  "metadata": {
+    "totalAmbassadors": 2,
+    "totalQRCodes": 4,
+    "totalMemorySeeds": 2,
+    "scriptedDemos": true,
+    "productionReady": true,
+    "description": "Complete AI Ambassador package with two fully scripted, frame-by-frame seeded demos ready for import and deployment."
+  }
+}

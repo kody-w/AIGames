@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "提交",
+      "cancel": "取消",
+      "save": "保存",
+      "delete": "删除",
+      "edit": "编辑",
+      "close": "关闭",
+      "back": "返回",
+      "next": "下一步",
+      "finish": "完成",
+      "send": "发送",
+      "retry": "重试",
+      "refresh": "刷新",
+      "download": "下载",
+      "upload": "上传",
+      "share": "分享",
+      "copy": "复制",
+      "start": "开始",
+      "stop": "停止",
+      "pause": "暂停",
+      "resume": "继续"
+    },
+    "labels": {
+      "language": "语言",
+      "welcome": "欢迎",
+      "ambassador": "大使",
+      "chat": "聊天",
+      "settings": "设置",
+      "profile": "个人资料",
+      "help": "帮助",
+      "about": "关于",
+      "search": "搜索",
+      "filter": "筛选",
+      "sort": "排序",
+      "name": "姓名",
+      "email": "电子邮件",
+      "password": "密码",
+      "date": "日期",
+      "time": "时间",
+      "location": "位置",
+      "status": "状态",
+      "type": "类型",
+      "category": "类别",
+      "description": "描述",
+      "loading": "加载中...",
+      "processing": "处理中...",
+      "saving": "保存中...",
+      "deleting": "删除中..."
+    },
+    "navigation": {
+      "home": "首页",
+      "ambassadors": "大使",
+      "discover": "发现",
+      "collections": "我的收藏",
+      "history": "历史",
+      "favorites": "收藏夹",
+      "notifications": "通知",
+      "logout": "退出登录"
+    },
+    "language_selector": {
+      "title": "选择语言",
+      "current": "当前语言",
+      "change": "更改语言"
+    }
+  },
+  "system": {
+    "welcome_message": "欢迎使用 AI Ambassadors!",
+    "scan_qr_prompt": "扫描二维码以发现 AI 大使",
+    "connecting": "正在连接大使...",
+    "connection_success": "连接成功!",
+    "initialization": "正在初始化您的体验...",
+    "ready": "准备好聊天!",
+    "thinking": "大使正在思考...",
+    "typing": "大使正在输入..."
+  },
+  "errors": {
+    "generic": "出了点问题。请重试。",
+    "network": "网络错误。请检查您的连接。",
+    "timeout": "请求超时。请重试。",
+    "not_found": "未找到资源。",
+    "unauthorized": "您无权访问此资源。",
+    "forbidden": "访问被禁止。",
+    "validation": "请检查您的输入并重试。",
+    "server": "服务器错误。请稍后重试。",
+    "ambassador_not_found": "未找到大使。请检查二维码。",
+    "invalid_qr": "无效的二维码。请扫描有效的大使代码。",
+    "session_expired": "您的会话已过期。请重新扫描。",
+    "translation_error": "翻译不可用。使用默认语言。",
+    "file_too_large": "文件太大。最大大小为 {max_size}。",
+    "invalid_format": "文件格式无效。接受的格式：{formats}。",
+    "connection_lost": "连接丢失。正在重新连接..."
+  },
+  "help": {
+    "getting_started": "入门",
+    "how_to_scan": "如何扫描二维码",
+    "chat_tips": "聊天技巧",
+    "troubleshooting": "故障排除",
+    "faq": "常见问题",
+    "contact_support": "联系支持",
+    "privacy_policy": "隐私政策",
+    "terms_of_service": "服务条款"
+  },
+  "ambassadors": {
+    "greeting": "你好！我是 {name}，您的 AI 大使。",
+    "introduction": "我在这里帮助您 {purpose}。",
+    "capabilities": "我可以帮助您：",
+    "ask_anything": "问我任何问题！",
+    "examples": "以下是一些您可以尝试的事情：",
+    "unavailable": "此大使目前不可用。",
+    "offline": "大使离线。",
+    "busy": "大使忙碌中。请稍候...",
+    "ended": "此对话已结束。",
+    "new_conversation": "开始新对话",
+    "share_conversation": "分享此对话",
+    "report": "报告问题",
+    "rating_prompt": "您的体验如何？",
+    "feedback_thanks": "感谢您的反馈！"
+  },
+  "demo": {
+    "title": "演示模式",
+    "description": "这是一个预加载上下文的演示。",
+    "disclaimer": "演示数据是合成的，仅用于展示目的。",
+    "exit": "退出演示",
+    "restart": "重新开始演示",
+    "scenario": "演示场景：{scenario}"
+  },
+  "notifications": {
+    "new_message": "{name} 的新消息",
+    "ambassador_available": "{name} 现在可用",
+    "update_available": "有可用更新",
+    "session_ending": "会话将在 {time} 分钟后结束",
+    "saved": "保存成功！",
+    "deleted": "删除成功！",
+    "copied": "已复制到剪贴板！",
+    "shared": "分享成功！",
+    "translation_changed": "语言已更改为 {language}"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "欢迎使用 AI Ambassadors!",
+      "greeting": "你好 {name}，",
+      "body": "感谢您加入 AI Ambassadors。通过扫描二维码开始发现您所在地区的 AI 伙伴。",
+      "cta": "发现大使",
+      "signature": "AI Ambassadors 团队"
+    },
+    "password_reset": {
+      "subject": "重置您的密码",
+      "greeting": "你好 {name}，",
+      "body": "我们收到了重置您密码的请求。点击下面的按钮创建新密码。",
+      "cta": "重置密码",
+      "expires": "此链接将在 {hours} 小时后过期。",
+      "ignore": "如果您没有请求此操作，请忽略此电子邮件。"
+    },
+    "new_ambassador": {
+      "subject": "新大使可用：{name}",
+      "greeting": "你好 {name}，",
+      "body": "您所在地区有一位新的 AI 大使：{ambassador_name}。扫描二维码以连接！",
+      "cta": "了解更多"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, other {# 项}}",
+    "ambassadors": "{count, plural, other {# 位大使}}",
+    "messages": "{count, plural, other {# 条消息}}",
+    "users": "{count, plural, other {# 位用户}}",
+    "days": "{count, plural, other {# 天}}",
+    "hours": "{count, plural, other {# 小时}}",
+    "minutes": "{count, plural, other {# 分钟}}",
+    "seconds": "{count, plural, other {# 秒}}"
+  },
+  "time": {
+    "just_now": "刚刚",
+    "minutes_ago": "{minutes} 分钟前",
+    "hours_ago": "{hours} 小时前",
+    "days_ago": "{days} 天前",
+    "yesterday": "昨天",
+    "today": "今天",
+    "tomorrow": "明天",
+    "morning": "上午",
+    "afternoon": "下午",
+    "evening": "傍晚",
+    "night": "晚上"
+  },
+  "cultural": {
+    "greeting_formal": "您好",
+    "greeting_informal": "你好",
+    "farewell_formal": "再见",
+    "farewell_informal": "拜拜",
+    "please": "请",
+    "thank_you": "谢谢",
+    "yes": "是",
+    "no": "否",
+    "sorry": "抱歉",
+    "excuse_me": "打扰一下"
+  }
+}

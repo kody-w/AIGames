@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AI Ambassadors">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <title>AI Ambassador Chat</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+  <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#6366f1">
+
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary-color: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --secondary-color: #ec4899;
+      --background-color: #ffffff;
+      --surface-color: #f9fafb;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --safe-area-inset-top: env(safe-area-inset-top);
+      --safe-area-inset-bottom: env(safe-area-inset-bottom);
+      --safe-area-inset-left: env(safe-area-inset-left);
+      --safe-area-inset-right: env(safe-area-inset-right);
+    }
+
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      height: 100dvh;
+      touch-action: pan-y;
+      overscroll-behavior: none;
+    }
+
+    /* App Container */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      padding-top: var(--safe-area-inset-top);
+      padding-bottom: var(--safe-area-inset-bottom);
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: var(--shadow-md);
+      z-index: 100;
+      min-height: 56px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .back-button:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .ambassador-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ambassador-avatar {
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .ambassador-details h1 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .ambassador-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-color);
+    }
+
+    .status-indicator.offline {
+      background: var(--error-color);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .icon-button:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Offline Banner */
+    .offline-banner {
+      display: none;
+      background: var(--warning-color);
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .offline-banner.show {
+      display: block;
+    }
+
+    /* Chat Container */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chat-container.pulling {
+      transition: transform 0.2s ease-out;
+    }
+
+    /* Pull to Refresh */
+    .pull-to-refresh {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      transition: transform 0.3s ease-out;
+      transform: translateY(-100%);
+    }
+
+    .pull-to-refresh.pulling {
+      transform: translateY(0);
+    }
+
+    .pull-to-refresh.refreshing {
+      transform: translateY(0);
+    }
+
+    .refresh-icon {
+      font-size: 20px;
+      margin-right: 8px;
+      animation: spin 1s linear infinite;
+    }
+
+    .pull-to-refresh:not(.refreshing) .refresh-icon {
+      animation: none;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Message Bubbles */
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: messageSlideIn 0.3s ease-out;
+    }
+
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      max-width: 75%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .message.user .message-content {
+      align-items: flex-end;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .message.assistant .message-bubble {
+      background: var(--surface-color);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.user .message-bubble {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      padding: 0 4px;
+    }
+
+    .message-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .message.queued .message-bubble {
+      opacity: 0.6;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: none;
+      padding: 12px 16px;
+      background: var(--surface-color);
+      border-radius: 18px;
+      width: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .typing-indicator.show {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: typingDot 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingDot {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Input Area */
+    .input-area {
+      padding: 12px 16px;
+      background: var(--surface-color);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .action-button {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    .action-button:active {
+      background: var(--border-color);
+    }
+
+    .action-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .message-input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .message-input {
+      width: 100%;
+      max-height: 120px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      background: white;
+    }
+
+    .message-input:focus {
+      border-color: var(--primary-color);
+    }
+
+    .send-button {
+      background: var(--primary-color);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 12px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      box-shadow: var(--shadow-md);
+    }
+
+    .send-button:active {
+      background: var(--primary-dark);
+    }
+
+    .send-button:disabled {
+      background: var(--border-color);
+      cursor: not-allowed;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 12px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .quick-actions::-webkit-scrollbar {
+      display: none;
+    }
+
+    .quick-action {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .quick-action:active {
+      background: var(--surface-color);
+      transform: scale(0.95);
+    }
+
+    /* Voice Recording */
+    .voice-recording {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: var(--error-color);
+      color: white;
+      padding: 16px;
+      margin-bottom: 8px;
+      border-radius: 12px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .voice-recording.show {
+      display: flex;
+    }
+
+    .voice-recording-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .recording-pulse {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+      }
+    }
+
+    .recording-time {
+      font-weight: 600;
+    }
+
+    .cancel-recording {
+      background: white;
+      color: var(--error-color);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    /* Image Preview */
+    .image-preview {
+      display: none;
+      position: relative;
+      padding: 8px;
+      background: var(--surface-color);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .image-preview.show {
+      display: block;
+    }
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+    }
+
+    .remove-image {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    /* Install Prompt */
+    .install-prompt {
+      display: none;
+      position: fixed;
+      bottom: calc(16px + var(--safe-area-inset-bottom));
+      left: 16px;
+      right: 16px;
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .install-prompt.show {
+      display: block;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .install-prompt-content {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .install-prompt-icon {
+      font-size: 32px;
+    }
+
+    .install-prompt-text h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .install-prompt-text p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .install-prompt-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .install-button {
+      flex: 1;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .dismiss-button {
+      flex: 1;
+      background: var(--surface-color);
+      color: var(--text-primary);
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Haptic Feedback Helper */
+    .haptic-target {
+      cursor: pointer;
+    }
+
+    /* Image in message */
+    .message-image {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    /* Location sharing */
+    .location-bubble {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .location-icon {
+      font-size: 32px;
+    }
+
+    .location-info {
+      flex: 1;
+    }
+
+    .location-info strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .location-info small {
+      color: var(--text-secondary);
+    }
+
+    /* Hidden file inputs */
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <button class="back-button haptic-target" id="backButton">
+          ←
+        </button>
+        <div class="ambassador-info">
+          <div class="ambassador-avatar" id="ambassadorAvatar">🎨</div>
+          <div class="ambassador-details">
+            <h1 id="ambassadorName">Creative Ambassador</h1>
+            <div class="ambassador-status">
+              <div class="status-indicator" id="statusIndicator"></div>
+              <span id="statusText">Online</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button haptic-target" id="infoButton" title="Ambassador Info">
+          ℹ️
+        </button>
+        <button class="icon-button haptic-target" id="menuButton" title="Menu">
+          ⋮
+        </button>
+      </div>
+    </header>
+
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offlineBanner">
+      You're offline. Messages will be sent when you reconnect.
+    </div>
+
+    <!-- Pull to Refresh -->
+    <div class="pull-to-refresh" id="pullToRefresh">
+      <span class="refresh-icon">↻</span>
+      <span>Pull to refresh</span>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
+      <!-- Welcome message -->
+      <div class="message assistant">
+        <div class="message-avatar">🎨</div>
+        <div class="message-content">
+          <div class="message-bubble">
+            Hello! I'm your Creative Ambassador. How can I inspire you today?
+          </div>
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="message assistant">
+        <div class="message-avatar">🎨</div>
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions" id="quickActions">
+      <button class="quick-action haptic-target">Tell me about yourself</button>
+      <button class="quick-action haptic-target">What can you help with?</button>
+      <button class="quick-action haptic-target">Show me something creative</button>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <!-- Voice Recording Indicator -->
+      <div class="voice-recording" id="voiceRecording">
+        <div class="voice-recording-info">
+          <div class="recording-pulse"></div>
+          <span class="recording-time" id="recordingTime">0:00</span>
+        </div>
+        <button class="cancel-recording haptic-target" id="cancelRecording">Cancel</button>
+      </div>
+
+      <!-- Image Preview -->
+      <div class="image-preview" id="imagePreview">
+        <img class="preview-image" id="previewImage" alt="Preview">
+        <button class="remove-image haptic-target" id="removeImage">×</button>
+      </div>
+
+      <div class="input-actions">
+        <button class="action-button haptic-target" id="attachButton" title="Attach Image">
+          📎
+        </button>
+        <button class="action-button haptic-target" id="voiceButton" title="Voice Input">
+          🎤
+        </button>
+        <button class="action-button haptic-target" id="locationButton" title="Share Location">
+          📍
+        </button>
+      </div>
+
+      <div class="message-input-wrapper">
+        <textarea
+          class="message-input"
+          id="messageInput"
+          placeholder="Type a message..."
+          rows="1"
+        ></textarea>
+      </div>
+
+      <button class="send-button haptic-target" id="sendButton" disabled>
+        ➤
+      </button>
+
+      <!-- Hidden file input -->
+      <input type="file" id="imageInput" accept="image/*">
+    </div>
+  </div>
+
+  <!-- Install Prompt -->
+  <div class="install-prompt" id="installPrompt">
+    <div class="install-prompt-content">
+      <div class="install-prompt-icon">📱</div>
+      <div class="install-prompt-text">
+        <h3>Install AI Ambassadors</h3>
+        <p>Add to your home screen for a better experience</p>
+      </div>
+    </div>
+    <div class="install-prompt-actions">
+      <button class="install-button haptic-target" id="installButton">Install</button>
+      <button class="dismiss-button haptic-target" id="dismissButton">Not Now</button>
+    </div>
+  </div>
+
+  <script src="/scripts/mobile-app.js"></script>
+  <script src="/scripts/offline-queue.js"></script>
+</body>
+</html>

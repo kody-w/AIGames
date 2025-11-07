@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multi-Language - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar"><div class="logo"><h1>AI Ambassador</h1></div></nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Multi-Language Ambassadors</h1>
+            <p class="subtitle">Create ambassadors that speak multiple languages</p>
+        </header>
+        <section>
+            <h2>Language Configuration</h2>
+            <pre><code>"capabilities": {
+  "languages": ["en", "es", "fr", "de", "ja", "zh"],
+  "language_detection": "auto",
+  "fallback_language": "en"
+}</code></pre>
+        </section>
+        <section>
+            <h2>System Prompt for Multi-Language</h2>
+            <pre><code>"system_prompt": "You are a multilingual ambassador. Detect the user's language and respond in that language. Supported languages: English, Spanish, French, German, Japanese, Chinese. If unsure, ask the user their preferred language."</code></pre>
+        </section>
+        <section>
+            <h2>Localized Shared Memory</h2>
+            <pre><code>"shared_memory": {
+  "greetings": {
+    "en": "Welcome! How can I help you today?",
+    "es": "¡Bienvenido! ¿Cómo puedo ayudarte hoy?",
+    "fr": "Bienvenue! Comment puis-je vous aider aujourd'hui?",
+    "de": "Willkommen! Wie kann ich Ihnen heute helfen?",
+    "ja": "ようこそ！今日は何をお手伝いできますか？",
+    "zh": "欢迎！我今天能帮您什么？"
+  }
+}</code></pre>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

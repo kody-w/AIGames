@@ -1,0 +1,232 @@
+{
+  "enabled": true,
+  "version": "1.0.0",
+  "updated": "2025-11-07",
+
+  "severity_levels": {
+    "none": {
+      "score_range": [0.0, 0.3],
+      "description": "No policy violations detected"
+    },
+    "low": {
+      "score_range": [0.3, 0.5],
+      "description": "Minor policy violations - educational content or mild language"
+    },
+    "medium": {
+      "score_range": [0.5, 0.7],
+      "description": "Moderate policy violations - profanity, spam, or inappropriate content"
+    },
+    "high": {
+      "score_range": [0.7, 0.9],
+      "description": "Serious policy violations - hate speech, threats, or harmful content"
+    },
+    "critical": {
+      "score_range": [0.9, 1.0],
+      "description": "Critical policy violations - extreme toxicity, illegal content, or severe threats"
+    }
+  },
+
+  "severity_thresholds": {
+    "low": 0.3,
+    "medium": 0.5,
+    "high": 0.7,
+    "critical": 0.9
+  },
+
+  "actions": {
+    "none": "allow",
+    "low": "warn",
+    "medium": "filter",
+    "high": "block",
+    "critical": "ban"
+  },
+
+  "action_descriptions": {
+    "allow": "Content is approved and sent without modification",
+    "warn": "Content is allowed but user receives a warning message",
+    "filter": "Content is modified to remove inappropriate elements",
+    "block": "Content is rejected and not processed",
+    "report": "Content is flagged for manual review",
+    "ban": "User is temporarily or permanently banned from the platform"
+  },
+
+  "rate_limiting": {
+    "max_violations_per_hour": 10,
+    "max_violations_per_day": 50,
+    "temp_ban_duration_hours": 24,
+    "escalation_enabled": true
+  },
+
+  "azure_moderation": {
+    "enabled": true,
+    "use_as_primary": false,
+    "fallback_to_rules": true,
+    "timeout_ms": 2000,
+    "thresholds": {
+      "hate": 0.5,
+      "hate_threatening": 0.7,
+      "self_harm": 0.5,
+      "self_harm_intent": 0.7,
+      "self_harm_instructions": 0.7,
+      "sexual": 0.5,
+      "sexual_minors": 0.3,
+      "violence": 0.5,
+      "violence_graphic": 0.7
+    }
+  },
+
+  "category_weights": {
+    "profanity": 0.5,
+    "pii": 1.0,
+    "spam": 0.6,
+    "prompt_injection": 0.9,
+    "hate_speech": 1.0,
+    "harassment": 0.9,
+    "threat": 1.0,
+    "adult_content": 0.7,
+    "violence": 0.8,
+    "malicious_urls": 0.9
+  },
+
+  "whitelist_words": [
+    "hell yeah",
+    "damn good",
+    "badass",
+    "hell of a",
+    "what the hell"
+  ],
+
+  "blacklist_words": [],
+
+  "allowed_domains": [
+    "wikipedia.org",
+    "github.com",
+    "stackoverflow.com",
+    "microsoft.com",
+    "azure.com",
+    "openai.com"
+  ],
+
+  "blocked_domains": [
+    "bit.ly",
+    "tinyurl.com",
+    "goo.gl",
+    "ow.ly",
+    "is.gd"
+  ],
+
+  "features": {
+    "enable_pii_detection": true,
+    "enable_spam_detection": true,
+    "enable_prompt_injection_detection": true,
+    "enable_profanity_filter": true,
+    "enable_toxicity_detection": true,
+    "enable_adult_content_detection": true,
+    "enable_violence_detection": true,
+    "enable_url_scanning": true,
+    "enable_user_tracking": true,
+    "enable_auto_ban": false,
+    "enable_manual_review": true
+  },
+
+  "multi_language_support": {
+    "enabled": true,
+    "languages": ["en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko", "ar", "hi", "ru"],
+    "translation_enabled": false
+  },
+
+  "context_awareness": {
+    "enabled": true,
+    "educational_exception": true,
+    "medical_exception": true,
+    "literary_exception": false,
+    "news_exception": false
+  },
+
+  "pii_settings": {
+    "mask_emails": true,
+    "mask_phone_numbers": true,
+    "mask_ssn": true,
+    "mask_credit_cards": true,
+    "mask_addresses": true,
+    "mask_ip_addresses": false
+  },
+
+  "spam_settings": {
+    "check_repetition": true,
+    "repetition_threshold": 0.7,
+    "check_caps_lock": true,
+    "caps_lock_threshold": 0.8,
+    "check_urls": true,
+    "max_urls_per_message": 3
+  },
+
+  "reporting": {
+    "log_all_checks": false,
+    "log_flagged_only": true,
+    "log_violations_only": true,
+    "retention_days": 90,
+    "export_format": "json"
+  },
+
+  "user_reporting": {
+    "enabled": true,
+    "categories": [
+      "inappropriate_content",
+      "spam",
+      "harassment",
+      "hate_speech",
+      "violence",
+      "illegal_content",
+      "other"
+    ],
+    "require_description": true,
+    "min_description_length": 20
+  },
+
+  "appeal_process": {
+    "enabled": true,
+    "allow_appeals": true,
+    "appeal_window_days": 30,
+    "review_sla_hours": 48
+  },
+
+  "compliance": {
+    "gdpr_compliant": true,
+    "ccpa_compliant": true,
+    "coppa_compliant": true,
+    "data_retention_days": 90,
+    "allow_data_export": true,
+    "allow_data_deletion": true
+  },
+
+  "performance": {
+    "target_latency_ms": 50,
+    "max_latency_ms": 200,
+    "cache_results": true,
+    "cache_ttl_seconds": 300,
+    "parallel_checks": true
+  },
+
+  "notifications": {
+    "notify_user_on_violation": true,
+    "notify_moderators_on_critical": true,
+    "moderator_emails": [],
+    "slack_webhook_url": "",
+    "discord_webhook_url": ""
+  },
+
+  "ambassador_specific": {
+    "apply_ambassador_personality": true,
+    "friendly_warning_messages": true,
+    "educational_responses": true,
+    "allow_appeals_inline": true
+  },
+
+  "demo_mode": {
+    "enabled": false,
+    "allow_violations": false,
+    "log_only": true,
+    "show_scores": true
+  }
+}

@@ -13,6 +13,15 @@ from openai import AzureOpenAI
 from datetime import datetime
 import time
 from utils.azure_file_storage import AzureFileStorageManager, safe_json_loads
+from utils.analytics import (
+    AnalyticsTracker, FunnelAnalyzer, CohortAnalyzer,
+    ABTestFramework, AmbassadorPerformanceAnalyzer,
+    EventTypes, AnalyticsStorage
+)
+from utils.admin_auth import AdminAuth, AdminRole
+from utils.ambassador_manager import AmbassadorManager
+from utils.cache import get_cache_manager, load_cache_config
+from datetime import datetime, timedelta
 
 # Default GUID to use when no specific user GUID is provided
 # Memorable pattern related to "copilot" that follows UUID format rules
@@ -801,6 +810,18 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
 
 app = func.FunctionApp()
 
+# Initialize global analytics tracker
+storage_manager = AzureFileStorageManager()
+analytics_tracker = AnalyticsTracker(storage_manager)
+analytics_storage = AnalyticsStorage(storage_manager)
+
+# Initialize backup and recovery managers
+from utils.backup import BackupManager, BackupScheduler
+from utils.recovery import RecoveryManager
+
+backup_manager = BackupManager(storage_manager)
+recovery_manager = RecoveryManager(storage_manager, backup_manager)
+
 @app.route(route="businessinsightbot_function", auth_level=func.AuthLevel.FUNCTION)
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
@@ -860,10 +881,60 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     try:
+        # Generate session ID if not provided
+        session_id = req_body.get('session_id') or str(uuid.uuid4())
+
+        # CONTENT MODERATION - Check user input before processing
+        if not is_guid_only:
+            try:
+                from utils.content_moderation import get_moderator
+                moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+                moderation_result = moderator.check_content(user_input, user_guid, 'user_input')
+
+                # If content is flagged as block or ban, reject immediately
+                if moderation_result.action in ['block', 'ban']:
+                    return func.HttpResponse(
+                        json.dumps({
+                            "error": "Content policy violation",
+                            "severity": moderation_result.severity,
+                            "action": moderation_result.action,
+                            "message": "Your message violates our content policy. Please review our guidelines and try again with appropriate content.",
+                            "reasons": moderation_result.reasons,
+                            "flagged": True
+                        }),
+                        status_code=400,
+                        mimetype="application/json",
+                        headers=cors_headers
+                    )
+
+                # If content is filtered, use the filtered version
+                if moderation_result.action == 'filter' and moderation_result.filtered_content:
+                    user_input = moderation_result.filtered_content
+                    logging.info(f"User input filtered for user {user_guid}")
+
+                # If warned, continue but log
+                if moderation_result.action == 'warn':
+                    logging.warning(f"User input warning for user {user_guid}: {moderation_result.reasons}")
+
+            except Exception as e:
+                # Don't fail the entire request if moderation fails
+                logging.error(f"Moderation check failed: {e}")
+
+        # Track message sent event
+        analytics_tracker.track(
+            EventTypes.MESSAGE_SENT,
+            user_id=user_guid or user_input if is_guid_only else None,
+            session_id=session_id,
+            properties={
+                'message_length': len(user_input),
+                'has_history': len(conversation_history) > 0
+            }
+        )
+
         agents = load_agents_from_folder(user_guid)
         # Create a new Assistant instance for each request
         assistant = Assistant(agents)
-        
+
         # Set user_guid if provided in the request or found in input
         if user_guid:
             assistant.user_guid = user_guid
@@ -872,16 +943,49 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             assistant.user_guid = user_input.strip()
             assistant._initialize_context_memory(user_input.strip())
         # Otherwise, the default GUID will be used (already set in __init__)
-            
+
         assistant_response, voice_response, agent_logs = assistant.get_response(
             user_input, conversation_history)
 
-        # Include GUID and voice response in output
+        # CONTENT MODERATION - Check AI output before returning
+        try:
+            from utils.content_moderation import get_moderator
+            moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+            output_moderation = moderator.check_content(str(assistant_response), user_guid, 'ai_output')
+
+            # If AI output is flagged, filter it
+            if output_moderation.flagged:
+                logging.warning(f"AI output moderation triggered: {output_moderation.severity} - {output_moderation.reasons}")
+
+                if output_moderation.action == 'filter' and output_moderation.filtered_content:
+                    assistant_response = output_moderation.filtered_content
+                elif output_moderation.action in ['block', 'ban']:
+                    # Replace with safe fallback response
+                    assistant_response = "I apologize, but I'm unable to provide that response. Let me try to help you in a different way."
+                    voice_response = "Sorry, I can't provide that response. How else can I help?"
+
+        except Exception as e:
+            # Don't fail the entire request if moderation fails
+            logging.error(f"Output moderation check failed: {e}")
+
+        # Track message received event
+        analytics_tracker.track(
+            EventTypes.MESSAGE_RECEIVED,
+            user_id=assistant.user_guid,
+            session_id=session_id,
+            properties={
+                'response_length': len(assistant_response),
+                'agents_called': len(agent_logs.split('\n')) if agent_logs else 0
+            }
+        )
+
+        # Include GUID, session ID and voice response in output
         response = {
             "assistant_response": str(assistant_response),
             "voice_response": str(voice_response),
             "agent_logs": str(agent_logs),
-            "user_guid": assistant.user_guid  # Return the GUID in use (could be default or provided)
+            "user_guid": assistant.user_guid,  # Return the GUID in use (could be default or provided)
+            "session_id": session_id
         }
 
         return func.HttpResponse(
@@ -896,6 +1000,1177 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         }
         return func.HttpResponse(
             json.dumps(error_response),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="backup/create", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+async def backup_create(req: func.HttpRequest) -> func.HttpResponse:
+    """Create a manual backup"""
+    logging.info('Backup create request received')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        backup_type = req_body.get('backup_type', 'full')  # full or incremental
+        backup_id = req_body.get('backup_id')
+        targets = req_body.get('targets')
+
+        if backup_type == 'full':
+            metadata = await backup_manager.create_full_backup(
+                backup_id=backup_id,
+                targets=targets
+            )
+        elif backup_type == 'incremental':
+            base_backup_id = req_body.get('base_backup_id')
+            metadata = await backup_manager.create_incremental_backup(
+                base_backup_id=base_backup_id,
+                backup_id=backup_id
+            )
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": "Invalid backup_type. Must be 'full' or 'incremental'"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        return func.HttpResponse(
+            json.dumps(metadata),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    except Exception as e:
+        logging.error(f"Error creating backup: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="backup/list", auth_level=func.AuthLevel.FUNCTION, methods=["GET"])
+def backup_list(req: func.HttpRequest) -> func.HttpResponse:
+    """List available backups"""
+    logging.info('Backup list request received')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        backup_type = req.params.get('backup_type')
+        start_date_str = req.params.get('start_date')
+        end_date_str = req.params.get('end_date')
+
+        start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+        end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+
+        backups = backup_manager.list_backups(
+            backup_type=backup_type,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        return func.HttpResponse(
+            json.dumps({"backups": backups}),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    except Exception as e:
+        logging.error(f"Error listing backups: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="backup/restore", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+async def backup_restore(req: func.HttpRequest) -> func.HttpResponse:
+    """Restore from backup"""
+    logging.info('Backup restore request received')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        backup_id = req_body.get('backup_id')
+        restore_type = req_body.get('restore_type', 'full')  # full, selective, point_in_time
+        targets = req_body.get('targets')
+        filters = req_body.get('filters')
+        validate_before = req_body.get('validate_before', True)
+        create_snapshot = req_body.get('create_snapshot', True)
+
+        if not backup_id and restore_type != 'point_in_time':
+            return func.HttpResponse(
+                json.dumps({"error": "backup_id is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        if restore_type == 'full':
+            results = await recovery_manager.restore_full(
+                backup_id=backup_id,
+                validate_before=validate_before,
+                create_snapshot=create_snapshot
+            )
+        elif restore_type == 'selective':
+            if not targets:
+                return func.HttpResponse(
+                    json.dumps({"error": "targets is required for selective restore"}),
+                    status_code=400,
+                    mimetype="application/json",
+                    headers=cors_headers
+                )
+            results = await recovery_manager.restore_selective(
+                backup_id=backup_id,
+                targets=targets,
+                filters=filters
+            )
+        elif restore_type == 'point_in_time':
+            target_datetime_str = req_body.get('target_datetime')
+            if not target_datetime_str:
+                return func.HttpResponse(
+                    json.dumps({"error": "target_datetime is required for point_in_time restore"}),
+                    status_code=400,
+                    mimetype="application/json",
+                    headers=cors_headers
+                )
+            target_datetime = datetime.fromisoformat(target_datetime_str)
+            results = await recovery_manager.restore_point_in_time(
+                target_datetime=target_datetime,
+                targets=targets
+            )
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": "Invalid restore_type"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        return func.HttpResponse(
+            json.dumps(results),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    except Exception as e:
+        logging.error(f"Error restoring backup: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="backup/verify", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+def backup_verify(req: func.HttpRequest) -> func.HttpResponse:
+    """Verify backup integrity"""
+    logging.info('Backup verify request received')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        backup_id = req_body.get('backup_id')
+
+        if not backup_id:
+            return func.HttpResponse(
+                json.dumps({"error": "backup_id is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        verification = backup_manager.verify_backup(backup_id)
+
+        return func.HttpResponse(
+            json.dumps(verification),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    except Exception as e:
+        logging.error(f"Error verifying backup: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="backup/export", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+async def backup_export(req: func.HttpRequest) -> func.HttpResponse:
+    """Export data for migration"""
+    logging.info('Backup export request received')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        export_format = req_body.get('format', 'json')  # json or csv
+        targets = req_body.get('targets')
+
+        # Create a full backup
+        backup_metadata = await backup_manager.create_full_backup(
+            backup_id=f"export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+            targets=targets
+        )
+
+        # Return backup metadata with download information
+        response = {
+            "export_id": backup_metadata['backup_id'],
+            "format": export_format,
+            "timestamp": backup_metadata['timestamp'],
+            "size": backup_metadata['compressed_size'],
+            "message": "Export created successfully. Use backup_id to download."
+        }
+
+        return func.HttpResponse(
+            json.dumps(response),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    except Exception as e:
+        logging.error(f"Error exporting data: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+@app.route(route="analytics/track", auth_level=func.AuthLevel.ANONYMOUS)
+def analytics_track(req: func.HttpRequest) -> func.HttpResponse:
+    """Track custom analytics events"""
+    logging.info('Analytics track event request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        event_type = req_body.get('event_type')
+        user_id = req_body.get('user_id')
+        session_id = req_body.get('session_id')
+        ambassador_id = req_body.get('ambassador_id')
+        properties = req_body.get('properties', {})
+
+        if not event_type:
+            return func.HttpResponse(
+                json.dumps({"error": "event_type is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        event_id = analytics_tracker.track(
+            event_type=event_type,
+            user_id=user_id,
+            session_id=session_id,
+            ambassador_id=ambassador_id,
+            properties=properties
+        )
+
+        return func.HttpResponse(
+            json.dumps({"event_id": event_id, "status": "tracked"}),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="analytics/reports", auth_level=func.AuthLevel.ANONYMOUS)
+def analytics_reports(req: func.HttpRequest) -> func.HttpResponse:
+    """Generate analytics reports"""
+    logging.info('Analytics reports request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        # Get query parameters
+        report_type = req.params.get('type', 'summary')
+        days = int(req.params.get('days', '7'))
+        ambassador_id = req.params.get('ambassador_id')
+
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+
+        if report_type == 'ambassador' and ambassador_id:
+            # Ambassador performance report
+            analyzer = AmbassadorPerformanceAnalyzer(analytics_storage)
+            report = analyzer.get_ambassador_metrics(
+                ambassador_id, start_date, end_date
+            )
+        elif report_type == 'comparison':
+            # Compare multiple ambassadors
+            ambassador_ids = req.params.get('ambassador_ids', '').split(',')
+            analyzer = AmbassadorPerformanceAnalyzer(analytics_storage)
+            report = analyzer.compare_ambassadors(
+                ambassador_ids, start_date, end_date
+            )
+        else:
+            # Summary report
+            events = analytics_storage.get_events_by_date_range(
+                start_date, end_date
+            )
+
+            # Aggregate metrics
+            total_events = len(events)
+            unique_users = len(set(e.get('user_id') for e in events if e.get('user_id')))
+            unique_sessions = len(set(e.get('session_id') for e in events if e.get('session_id')))
+
+            event_types = {}
+            for event in events:
+                event_type = event.get('event_type', 'unknown')
+                event_types[event_type] = event_types.get(event_type, 0) + 1
+
+            report = {
+                'report_type': 'summary',
+                'date_range': {
+                    'start': start_date.isoformat(),
+                    'end': end_date.isoformat()
+                },
+                'metrics': {
+                    'total_events': total_events,
+                    'unique_users': unique_users,
+                    'unique_sessions': unique_sessions,
+                    'events_by_type': event_types
+                }
+            }
+
+        return func.HttpResponse(
+            json.dumps(report),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="analytics/funnels", auth_level=func.AuthLevel.ANONYMOUS)
+def analytics_funnels(req: func.HttpRequest) -> func.HttpResponse:
+    """Get funnel analysis data"""
+    logging.info('Analytics funnels request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        funnel_analyzer = FunnelAnalyzer(analytics_storage)
+
+        # Check if this is a POST to create a funnel
+        if req.method == 'POST':
+            req_body = req.get_json()
+            funnel = funnel_analyzer.create_funnel(
+                funnel_id=req_body.get('funnel_id'),
+                name=req_body.get('name'),
+                steps=req_body.get('steps', []),
+                description=req_body.get('description')
+            )
+            return func.HttpResponse(
+                json.dumps(funnel),
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        # GET request - analyze existing funnel
+        funnel_id = req.params.get('funnel_id')
+        days = int(req.params.get('days', '30'))
+
+        if not funnel_id:
+            return func.HttpResponse(
+                json.dumps({"error": "funnel_id is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+
+        analysis = funnel_analyzer.analyze_funnel(
+            funnel_id, start_date, end_date
+        )
+
+        return func.HttpResponse(
+            json.dumps(analysis),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="analytics/cohorts", auth_level=func.AuthLevel.ANONYMOUS)
+def analytics_cohorts(req: func.HttpRequest) -> func.HttpResponse:
+    """Get cohort analysis data"""
+    logging.info('Analytics cohorts request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        cohort_period = req.params.get('period', 'weekly')
+        periods = int(req.params.get('periods', '12'))
+        days_back = int(req.params.get('days_back', '90'))
+
+        start_date = datetime.utcnow() - timedelta(days=days_back)
+
+        cohort_analyzer = CohortAnalyzer(analytics_storage)
+        analysis = cohort_analyzer.analyze_retention(
+            start_date=start_date,
+            cohort_period=cohort_period,
+            retention_periods=periods
+        )
+
+        return func.HttpResponse(
+            json.dumps(analysis),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="analytics/ab-tests", auth_level=func.AuthLevel.ANONYMOUS)
+def analytics_ab_tests(req: func.HttpRequest) -> func.HttpResponse:
+    """Manage and analyze A/B tests"""
+    logging.info('Analytics A/B tests request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        ab_framework = ABTestFramework(analytics_storage, analytics_tracker)
+
+        # POST - Create new test
+        if req.method == 'POST':
+            req_body = req.get_json()
+            action = req_body.get('action')
+
+            if action == 'create':
+                test = ab_framework.create_test(
+                    test_id=req_body.get('test_id'),
+                    name=req_body.get('name'),
+                    variants=req_body.get('variants', []),
+                    traffic_split=req_body.get('traffic_split'),
+                    description=req_body.get('description')
+                )
+                return func.HttpResponse(
+                    json.dumps(test),
+                    mimetype="application/json",
+                    headers=cors_headers
+                )
+
+            elif action == 'assign':
+                variant = ab_framework.assign_variant(
+                    test_id=req_body.get('test_id'),
+                    user_id=req_body.get('user_id'),
+                    session_id=req_body.get('session_id')
+                )
+                return func.HttpResponse(
+                    json.dumps(variant or {"error": "Test not found or inactive"}),
+                    mimetype="application/json",
+                    headers=cors_headers
+                )
+
+            elif action == 'convert':
+                ab_framework.track_conversion(
+                    test_id=req_body.get('test_id'),
+                    user_id=req_body.get('user_id'),
+                    session_id=req_body.get('session_id'),
+                    conversion_value=req_body.get('conversion_value')
+                )
+                return func.HttpResponse(
+                    json.dumps({"status": "conversion_tracked"}),
+                    mimetype="application/json",
+                    headers=cors_headers
+                )
+
+        # GET - Get test results
+        test_id = req.params.get('test_id')
+        days = int(req.params.get('days', '30'))
+
+        if not test_id:
+            return func.HttpResponse(
+                json.dumps({"error": "test_id is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+
+        results = ab_framework.get_results(test_id, start_date, end_date)
+
+        return func.HttpResponse(
+            json.dumps(results),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+# =============================================================================
+# CACHE MANAGEMENT API ENDPOINTS
+# =============================================================================
+
+# Initialize cache manager
+try:
+    cache_config_path = os.path.join(os.path.dirname(__file__), 'cache_config.json')
+    cache_config = load_cache_config(cache_config_path) if os.path.exists(cache_config_path) else None
+    cache_manager = get_cache_manager(cache_config)
+    logging.info("Cache manager initialized successfully")
+except Exception as e:
+    logging.error(f"Error initializing cache manager: {e}")
+    cache_manager = None
+
+
+@app.route(route="cache/stats", auth_level=func.AuthLevel.ANONYMOUS)
+def cache_stats(req: func.HttpRequest) -> func.HttpResponse:
+    """Get cache statistics"""
+    logging.info('Cache stats request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        if not cache_manager:
+            return func.HttpResponse(
+                json.dumps({"error": "Cache manager not initialized"}),
+                status_code=503,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        stats = cache_manager.get_stats()
+
+        return func.HttpResponse(
+            json.dumps(stats),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Error getting cache stats: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="cache/clear", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+def cache_clear(req: func.HttpRequest) -> func.HttpResponse:
+    """Clear cache"""
+    logging.info('Cache clear request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        if not cache_manager:
+            return func.HttpResponse(
+                json.dumps({"error": "Cache manager not initialized"}),
+                status_code=503,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        req_body = req.get_json() if req.get_body() else {}
+        cache_type = req_body.get('cache_type')
+
+        cache_manager.clear(cache_type)
+
+        result = {
+            "status": "success",
+            "message": f"Cache cleared successfully" + (f" for type: {cache_type}" if cache_type else ""),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Error clearing cache: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="cache/warm", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+def cache_warm(req: func.HttpRequest) -> func.HttpResponse:
+    """Warm cache with frequently accessed data"""
+    logging.info('Cache warm request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        if not cache_manager:
+            return func.HttpResponse(
+                json.dumps({"error": "Cache manager not initialized"}),
+                status_code=503,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        req_body = req.get_json() if req.get_body() else {}
+        cache_type = req_body.get('cache_type', 'all')
+
+        warmed_count = 0
+
+        # Warm agent metadata cache
+        if cache_type in ['all', 'agent_metadata']:
+            try:
+                agents = load_agents_from_folder()
+                agent_items = [(agent_name, agent.metadata) for agent_name, agent in agents.items()]
+                cache_manager.warm_cache('agent_metadata', agent_items)
+                warmed_count += len(agent_items)
+                logging.info(f"Warmed {len(agent_items)} agent metadata entries")
+            except Exception as e:
+                logging.error(f"Error warming agent metadata: {e}")
+
+        # Warm ambassador config cache
+        if cache_type in ['all', 'ambassador_config']:
+            try:
+                storage_manager = AzureFileStorageManager()
+                ambassador_files = storage_manager.list_files('ambassadors')
+                ambassador_items = []
+
+                for file in ambassador_files:
+                    if file.name.endswith('.json'):
+                        try:
+                            content = storage_manager.read_file('ambassadors', file.name)
+                            if content:
+                                config = json.loads(content)
+                                ambassador_items.append((file.name, config))
+                        except Exception as e:
+                            logging.error(f"Error loading ambassador {file.name}: {e}")
+
+                cache_manager.warm_cache('ambassador_config', ambassador_items)
+                warmed_count += len(ambassador_items)
+                logging.info(f"Warmed {len(ambassador_items)} ambassador config entries")
+            except Exception as e:
+                logging.error(f"Error warming ambassador configs: {e}")
+
+        result = {
+            "status": "success",
+            "message": f"Cache warmed successfully",
+            "entries_warmed": warmed_count,
+            "cache_type": cache_type,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Error warming cache: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="cache/invalidate", auth_level=func.AuthLevel.FUNCTION, methods=["POST"])
+def cache_invalidate(req: func.HttpRequest) -> func.HttpResponse:
+    """Invalidate specific cache entries"""
+    logging.info('Cache invalidate request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        if not cache_manager:
+            return func.HttpResponse(
+                json.dumps({"error": "Cache manager not initialized"}),
+                status_code=503,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        req_body = req.get_json()
+        cache_type = req_body.get('cache_type')
+        keys = req_body.get('keys', [])
+        tags = req_body.get('tags', [])
+
+        invalidated_count = 0
+
+        # Invalidate by specific keys
+        if keys:
+            for key in keys:
+                if cache_manager.invalidate(cache_type, key):
+                    invalidated_count += 1
+
+        # Invalidate by tags
+        if tags:
+            for tag in tags:
+                invalidated_count += cache_manager.invalidate_by_tag(tag)
+
+        result = {
+            "status": "success",
+            "message": f"Cache entries invalidated",
+            "entries_invalidated": invalidated_count,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Error invalidating cache: {e}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+# =============================================================================
+# CONTENT MODERATION API ENDPOINTS
+# =============================================================================
+
+from utils.content_moderation import get_moderator
+
+
+@app.route(route="moderation/check", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_check(req: func.HttpRequest) -> func.HttpResponse:
+    """Check content for policy violations"""
+    logging.info('Moderation check request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        req_body = req.get_json()
+        content = req_body.get('content', '')
+        user_guid = req_body.get('user_guid')
+        context = req_body.get('context', 'user_input')
+
+        if not content:
+            return func.HttpResponse(
+                json.dumps({"error": "Content is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        # Get moderator instance
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        # Check content
+        result = moderator.check_content(content, user_guid, context)
+
+        return func.HttpResponse(
+            json.dumps(result.to_dict()),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation check error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/flagged", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_flagged(req: func.HttpRequest) -> func.HttpResponse:
+    """Get flagged content for review"""
+    logging.info('Get flagged content request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        # Get filter parameters
+        severity = req.params.get('severity', 'all')
+        category = req.params.get('category', 'all')
+        limit = int(req.params.get('limit', '50'))
+
+        # In a production system, this would query a database
+        # For now, return a sample structure
+        flagged_items = {
+            "items": [],
+            "total": 0,
+            "filters": {
+                "severity": severity,
+                "category": category
+            },
+            "message": "Flagged content tracking requires database integration"
+        }
+
+        return func.HttpResponse(
+            json.dumps(flagged_items),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Get flagged content error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/review", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_review(req: func.HttpRequest) -> func.HttpResponse:
+    """Review and take action on flagged content"""
+    logging.info('Moderation review request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    if req.method != 'POST':
+        return func.HttpResponse(
+            json.dumps({"error": "POST method required"}),
+            status_code=405,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    try:
+        req_body = req.get_json()
+        content_id = req_body.get('content_id')
+        action = req_body.get('action')  # approve, filter, block, ban
+        reviewer = req_body.get('reviewer')
+
+        if not content_id or not action:
+            return func.HttpResponse(
+                json.dumps({"error": "content_id and action are required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        # In a production system, this would update the database
+        result = {
+            "content_id": content_id,
+            "action": action,
+            "reviewer": reviewer,
+            "timestamp": datetime.utcnow().isoformat(),
+            "status": "success",
+            "message": f"Action '{action}' applied to content {content_id}"
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation review error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/ban", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_ban(req: func.HttpRequest) -> func.HttpResponse:
+    """Ban or unban a user"""
+    logging.info('Moderation ban request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    if req.method != 'POST':
+        return func.HttpResponse(
+            json.dumps({"error": "POST method required"}),
+            status_code=405,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    try:
+        req_body = req.get_json()
+        user_guid = req_body.get('user_guid')
+        action = req_body.get('action', 'ban')  # ban, unban
+        duration = req_body.get('duration')  # hours (None = permanent)
+
+        if not user_guid:
+            return func.HttpResponse(
+                json.dumps({"error": "user_guid is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        if action == 'ban':
+            if duration:
+                moderator._temp_ban_user(user_guid)
+                message = f"User {user_guid} temporarily banned for {duration} hours"
+            else:
+                moderator._ban_user(user_guid)
+                message = f"User {user_guid} permanently banned"
+        elif action == 'unban':
+            moderator.unban_user(user_guid)
+            message = f"User {user_guid} unbanned"
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": "Invalid action. Use 'ban' or 'unban'"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        result = {
+            "user_guid": user_guid,
+            "action": action,
+            "duration": duration,
+            "timestamp": datetime.utcnow().isoformat(),
+            "message": message
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation ban error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/whitelist", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_whitelist(req: func.HttpRequest) -> func.HttpResponse:
+    """Add content to whitelist or blacklist"""
+    logging.info('Moderation whitelist request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    if req.method != 'POST':
+        return func.HttpResponse(
+            json.dumps({"error": "POST method required"}),
+            status_code=405,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+    try:
+        req_body = req.get_json()
+        content = req_body.get('content')
+        list_type = req_body.get('type', 'whitelist')  # whitelist or blacklist
+
+        if not content:
+            return func.HttpResponse(
+                json.dumps({"error": "Content is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        if list_type == 'whitelist':
+            moderator.whitelist_content(content)
+            message = f"Content added to whitelist: {content}"
+        elif list_type == 'blacklist':
+            moderator.blacklist_content(content)
+            message = f"Content added to blacklist: {content}"
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": "Invalid type. Use 'whitelist' or 'blacklist'"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        result = {
+            "content": content,
+            "type": list_type,
+            "timestamp": datetime.utcnow().isoformat(),
+            "message": message
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Moderation whitelist error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers=cors_headers
+        )
+
+
+@app.route(route="moderation/user-violations", auth_level=func.AuthLevel.ANONYMOUS)
+def moderation_user_violations(req: func.HttpRequest) -> func.HttpResponse:
+    """Get user violation history"""
+    logging.info('Get user violations request')
+
+    origin = req.headers.get('origin')
+    cors_headers = build_cors_response(origin)
+
+    if req.method == 'OPTIONS':
+        return func.HttpResponse(status_code=200, headers=cors_headers)
+
+    try:
+        user_guid = req.params.get('user_guid')
+
+        if not user_guid:
+            return func.HttpResponse(
+                json.dumps({"error": "user_guid parameter is required"}),
+                status_code=400,
+                mimetype="application/json",
+                headers=cors_headers
+            )
+
+        moderator = get_moderator(os.path.join(os.path.dirname(__file__), 'moderation_config.json'))
+
+        violations = moderator.get_user_violations(user_guid)
+        is_banned = moderator._is_user_banned(user_guid)
+
+        result = {
+            "user_guid": user_guid,
+            "is_banned": is_banned,
+            "violation_count": len(violations),
+            "violations": violations
+        }
+
+        return func.HttpResponse(
+            json.dumps(result),
+            mimetype="application/json",
+            headers=cors_headers
+        )
+    except Exception as e:
+        logging.error(f"Get user violations error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
             status_code=500,
             mimetype="application/json",
             headers=cors_headers
