@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle"><span class="theme-icon">🌙</span></button>
+    </div>
+    <nav class="sidebar">
+        <div class="logo"><h1>AI Ambassador</h1><p>Platform Documentation</p></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../getting-started/index.html">Getting Started</a></li>
+            <li><a href="../tutorials/index.html">Tutorials</a></li>
+            <li><a href="index.html" class="active">API Reference</a></li>
+            <li><a href="../admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="../deployment/index.html">Deployment</a></li>
+            <li><a href="../troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="../faq/index.html">FAQ</a></li>
+            <li><a href="../api-explorer.html">API Explorer</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>API Reference</h1>
+            <p class="subtitle">Complete endpoint documentation and examples</p>
+        </header>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul></ul>
+        </div>
+
+        <section id="base-url">
+            <h2>Base URL</h2>
+            <pre><code>Production: https://your-function-app.azurewebsites.net/api
+Development: http://localhost:7071/api</code></pre>
+        </section>
+
+        <section id="authentication">
+            <h2>Authentication</h2>
+            <p>API requests require a function key for authorization:</p>
+            <pre><code>x-functions-key: your-function-key-here</code></pre>
+            <div class="alert alert-warning">
+                <strong>Security:</strong> Never expose function keys in client-side code. Use Azure AD authentication for production.
+            </div>
+        </section>
+
+        <section id="chat-endpoint">
+            <h2>Chat Endpoint</h2>
+            <h3>POST /businessinsightbot_function</h3>
+            <p>Send a message to an AI ambassador and receive a response.</p>
+
+            <h4>Request Body</h4>
+            <pre><code>{
+  "user_input": "string (required)",
+  "conversation_history": "array (optional)",
+  "user_guid": "string (optional)",
+  "ambassador_id": "string (optional)"
+}</code></pre>
+
+            <h4>Parameters</h4>
+            <table>
+                <thead>
+                    <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>user_input</td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>User's message or question</td>
+                    </tr>
+                    <tr>
+                        <td>conversation_history</td>
+                        <td>array</td>
+                        <td>No</td>
+                        <td>Previous messages in conversation</td>
+                    </tr>
+                    <tr>
+                        <td>user_guid</td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Unique user identifier for memory isolation</td>
+                    </tr>
+                    <tr>
+                        <td>ambassador_id</td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Specific ambassador to use</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Example Request</h4>
+            <pre><code>curl -X POST https://your-function-app.azurewebsites.net/api/businessinsightbot_function \
+  -H "Content-Type: application/json" \
+  -H "x-functions-key: your-key" \
+  -d '{
+    "user_input": "What coffee do you recommend?",
+    "conversation_history": [],
+    "user_guid": "user-12345",
+    "ambassador_id": "coffee-ambassador-001"
+  }'</code></pre>
+
+            <h4>Response</h4>
+            <pre><code>{
+  "response": "I'd recommend our Ethiopian Yirgacheffe for a bright, floral experience...|||VOICE|||Try our Ethiopian coffee for a fruity flavor!",
+  "conversation_history": [
+    {
+      "role": "user",
+      "content": "What coffee do you recommend?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'd recommend our Ethiopian Yirgacheffe..."
+    }
+  ],
+  "user_guid": "user-12345",
+  "tokens_used": 245
+}</code></pre>
+
+            <h4>Response Fields</h4>
+            <table>
+                <thead>
+                    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>response</td>
+                        <td>string</td>
+                        <td>Ambassador response (formatted|||VOICE|||voice-optimized)</td>
+                    </tr>
+                    <tr>
+                        <td>conversation_history</td>
+                        <td>array</td>
+                        <td>Updated conversation including new messages</td>
+                    </tr>
+                    <tr>
+                        <td>user_guid</td>
+                        <td>string</td>
+                        <td>User identifier used for this request</td>
+                    </tr>
+                    <tr>
+                        <td>tokens_used</td>
+                        <td>integer</td>
+                        <td>OpenAI tokens consumed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="ambassador-entry">
+            <h2>Ambassador Entry Endpoint</h2>
+            <h3>GET /ambassador_entry</h3>
+            <p>Initialize a session when a user scans a QR code.</p>
+
+            <h4>Query Parameters</h4>
+            <table>
+                <thead>
+                    <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ambassador_id</td>
+                        <td>string</td>
+                        <td>Yes</td>
+                        <td>Ambassador identifier</td>
+                    </tr>
+                    <tr>
+                        <td>source</td>
+                        <td>string</td>
+                        <td>No</td>
+                        <td>Physical location identifier</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Example Request</h4>
+            <pre><code>curl https://your-function-app.azurewebsites.net/api/ambassador_entry?ambassador_id=coffee-ambassador-001&source=counter</code></pre>
+
+            <h4>Response</h4>
+            <pre><code>{
+  "ambassador": {
+    "id": "coffee-ambassador-001",
+    "name": "Barista Bean",
+    "avatar": {"type": "emoji", "value": "☕"},
+    "greeting": "Welcome! I'm Barista Bean, ready to help you find your perfect coffee!"
+  },
+  "session_id": "sess-abc123",
+  "user_guid": "user-xyz789"
+}</code></pre>
+        </section>
+
+        <section id="memory-api">
+            <h2>Memory Management</h2>
+
+            <h3>GET /memory/{user_guid}</h3>
+            <p>Retrieve user memory</p>
+
+            <pre><code>curl https://your-function-app.azurewebsites.net/api/memory/user-12345 \
+  -H "x-functions-key: your-key"</code></pre>
+
+            <h3>POST /memory/{user_guid}</h3>
+            <p>Store user memory</p>
+
+            <pre><code>curl -X POST https://your-function-app.azurewebsites.net/api/memory/user-12345 \
+  -H "Content-Type: application/json" \
+  -H "x-functions-key: your-key" \
+  -d '{
+    "memory_id": "pref_001",
+    "type": "preference",
+    "content": "Prefers dark roast",
+    "timestamp": "2025-01-15T10:00:00Z"
+  }'</code></pre>
+
+            <h3>DELETE /memory/{user_guid}/{memory_id}</h3>
+            <p>Delete specific memory</p>
+
+            <pre><code>curl -X DELETE https://your-function-app.azurewebsites.net/api/memory/user-12345/pref_001 \
+  -H "x-functions-key: your-key"</code></pre>
+        </section>
+
+        <section id="rate-limits">
+            <h2>Rate Limits</h2>
+            <table>
+                <thead>
+                    <tr><th>Tier</th><th>Requests/Minute</th><th>Requests/Hour</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Free</td><td>10</td><td>100</td></tr>
+                    <tr><td>Basic</td><td>60</td><td>1,000</td></tr>
+                    <tr><td>Pro</td><td>300</td><td>10,000</td></tr>
+                    <tr><td>Enterprise</td><td>Unlimited</td><td>Unlimited</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Rate Limit Headers</h3>
+            <pre><code>X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1642262400</code></pre>
+        </section>
+
+        <section id="error-codes">
+            <h2>Error Codes</h2>
+            <table>
+                <thead>
+                    <tr><th>Code</th><th>Message</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>400</td><td>Bad Request</td><td>Invalid request body or parameters</td></tr>
+                    <tr><td>401</td><td>Unauthorized</td><td>Missing or invalid function key</td></tr>
+                    <tr><td>404</td><td>Not Found</td><td>Ambassador or resource not found</td></tr>
+                    <tr><td>429</td><td>Too Many Requests</td><td>Rate limit exceeded</td></tr>
+                    <tr><td>500</td><td>Internal Server Error</td><td>Server error, contact support</td></tr>
+                    <tr><td>503</td><td>Service Unavailable</td><td>Temporary outage or maintenance</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Error Response Format</h3>
+            <pre><code>{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "user_input is required",
+    "details": {
+      "field": "user_input",
+      "issue": "missing_required_field"
+    }
+  }
+}</code></pre>
+        </section>
+
+        <section id="webhooks">
+            <h2>Webhooks</h2>
+            <p>Configure webhooks to receive real-time notifications for events.</p>
+
+            <h3>Supported Events</h3>
+            <ul>
+                <li><strong>conversation.started:</strong> New conversation initiated</li>
+                <li><strong>conversation.completed:</strong> Conversation ended</li>
+                <li><strong>user.feedback:</strong> User provided feedback</li>
+                <li><strong>error.occurred:</strong> Error during processing</li>
+            </ul>
+
+            <h3>Webhook Payload</h3>
+            <pre><code>{
+  "event": "conversation.started",
+  "timestamp": "2025-01-15T10:30:00Z",
+  "data": {
+    "user_guid": "user-12345",
+    "ambassador_id": "coffee-ambassador-001",
+    "source": "counter"
+  }
+}</code></pre>
+        </section>
+
+        <section id="sdks">
+            <h2>SDKs and Libraries</h2>
+
+            <h3>Python</h3>
+            <pre><code>pip install ai-ambassador-sdk
+
+from ai_ambassador import AmbassadorClient
+
+client = AmbassadorClient(
+    base_url="https://your-function-app.azurewebsites.net/api",
+    api_key="your-key"
+)
+
+response = client.chat(
+    user_input="What coffee do you recommend?",
+    user_guid="user-12345"
+)
+
+print(response.message)</code></pre>
+
+            <h3>JavaScript</h3>
+            <pre><code>npm install @ai-ambassador/sdk
+
+import { AmbassadorClient } from '@ai-ambassador/sdk';
+
+const client = new AmbassadorClient({
+  baseUrl: 'https://your-function-app.azurewebsites.net/api',
+  apiKey: 'your-key'
+});
+
+const response = await client.chat({
+  userInput: 'What coffee do you recommend?',
+  userGuid: 'user-12345'
+});
+
+console.log(response.message);</code></pre>
+        </section>
+
+        <footer class="page-footer">
+            <p>AI Ambassador Platform v1.0.0</p>
+        </footer>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

@@ -43,6 +43,42 @@
             color: var(--dark);
         }
 
+        /* Accessibility: Enhanced focus styles */
+        *:focus {
+            outline: 3px solid #fbbf24;
+            outline-offset: 2px;
+        }
+
+        /* Skip to main content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 0 0 4px 0;
+            z-index: 10001;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Visually hidden but accessible to screen readers */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
         .admin-container {
             max-width: 1800px;
             margin: 0 auto;
@@ -1321,73 +1357,76 @@
     </style>
 </head>
 <body>
+    <!-- Skip to main content link for keyboard navigation -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="admin-container">
-        <div class="header">
+        <header class="header" role="banner">
             <h1>
-                <span>🌍</span>
+                <span aria-hidden="true">🌍</span>
                 AI Ambassador Administration Console
             </h1>
             <p>Manage your AI Ambassadors, QR codes, analytics, and seeded demos</p>
-        </div>
+        </header>
 
-        <div class="stats-grid">
+        <div class="stats-grid" role="region" aria-label="Dashboard Statistics">
             <div class="stat-card">
-                <h3>Total Ambassadors</h3>
-                <div class="value" id="totalAmbassadors">0</div>
-                <div class="change">+3 this week</div>
+                <h3 id="stat-ambassadors-label">Total Ambassadors</h3>
+                <div class="value" id="totalAmbassadors" aria-live="polite" aria-labelledby="stat-ambassadors-label">0</div>
+                <div class="change" aria-label="Change from last week">+3 this week</div>
             </div>
             <div class="stat-card">
-                <h3>Total QR Scans</h3>
-                <div class="value" id="totalScans">0</div>
-                <div class="change">+127% from last month</div>
+                <h3 id="stat-scans-label">Total QR Scans</h3>
+                <div class="value" id="totalScans" aria-live="polite" aria-labelledby="stat-scans-label">0</div>
+                <div class="change" aria-label="Change from last month">+127% from last month</div>
             </div>
             <div class="stat-card">
-                <h3>Active Users</h3>
-                <div class="value" id="activeUsers">0</div>
-                <div class="change">+45 today</div>
+                <h3 id="stat-users-label">Active Users</h3>
+                <div class="value" id="activeUsers" aria-live="polite" aria-labelledby="stat-users-label">0</div>
+                <div class="change" aria-label="Change from today">+45 today</div>
             </div>
             <div class="stat-card">
-                <h3>Avg. Session Time</h3>
-                <div class="value">8m 34s</div>
-                <div class="change">+2m from average</div>
+                <h3 id="stat-session-label">Avg. Session Time</h3>
+                <div class="value" aria-labelledby="stat-session-label">8m 34s</div>
+                <div class="change" aria-label="Change from average">+2m from average</div>
             </div>
         </div>
 
         <div class="main-content">
-            <div class="sidebar">
-                <div class="nav-item active" data-view="dashboard">
-                    <span>📊</span>
+            <nav class="sidebar" role="navigation" aria-label="Main navigation">
+                <button class="nav-item active" data-view="dashboard" aria-label="Dashboard" aria-current="page">
+                    <span aria-hidden="true">📊</span>
                     Dashboard
-                </div>
-                <div class="nav-item" data-view="ambassadors">
-                    <span>🤖</span>
+                </button>
+                <button class="nav-item" data-view="ambassadors" aria-label="Manage Ambassadors">
+                    <span aria-hidden="true">🤖</span>
                     Ambassadors
-                </div>
-                <div class="nav-item" data-view="qr-codes">
-                    <span>📱</span>
+                </button>
+                <button class="nav-item" data-view="qr-codes" aria-label="Manage QR Codes">
+                    <span aria-hidden="true">📱</span>
                     QR Codes
-                </div>
-                <div class="nav-item" data-view="memory-seeds">
-                    <span>🧠</span>
+                </button>
+                <button class="nav-item" data-view="memory-seeds" aria-label="Manage Memory Seeds">
+                    <span aria-hidden="true">🧠</span>
                     Memory Seeds
-                </div>
-                <div class="nav-item" data-view="analytics">
-                    <span>📈</span>
+                </button>
+                <button class="nav-item" data-view="analytics" aria-label="View Analytics">
+                    <span aria-hidden="true">📈</span>
                     Analytics
-                </div>
-                <div class="nav-item" data-view="settings">
-                    <span>⚙️</span>
+                </button>
+                <button class="nav-item" data-view="settings" aria-label="Platform Settings">
+                    <span aria-hidden="true">⚙️</span>
                     Settings
-                </div>
-            </div>
+                </button>
+            </nav>
 
-            <div class="content-area">
+            <main class="content-area" id="main-content" role="main">
                 <!-- Dashboard View -->
-                <div id="dashboard" class="view active">
-                    <h2>Dashboard Overview</h2>
-                    <div class="analytics-chart">
+                <div id="dashboard" class="view active" role="region" aria-labelledby="dashboard-heading">
+                    <h2 id="dashboard-heading">Dashboard Overview</h2>
+                    <div class="analytics-chart" role="img" aria-label="QR Scan Activity Chart for Last 30 Days">
                         <h3>QR Scan Activity (Last 30 Days)</h3>
-                        <canvas id="scanChart" width="400" height="200"></canvas>
+                        <canvas id="scanChart" width="400" height="200" aria-label="Line chart showing QR scan activity over the last 30 days"></canvas>
                     </div>
 
                     <!-- Leaderboard Section -->
@@ -1407,14 +1446,15 @@
                     </div>
 
                     <h3 style="margin-top: 30px;">Top Performing Ambassadors</h3>
-                    <table class="table">
+                    <table class="table" role="table" aria-label="Top Performing Ambassadors">
+                        <caption class="sr-only">List of top performing ambassadors with scan count, interactions, satisfaction rating, and status</caption>
                         <thead>
                             <tr>
-                                <th>Ambassador</th>
-                                <th>Scans</th>
-                                <th>Interactions</th>
-                                <th>Satisfaction</th>
-                                <th>Status</th>
+                                <th scope="col">Ambassador</th>
+                                <th scope="col">Scans</th>
+                                <th scope="col">Interactions</th>
+                                <th scope="col">Satisfaction</th>
+                                <th scope="col">Status</th>
                             </tr>
                         </thead>
                         <tbody id="topAmbassadors">
@@ -1424,48 +1464,50 @@
                 </div>
 
                 <!-- Ambassadors View -->
-                <div id="ambassadors" class="view">
+                <div id="ambassadors" class="view" role="region" aria-labelledby="ambassadors-heading">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>AI Ambassadors</h2>
-                        <button class="btn btn-primary" onclick="showCreateAmbassador()">
-                            <span>➕</span>
+                        <h2 id="ambassadors-heading">AI Ambassadors</h2>
+                        <button class="btn btn-primary" onclick="showCreateAmbassador()" aria-label="Create New Ambassador" title="Create New Ambassador (Ctrl+N)">
+                            <span aria-hidden="true">➕</span>
                             Create New Ambassador
                         </button>
                     </div>
 
-                    <input type="text" class="search-bar" placeholder="Search ambassadors..." id="ambassadorSearch">
+                    <label for="ambassadorSearch" class="sr-only">Search ambassadors</label>
+                    <input type="text" class="search-bar" placeholder="Search ambassadors..." id="ambassadorSearch" aria-label="Search ambassadors by name, description, or tags" title="Search ambassadors (Ctrl+F)">
 
-                    <div class="filter-group">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="active">Active</button>
-                        <button class="filter-btn" data-filter="draft">Draft</button>
-                        <button class="filter-btn" data-filter="demo">Demo</button>
+                    <div class="filter-group" role="group" aria-label="Filter ambassadors by status">
+                        <button class="filter-btn active" data-filter="all" aria-pressed="true" aria-label="Show all ambassadors">All</button>
+                        <button class="filter-btn" data-filter="active" aria-pressed="false" aria-label="Show active ambassadors only">Active</button>
+                        <button class="filter-btn" data-filter="draft" aria-pressed="false" aria-label="Show draft ambassadors only">Draft</button>
+                        <button class="filter-btn" data-filter="demo" aria-pressed="false" aria-label="Show demo ambassadors only">Demo</button>
                     </div>
 
-                    <div class="ambassador-grid" id="ambassadorGrid">
+                    <div class="ambassador-grid" id="ambassadorGrid" role="list" aria-label="Ambassador cards" aria-live="polite">
                         <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <!-- QR Codes View -->
-                <div id="qr-codes" class="view">
+                <div id="qr-codes" class="view" role="region" aria-labelledby="qr-codes-heading">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>QR Code Management</h2>
-                        <button class="btn btn-primary" onclick="showQRGenerator()">
-                            <span>📱</span>
+                        <h2 id="qr-codes-heading">QR Code Management</h2>
+                        <button class="btn btn-primary" onclick="showQRGenerator()" aria-label="Generate QR Code">
+                            <span aria-hidden="true">📱</span>
                             Generate QR Code
                         </button>
                     </div>
 
-                    <table class="table">
+                    <table class="table" role="table" aria-label="QR Codes List">
+                        <caption class="sr-only">List of generated QR codes with ambassador, location, scan count, and actions</caption>
                         <thead>
                             <tr>
-                                <th>QR Code</th>
-                                <th>Ambassador</th>
-                                <th>Location</th>
-                                <th>Scans</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <th scope="col">QR Code</th>
+                                <th scope="col">Ambassador</th>
+                                <th scope="col">Location</th>
+                                <th scope="col">Scans</th>
+                                <th scope="col">Created</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="qrCodeList">
@@ -1475,11 +1517,11 @@
                 </div>
 
                 <!-- Memory Seeds View -->
-                <div id="memory-seeds" class="view">
+                <div id="memory-seeds" class="view" role="region" aria-labelledby="memory-seeds-heading">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2>Memory Seeds</h2>
-                        <button class="btn btn-primary" onclick="showCreateMemorySeed()">
-                            <span>🧠</span>
+                        <h2 id="memory-seeds-heading">Memory Seeds</h2>
+                        <button class="btn btn-primary" onclick="showCreateMemorySeed()" aria-label="Create Memory Seed">
+                            <span aria-hidden="true">🧠</span>
                             Create Memory Seed
                         </button>
                     </div>
@@ -1488,35 +1530,30 @@
                         Memory seeds provide reproducible demo experiences with pre-configured conversation contexts.
                     </p>
 
-                    <div class="ambassador-grid" id="memorySeedGrid">
+                    <div class="ambassador-grid" id="memorySeedGrid" role="list" aria-label="Memory seed cards">
                         <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Analytics View -->
-                <div id="analytics" class="view">
-                    <h2>Analytics & Insights</h2>
+                <div id="analytics" class="view" role="region" aria-labelledby="analytics-heading">
+                    <h2 id="analytics-heading">Analytics & Insights</h2>
 
-                    <div class="tab-group">
-                        <div class="tab active" data-tab="overview">Overview</div>
-                        <div class="tab" data-tab="engagement">Engagement</div>
-                        <div class="tab" data-tab="locations">Locations</div>
-                        <div class="tab" data-tab="queries">Top Queries</div>
+                    <div class="tab-group" role="tablist" aria-label="Analytics sections">
+                        <button class="tab active" data-tab="overview" role="tab" aria-selected="true" aria-controls="tab-overview" id="tab-btn-overview">Overview</button>
+                        <button class="tab" data-tab="engagement" role="tab" aria-selected="false" aria-controls="tab-engagement" id="tab-btn-engagement">Engagement</button>
+                        <button class="tab" data-tab="locations" role="tab" aria-selected="false" aria-controls="tab-locations" id="tab-btn-locations">Locations</button>
+                        <button class="tab" data-tab="queries" role="tab" aria-selected="false" aria-controls="tab-queries" id="tab-btn-queries">Top Queries</button>
                     </div>
 
-                    <div class="tab-content active" data-content="overview">
-                        <div class="analytics-chart">
-                            <h3>User Engagement Funnel</h3>
-                            <canvas id="engagementChart" width="400" height="250"></canvas>
-                        </div>
-
-                        <div class="analytics-chart" style="margin-top: 20px;">
-                            <h3>Performance Metrics Comparison</h3>
-                            <canvas id="performanceRadarChart" width="400" height="300"></canvas>
+                    <div class="tab-content active" data-content="overview" role="tabpanel" id="tab-overview" aria-labelledby="tab-btn-overview">
+                        <div class="analytics-chart" role="img" aria-label="User Engagement Over Time Chart">
+                            <h3>User Engagement Over Time</h3>
+                            <canvas id="engagementChart" width="400" height="200" aria-label="Chart showing user engagement metrics over time"></canvas>
                         </div>
                     </div>
 
-                    <div class="tab-content" data-content="engagement">
+                    <div class="tab-content" data-content="engagement" role="tabpanel" id="tab-engagement" aria-labelledby="tab-btn-engagement" hidden>
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <h3>Avg Session Duration</h3>
@@ -1542,14 +1579,15 @@
                         </div>
                     </div>
 
-                    <div class="tab-content" data-content="locations">
-                        <table class="table">
+                    <div class="tab-content" data-content="locations" role="tabpanel" id="tab-locations" aria-labelledby="tab-btn-locations" hidden>
+                        <table class="table" role="table" aria-label="Location Analytics">
+                            <caption class="sr-only">Analytics breakdown by location showing ambassador, scan count, and conversion rate</caption>
                             <thead>
                                 <tr>
-                                    <th>Location</th>
-                                    <th>Ambassador</th>
-                                    <th>Scans</th>
-                                    <th>Conversion</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Ambassador</th>
+                                    <th scope="col">Scans</th>
+                                    <th scope="col">Conversion</th>
                                 </tr>
                             </thead>
                             <tbody id="locationAnalytics">
@@ -1558,14 +1596,15 @@
                         </table>
                     </div>
 
-                    <div class="tab-content" data-content="queries">
-                        <table class="table">
+                    <div class="tab-content" data-content="queries" role="tabpanel" id="tab-queries" aria-labelledby="tab-btn-queries" hidden>
+                        <table class="table" role="table" aria-label="Top Queries Analytics">
+                            <caption class="sr-only">Top queries by count showing ambassador and average response time</caption>
                             <thead>
                                 <tr>
-                                    <th>Query</th>
-                                    <th>Ambassador</th>
-                                    <th>Count</th>
-                                    <th>Avg Response Time</th>
+                                    <th scope="col">Query</th>
+                                    <th scope="col">Ambassador</th>
+                                    <th scope="col">Count</th>
+                                    <th scope="col">Avg Response Time</th>
                                 </tr>
                             </thead>
                             <tbody id="queryAnalytics">
@@ -1576,57 +1615,63 @@
                 </div>
 
                 <!-- Settings View -->
-                <div id="settings" class="view">
-                    <h2>Platform Settings</h2>
+                <div id="settings" class="view" role="region" aria-labelledby="settings-heading">
+                    <h2 id="settings-heading">Platform Settings</h2>
 
-                    <div class="form-group">
-                        <label>Azure Function Endpoint</label>
-                        <input type="text" id="azureFunctionUrl" placeholder="https://your-function.azurewebsites.net/api/">
-                    </div>
+                    <form onsubmit="event.preventDefault(); saveSettings();" aria-label="Platform settings form">
+                        <div class="form-group">
+                            <label for="azureFunctionUrl">Azure Function Endpoint</label>
+                            <input type="url" id="azureFunctionUrl" placeholder="https://your-function.azurewebsites.net/api/" aria-describedby="azure-function-help">
+                            <span id="azure-function-help" class="sr-only">Enter the full URL of your Azure Function endpoint</span>
+                        </div>
 
-                    <div class="form-group">
-                        <label>Function Key</label>
-                        <input type="password" id="functionKey" placeholder="Enter your function key">
-                    </div>
+                        <div class="form-group">
+                            <label for="functionKey">Function Key</label>
+                            <input type="password" id="functionKey" placeholder="Enter your function key" aria-describedby="function-key-help">
+                            <span id="function-key-help" class="sr-only">Enter your Azure Function authentication key (kept secure)</span>
+                        </div>
 
-                    <div class="form-group">
-                        <label>QR Code Base URL</label>
-                        <input type="text" id="qrBaseUrl" placeholder="https://ai-ambassadors.app/enter/">
-                    </div>
+                        <div class="form-group">
+                            <label for="qrBaseUrl">QR Code Base URL</label>
+                            <input type="url" id="qrBaseUrl" placeholder="https://ai-ambassadors.app/enter/" aria-describedby="qr-base-help">
+                            <span id="qr-base-help" class="sr-only">Base URL used for generating QR codes</span>
+                        </div>
 
-                    <div class="form-group">
-                        <label>Analytics Tracking</label>
-                        <select id="analyticsEnabled">
-                            <option value="true">Enabled</option>
-                            <option value="false">Disabled</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label for="analyticsEnabled">Analytics Tracking</label>
+                            <select id="analyticsEnabled" aria-describedby="analytics-help">
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                            <span id="analytics-help" class="sr-only">Enable or disable analytics tracking for the platform</span>
+                        </div>
 
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-                        <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
-                        <button class="btn btn-secondary" onclick="importData()">Import Data</button>
-                    </div>
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-primary" aria-label="Save Settings (Ctrl+S)">Save Settings</button>
+                            <button type="button" class="btn btn-secondary" onclick="exportData()" aria-label="Export all platform data as JSON">Export Data</button>
+                            <button type="button" class="btn btn-secondary" onclick="importData()" aria-label="Import platform data from JSON file">Import Data</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Create/Edit Ambassador Modal -->
-    <div id="ambassadorModal" class="modal">
+    <div id="ambassadorModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Create New Ambassador</h2>
-                <button class="close-btn" onclick="closeModal('ambassadorModal')">&times;</button>
+                <button class="close-btn" onclick="closeModal('ambassadorModal')" aria-label="Close modal (Esc)">&times;</button>
             </div>
 
-            <div class="tab-group">
-                <div class="tab active" data-tab="basic">Basic Info</div>
-                <div class="tab" data-tab="appearance">Appearance</div>
-                <div class="tab" data-tab="world">World</div>
-                <div class="tab" data-tab="capabilities">Capabilities</div>
-                <div class="tab" data-tab="agent">Agent Mapping</div>
-                <div class="tab" data-tab="demo">Demo Config</div>
+            <div class="tab-group" role="tablist" aria-label="Ambassador configuration sections">
+                <button class="tab active" data-tab="basic" role="tab" aria-selected="true" aria-controls="modal-tab-basic" id="modal-tab-btn-basic">Basic Info</button>
+                <button class="tab" data-tab="appearance" role="tab" aria-selected="false" aria-controls="modal-tab-appearance" id="modal-tab-btn-appearance">Appearance</button>
+                <button class="tab" data-tab="world" role="tab" aria-selected="false" aria-controls="modal-tab-world" id="modal-tab-btn-world">World</button>
+                <button class="tab" data-tab="capabilities" role="tab" aria-selected="false" aria-controls="modal-tab-capabilities" id="modal-tab-btn-capabilities">Capabilities</button>
+                <button class="tab" data-tab="agent" role="tab" aria-selected="false" aria-controls="modal-tab-agent" id="modal-tab-btn-agent">Agent Mapping</button>
+                <button class="tab" data-tab="demo" role="tab" aria-selected="false" aria-controls="modal-tab-demo" id="modal-tab-btn-demo">Demo Config</button>
             </div>
 
             <div class="tab-content active" data-content="basic">

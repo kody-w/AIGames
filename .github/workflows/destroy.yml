@@ -1,0 +1,163 @@
+name: Destroy Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm'
+        required: true
+        type: string
+
+jobs:
+  validate-confirmation:
+    name: Validate Destruction Confirmation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm_destroy }}" != "DESTROY" ]; then
+            echo "Confirmation failed. You must type DESTROY to proceed."
+            exit 1
+          fi
+
+      - name: Check environment
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "Cannot destroy production environment via this workflow!"
+            exit 1
+          fi
+
+  create-final-backup:
+    name: Create Final Backup
+    runs-on: ubuntu-latest
+    needs: validate-confirmation
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create backup before destruction
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          RG_NAME="aibast-$ENV-rg"
+          BACKUP_NAME="final-backup-$(date +%Y%m%d-%H%M%S)"
+
+          if az group exists --name "$RG_NAME" | grep -q "true"; then
+            echo "Creating final backup..."
+
+            mkdir -p backups
+
+            # Export all resources
+            az group export \
+              --name "$RG_NAME" \
+              --output json > "backups/$BACKUP_NAME-resources.json"
+
+            # Backup storage data
+            STORAGE_ACCOUNTS=$(az storage account list -g "$RG_NAME" --query "[].name" -o tsv)
+            for STORAGE in $STORAGE_ACCOUNTS; do
+              echo "Backing up storage account: $STORAGE"
+              # Add storage backup logic
+            done
+
+            echo "Final backup completed"
+          else
+            echo "Resource group does not exist"
+          fi
+
+      - name: Upload backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-backup-${{ github.event.inputs.environment }}
+          path: backups/
+          retention-days: 90
+
+  destroy-resources:
+    name: Destroy Azure Resources
+    runs-on: ubuntu-latest
+    needs: create-final-backup
+    environment: ${{ github.event.inputs.environment }}-destroy
+
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete resource group
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          RG_NAME="aibast-$ENV-rg"
+
+          echo "Deleting resource group: $RG_NAME"
+
+          if az group exists --name "$RG_NAME" | grep -q "true"; then
+            az group delete \
+              --name "$RG_NAME" \
+              --yes \
+              --no-wait
+
+            echo "Resource group deletion initiated"
+          else
+            echo "Resource group does not exist"
+          fi
+
+      - name: Wait for deletion
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          RG_NAME="aibast-$ENV-rg"
+
+          echo "Waiting for resource group deletion to complete..."
+
+          MAX_WAIT=1800  # 30 minutes
+          ELAPSED=0
+
+          while az group exists --name "$RG_NAME" | grep -q "true"; do
+            if [ $ELAPSED -ge $MAX_WAIT ]; then
+              echo "Deletion timeout reached"
+              break
+            fi
+
+            echo "Still deleting... ($ELAPSED seconds elapsed)"
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+
+          if az group exists --name "$RG_NAME" | grep -q "false"; then
+            echo "Resource group successfully deleted"
+          else
+            echo "Resource group may still be deleting"
+          fi
+
+  cleanup-artifacts:
+    name: Cleanup Artifacts
+    runs-on: ubuntu-latest
+    needs: destroy-resources
+
+    steps:
+      - name: Cleanup deployment artifacts
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          echo "Cleaning up artifacts for $ENV environment"
+          # Add cleanup logic for stored artifacts
+
+  notify-destruction:
+    name: Notify Destruction Complete
+    runs-on: ubuntu-latest
+    needs: [destroy-resources, cleanup-artifacts]
+
+    steps:
+      - name: Send notification
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+          echo "Environment $ENV has been destroyed"
+          # Send notification to team

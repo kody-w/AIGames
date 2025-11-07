@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Guide - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar">
+        <div class="logo"><h1>AI Ambassador</h1></div>
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="index.html" class="active">Admin Guide</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Administrator Guide</h1>
+            <p class="subtitle">Platform management and administration</p>
+        </header>
+        <section>
+            <h2>User Management</h2>
+            <h3>View All Users</h3>
+            <pre><code>az storage file list \
+  --account-name your-storage \
+  --share-name users \
+  --output table</code></pre>
+            <h3>View User Memory</h3>
+            <pre><code>az storage file download \
+  --account-name your-storage \
+  --share-name users \
+  --path user_{guid}/memory.json \
+  --dest user-memory.json</code></pre>
+            <h3>Delete User Data (GDPR Compliance)</h3>
+            <pre><code>az storage directory delete \
+  --account-name your-storage \
+  --share-name users \
+  --directory-name user_{guid} \
+  --recursive</code></pre>
+        </section>
+        <section>
+            <h2>Ambassador Management</h2>
+            <h3>List All Ambassadors</h3>
+            <pre><code>az storage file list \
+  --account-name your-storage \
+  --share-name ambassadors \
+  --output table</code></pre>
+            <h3>Update Ambassador Configuration</h3>
+            <pre><code>az storage file upload \
+  --account-name your-storage \
+  --share-name ambassadors \
+  --source updated-ambassador.json \
+  --path ambassadors/ambassador-id.json \
+  --overwrite</code></pre>
+            <h3>Deactivate Ambassador</h3>
+            <p>Add to configuration:</p>
+            <pre><code>"status": "inactive",
+"deactivated_at": "2025-01-15T10:00:00Z"</code></pre>
+        </section>
+        <section>
+            <h2>Security Configuration</h2>
+            <h3>Rotate Function Keys</h3>
+            <pre><code>az functionapp keys set \
+  --name your-function-app \
+  --resource-group your-rg \
+  --key-name default \
+  --key-value new-random-key</code></pre>
+            <h3>Configure IP Restrictions</h3>
+            <pre><code>az functionapp config access-restriction add \
+  --name your-function-app \
+  --resource-group your-rg \
+  --rule-name allow-office \
+  --action Allow \
+  --ip-address 203.0.113.0/24 \
+  --priority 100</code></pre>
+            <h3>Enable Azure AD Authentication</h3>
+            <pre><code>az webapp auth update \
+  --name your-function-app \
+  --resource-group your-rg \
+  --enabled true \
+  --action LoginWithAzureActiveDirectory</code></pre>
+        </section>
+        <section>
+            <h2>Monitoring and Alerts</h2>
+            <h3>View Application Insights</h3>
+            <pre><code>az monitor app-insights component show \
+  --app your-app-insights \
+  --resource-group your-rg</code></pre>
+            <h3>Configure Alert Rules</h3>
+            <pre><code>az monitor metrics alert create \
+  --name high-error-rate \
+  --resource-group your-rg \
+  --scopes /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Web/sites/{app} \
+  --condition "count requests/failed > 10" \
+  --window-size 5m \
+  --evaluation-frequency 1m</code></pre>
+            <h3>Key Metrics to Monitor</h3>
+            <ul>
+                <li><strong>Request Count:</strong> Total API requests</li>
+                <li><strong>Error Rate:</strong> Failed requests percentage</li>
+                <li><strong>Response Time:</strong> Average response latency</li>
+                <li><strong>Token Usage:</strong> OpenAI token consumption</li>
+                <li><strong>Storage Usage:</strong> Azure Files capacity</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Backup and Recovery</h2>
+            <h3>Backup Ambassador Configurations</h3>
+            <pre><code>az storage file download-batch \
+  --account-name your-storage \
+  --source ambassadors \
+  --destination ./backups/ambassadors-$(date +%Y%m%d)</code></pre>
+            <h3>Backup User Data</h3>
+            <pre><code>az storage file download-batch \
+  --account-name your-storage \
+  --source users \
+  --destination ./backups/users-$(date +%Y%m%d)</code></pre>
+            <h3>Restore from Backup</h3>
+            <pre><code>az storage file upload-batch \
+  --account-name your-storage \
+  --destination ambassadors \
+  --source ./backups/ambassadors-20250115</code></pre>
+        </section>
+        <section>
+            <h2>Scaling Strategies</h2>
+            <table>
+                <thead>
+                    <tr><th>Metric</th><th>Threshold</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>CPU Usage</td><td>> 70%</td><td>Scale up plan</td></tr>
+                    <tr><td>Memory Usage</td><td>> 80%</td><td>Scale up plan</td></tr>
+                    <tr><td>Request Count</td><td>> 1000/min</td><td>Enable auto-scale</td></tr>
+                    <tr><td>Storage Size</td><td>> 80% capacity</td><td>Increase storage quota</td></tr>
+                </tbody>
+            </table>
+            <h3>Enable Auto-Scaling</h3>
+            <pre><code>az monitor autoscale create \
+  --resource-group your-rg \
+  --resource your-function-app \
+  --resource-type Microsoft.Web/serverfarms \
+  --name autoscale-rule \
+  --min-count 1 \
+  --max-count 10 \
+  --count 2</code></pre>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>
