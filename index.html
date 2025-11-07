@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ambassador Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+        }
+
+        h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 60px;
+            opacity: 0.9;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.3s; }
+        .card:nth-child(2) { animation-delay: 0.4s; }
+        .card:nth-child(3) { animation-delay: 0.5s; }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .card-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        .footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            opacity: 0.7;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .subtitle {
+                font-size: 1.2em;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Ambassador Platform</h1>
+        <p class="subtitle">Your Gateway to Intelligent Virtual Experiences</p>
+
+        <div class="cards">
+            <a href="ai-ambassador-gallery.html" class="card">
+                <div class="card-icon">🎨</div>
+                <h2>Ambassador Gallery</h2>
+                <p>Browse and interact with AI Ambassadors. Scan QR codes to enter immersive virtual worlds.</p>
+                <span class="badge">User Experience</span>
+            </a>
+
+            <a href="h.html" class="card">
+                <div class="card-icon">⚙️</div>
+                <h2>Admin Console</h2>
+                <p>Manage ambassadors, users, analytics, webhooks, and all platform features.</p>
+                <span class="badge">Admin Access</span>
+            </a>
+
+            <a href="Copilot-Agent-365-main/index.html" class="card">
+                <div class="card-icon">💬</div>
+                <h2>Chat Interface</h2>
+                <p>Direct chat interface to interact with AI ambassadors and agents.</p>
+                <span class="badge">Developer Tools</span>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>Platform Status: <strong>Running</strong> | Backend: <code>http://localhost:7071</code></p>
+        </div>
+    </div>
+</body>
+</html>

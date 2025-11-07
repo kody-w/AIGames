@@ -12,7 +12,21 @@ import uuid
 from openai import AzureOpenAI
 from datetime import datetime
 import time
-from utils.azure_file_storage import AzureFileStorageManager, safe_json_loads
+# Storage imports - support both cloud and local modes
+try:
+    USE_LOCAL_STORAGE = os.environ.get('USE_LOCAL_STORAGE', 'false').lower() == 'true'
+    if USE_LOCAL_STORAGE:
+        from utils.local_file_storage import LocalFileStorageManager as StorageManager
+        logging.info("🏠 Using LOCAL file storage (offline mode)")
+    else:
+        from utils.azure_file_storage import AzureFileStorageManager as StorageManager
+        logging.info("☁️  Using AZURE file storage (cloud mode)")
+except Exception as e:
+    # Fallback to Azure if local not available
+    from utils.azure_file_storage import AzureFileStorageManager as StorageManager
+    logging.warning(f"Storage import error, defaulting to Azure: {e}")
+
+from utils.azure_file_storage import safe_json_loads
 from utils.analytics import (
     AnalyticsTracker, FunnelAnalyzer, CohortAnalyzer,
     ABTestFramework, AmbassadorPerformanceAnalyzer,
@@ -109,7 +123,7 @@ def load_agents_from_folder(user_guid=None):
             logging.error(f"Error loading agent {file}: {str(e)}")
             continue
 
-    storage_manager = AzureFileStorageManager()
+    storage_manager = StorageManager()
 
     # Load enabled agents list for this GUID
     enabled_agents = None
@@ -243,26 +257,42 @@ class Assistant:
             'characteristic_description': str(os.environ.get('CHARACTERISTIC_DESCRIPTION', 'helpful business assistant'))
         }
 
-        try:
-            self.client = AzureOpenAI(
-                api_key=os.environ['AZURE_OPENAI_API_KEY'],
-                api_version=os.environ['AZURE_OPENAI_API_VERSION'],
-                azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
-            )
-        except TypeError:
-            self.client = AzureOpenAI(
-                api_key=os.environ['AZURE_OPENAI_API_KEY'],
-                azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
-            )
+        # Check if using local LLM (offline mode)
+        self.use_local_llm = os.environ.get('USE_LOCAL_LLM', 'false').lower() == 'true'
+
+        if self.use_local_llm:
+            # Use local LLM client (Ollama/llama.cpp)
+            try:
+                from utils.local_llm_client import LocalLLMClientFactory
+                self.client = LocalLLMClientFactory.create_from_env()
+                logging.info("🤖 Using LOCAL LLM (offline mode)")
+            except Exception as e:
+                logging.error(f"❌ Failed to initialize local LLM: {e}")
+                logging.warning("⚠️  Make sure Ollama is running: 'ollama serve'")
+                raise ValueError(f"Local LLM initialization failed: {e}")
+        else:
+            # Use Azure OpenAI client (cloud mode)
+            try:
+                self.client = AzureOpenAI(
+                    api_key=os.environ['AZURE_OPENAI_API_KEY'],
+                    api_version=os.environ['AZURE_OPENAI_API_VERSION'],
+                    azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
+                )
+                logging.info("☁️  Using AZURE OpenAI (cloud mode)")
+            except TypeError:
+                self.client = AzureOpenAI(
+                    api_key=os.environ['AZURE_OPENAI_API_KEY'],
+                    azure_endpoint=os.environ['AZURE_OPENAI_ENDPOINT']
+                )
 
         self.known_agents = self.reload_agents(declared_agents)
-        
+
         # Set the default user GUID instead of None
         self.user_guid = DEFAULT_USER_GUID
-        
+
         self.shared_memory = None
         self.user_memory = None
-        self.storage_manager = AzureFileStorageManager()
+        self.storage_manager = StorageManager()
 
         # Initialize with the default user GUID memory
         self._initialize_context_memory(DEFAULT_USER_GUID)
