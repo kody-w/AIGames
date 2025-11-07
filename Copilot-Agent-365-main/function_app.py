@@ -561,18 +561,49 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
     
     def get_openai_api_call(self, messages):
         try:
-            # Get the deployment name from environment or use default
-            deployment_name = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-deployment')
-            
-            response = self.client.chat.completions.create(
-                model=deployment_name,
-                messages=messages,
-                functions=self.get_agent_metadata(),
-                function_call="auto"
-            )
-            return response
+            if self.use_local_llm:
+                # Local LLM API call (Ollama/llama.cpp)
+                response = self.client.chat_completion(
+                    messages=messages,
+                    functions=self.get_agent_metadata(),
+                    temperature=0.7
+                )
+                # Convert local LLM response to OpenAI-compatible format
+                # LocalLLMClient already returns OpenAI-compatible format
+                # Need to wrap in object with choices attribute
+                class LocalResponse:
+                    def __init__(self, response_dict):
+                        self.choices = [type('obj', (object,), {
+                            'message': type('obj', (object,), {
+                                'content': response_dict['choices'][0]['message'].get('content'),
+                                'function_call': self._parse_function_call(response_dict['choices'][0]['message'])
+                            })()
+                        })()]
+
+                    def _parse_function_call(self, message):
+                        """Parse function call from message"""
+                        fc = message.get('function_call')
+                        if fc:
+                            return type('obj', (object,), {
+                                'name': fc.get('name'),
+                                'arguments': fc.get('arguments')
+                            })()
+                        return None
+
+                return LocalResponse(response)
+            else:
+                # Azure OpenAI API call (cloud mode)
+                deployment_name = os.environ.get('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-deployment')
+
+                response = self.client.chat.completions.create(
+                    model=deployment_name,
+                    messages=messages,
+                    functions=self.get_agent_metadata(),
+                    function_call="auto"
+                )
+                return response
         except Exception as e:
-            logging.error(f"Error in OpenAI API call: {str(e)}")
+            logging.error(f"Error in API call: {str(e)}")
             raise
     
     def parse_response_with_voice(self, content):
@@ -840,8 +871,8 @@ Revenue's up 12 percent and customers are happier - looking good for Q3.
 
 app = func.FunctionApp()
 
-# Initialize global analytics tracker
-storage_manager = AzureFileStorageManager()
+# Initialize global analytics tracker with the appropriate storage manager
+storage_manager = StorageManager()
 analytics_tracker = AnalyticsTracker(storage_manager)
 analytics_storage = AnalyticsStorage(storage_manager)
 
@@ -989,8 +1020,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "assistant_response": str(assistant_response),
             "voice_response": str(voice_response),
             "agent_logs": str(agent_logs),
-            "user_guid": assistant.user_guid,  # Return the GUID in use (could be default or provided)
-            "session_id": session_id
+            "user_guid": assistant.user_guid  # Return the GUID in use (could be default or provided)
         }
 
         return func.HttpResponse(
