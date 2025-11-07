@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Agents - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar">
+        <div class="logo"><h1>AI Ambassador</h1></div>
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="index.html">Tutorials</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Building Custom Agents</h1>
+            <p class="subtitle">Extend ambassador capabilities with Python agents</p>
+        </header>
+        <section>
+            <h2>Agent Template</h2>
+            <pre><code>from agents.basic_agent import BasicAgent
+
+class CoffeeInventoryAgent(BasicAgent):
+    def __init__(self):
+        self.name = 'CoffeeInventory'
+        self.metadata = {
+            "name": self.name,
+            "description": "Check coffee bean inventory levels",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "bean_type": {
+                        "type": "string",
+                        "description": "Type of coffee bean"
+                    }
+                },
+                "required": ["bean_type"]
+            }
+        }
+        super().__init__(self.name, self.metadata)
+
+    def perform(self, **kwargs):
+        bean_type = kwargs.get('bean_type', '')
+        
+        # Mock inventory check
+        inventory = {
+            "ethiopian": 25,
+            "colombian": 40,
+            "brazilian": 15
+        }
+        
+        stock = inventory.get(bean_type.lower(), 0)
+        
+        if stock > 20:
+            return f"Good news! We have plenty of {bean_type} in stock ({stock} lbs)."
+        elif stock > 0:
+            return f"We have limited {bean_type} available ({stock} lbs)."
+        else:
+            return f"Sorry, {bean_type} is currently out of stock."</code></pre>
+        </section>
+        <section>
+            <h2>Agent Structure</h2>
+            <ul>
+                <li><strong>__init__:</strong> Define name and metadata (function definition)</li>
+                <li><strong>perform:</strong> Execute agent logic with kwargs</li>
+                <li><strong>metadata:</strong> OpenAI function definition format</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Deploying Custom Agents</h2>
+            <pre><code># Local deployment
+cp coffee_inventory_agent.py Copilot-Agent-365-main/agents/
+
+# Azure deployment
+az storage file upload \
+  --account-name your-storage \
+  --share-name agents \
+  --source coffee_inventory_agent.py \
+  --path agents/coffee_inventory_agent.py</code></pre>
+        </section>
+        <section>
+            <h2>Testing Agents</h2>
+            <pre><code>from agents.coffee_inventory_agent import CoffeeInventoryAgent
+
+agent = CoffeeInventoryAgent()
+result = agent.perform(bean_type="Ethiopian")
+print(result)  # "Good news! We have plenty of Ethiopian in stock (25 lbs)."</code></pre>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

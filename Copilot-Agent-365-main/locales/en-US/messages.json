@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "close": "Close",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "send": "Send",
+      "retry": "Retry",
+      "refresh": "Refresh",
+      "download": "Download",
+      "upload": "Upload",
+      "share": "Share",
+      "copy": "Copy",
+      "start": "Start",
+      "stop": "Stop",
+      "pause": "Pause",
+      "resume": "Resume"
+    },
+    "labels": {
+      "language": "Language",
+      "welcome": "Welcome",
+      "ambassador": "Ambassador",
+      "chat": "Chat",
+      "settings": "Settings",
+      "profile": "Profile",
+      "help": "Help",
+      "about": "About",
+      "search": "Search",
+      "filter": "Filter",
+      "sort": "Sort",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "status": "Status",
+      "type": "Type",
+      "category": "Category",
+      "description": "Description",
+      "loading": "Loading...",
+      "processing": "Processing...",
+      "saving": "Saving...",
+      "deleting": "Deleting..."
+    },
+    "navigation": {
+      "home": "Home",
+      "ambassadors": "Ambassadors",
+      "discover": "Discover",
+      "collections": "My Collections",
+      "history": "History",
+      "favorites": "Favorites",
+      "notifications": "Notifications",
+      "logout": "Logout"
+    },
+    "language_selector": {
+      "title": "Choose Language",
+      "current": "Current Language",
+      "change": "Change Language"
+    }
+  },
+  "system": {
+    "welcome_message": "Welcome to AI Ambassadors!",
+    "scan_qr_prompt": "Scan a QR code to discover an AI Ambassador",
+    "connecting": "Connecting to ambassador...",
+    "connection_success": "Connected successfully!",
+    "initialization": "Initializing your experience...",
+    "ready": "Ready to chat!",
+    "thinking": "Ambassador is thinking...",
+    "typing": "Ambassador is typing..."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "timeout": "Request timed out. Please try again.",
+    "not_found": "Resource not found.",
+    "unauthorized": "You are not authorized to access this resource.",
+    "forbidden": "Access forbidden.",
+    "validation": "Please check your input and try again.",
+    "server": "Server error. Please try again later.",
+    "ambassador_not_found": "Ambassador not found. Please check the QR code.",
+    "invalid_qr": "Invalid QR code. Please scan a valid ambassador code.",
+    "session_expired": "Your session has expired. Please scan again.",
+    "translation_error": "Translation unavailable. Using default language.",
+    "file_too_large": "File is too large. Maximum size is {max_size}.",
+    "invalid_format": "Invalid file format. Accepted formats: {formats}.",
+    "connection_lost": "Connection lost. Reconnecting..."
+  },
+  "help": {
+    "getting_started": "Getting Started",
+    "how_to_scan": "How to Scan QR Codes",
+    "chat_tips": "Chat Tips",
+    "troubleshooting": "Troubleshooting",
+    "faq": "Frequently Asked Questions",
+    "contact_support": "Contact Support",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_service": "Terms of Service"
+  },
+  "ambassadors": {
+    "greeting": "Hello! I'm {name}, your AI Ambassador.",
+    "introduction": "I'm here to help you with {purpose}.",
+    "capabilities": "I can help you with:",
+    "ask_anything": "Ask me anything!",
+    "examples": "Here are some things you can try:",
+    "unavailable": "This ambassador is currently unavailable.",
+    "offline": "Ambassador is offline.",
+    "busy": "Ambassador is busy. Please wait...",
+    "ended": "This conversation has ended.",
+    "new_conversation": "Start a new conversation",
+    "share_conversation": "Share this conversation",
+    "report": "Report an issue",
+    "rating_prompt": "How was your experience?",
+    "feedback_thanks": "Thank you for your feedback!"
+  },
+  "demo": {
+    "title": "Demo Mode",
+    "description": "This is a demonstration with pre-loaded context.",
+    "disclaimer": "Demo data is synthetic and for showcase purposes only.",
+    "exit": "Exit Demo",
+    "restart": "Restart Demo",
+    "scenario": "Demo Scenario: {scenario}"
+  },
+  "notifications": {
+    "new_message": "New message from {name}",
+    "ambassador_available": "{name} is now available",
+    "update_available": "Update available",
+    "session_ending": "Session ending in {time} minutes",
+    "saved": "Saved successfully!",
+    "deleted": "Deleted successfully!",
+    "copied": "Copied to clipboard!",
+    "shared": "Shared successfully!",
+    "translation_changed": "Language changed to {language}"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "Welcome to AI Ambassadors!",
+      "greeting": "Hello {name},",
+      "body": "Thank you for joining AI Ambassadors. Start discovering AI companions in your area by scanning QR codes.",
+      "cta": "Discover Ambassadors",
+      "signature": "The AI Ambassadors Team"
+    },
+    "password_reset": {
+      "subject": "Reset Your Password",
+      "greeting": "Hello {name},",
+      "body": "We received a request to reset your password. Click the button below to create a new password.",
+      "cta": "Reset Password",
+      "expires": "This link expires in {hours} hours.",
+      "ignore": "If you didn't request this, please ignore this email."
+    },
+    "new_ambassador": {
+      "subject": "New Ambassador Available: {name}",
+      "greeting": "Hello {name},",
+      "body": "A new AI Ambassador is available in your area: {ambassador_name}. Scan the QR code to connect!",
+      "cta": "Learn More"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, one {# item} other {# items}}",
+    "ambassadors": "{count, plural, one {# ambassador} other {# ambassadors}}",
+    "messages": "{count, plural, one {# message} other {# messages}}",
+    "users": "{count, plural, one {# user} other {# users}}",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "hours": "{count, plural, one {# hour} other {# hours}}",
+    "minutes": "{count, plural, one {# minute} other {# minutes}}",
+    "seconds": "{count, plural, one {# second} other {# seconds}}"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{minutes} minutes ago",
+    "hours_ago": "{hours} hours ago",
+    "days_ago": "{days} days ago",
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "night": "Night"
+  },
+  "cultural": {
+    "greeting_formal": "Hello",
+    "greeting_informal": "Hi",
+    "farewell_formal": "Goodbye",
+    "farewell_informal": "Bye",
+    "please": "Please",
+    "thank_you": "Thank you",
+    "yes": "Yes",
+    "no": "No",
+    "sorry": "Sorry",
+    "excuse_me": "Excuse me"
+  }
+}

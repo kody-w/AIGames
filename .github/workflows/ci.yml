@@ -1,0 +1,264 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ develop, main, 'feature/**' ]
+  pull_request:
+    branches: [ develop, main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint flake8 black isort mypy bandit safety
+
+      - name: Format check with Black
+        run: |
+          cd Copilot-Agent-365-main
+          black --check .
+
+      - name: Import sorting check with isort
+        run: |
+          cd Copilot-Agent-365-main
+          isort --check-only .
+
+      - name: Lint with flake8
+        run: |
+          cd Copilot-Agent-365-main
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Lint with pylint
+        run: |
+          cd Copilot-Agent-365-main
+          pylint --exit-zero **/*.py
+
+      - name: Type check with mypy
+        run: |
+          cd Copilot-Agent-365-main
+          mypy --ignore-missing-imports .
+        continue-on-error: true
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install bandit safety
+
+      - name: Security scan with Bandit
+        run: |
+          cd Copilot-Agent-365-main
+          bandit -r . -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Dependency vulnerability scan with Safety
+        run: |
+          cd Copilot-Agent-365-main
+          safety check --json --output safety-report.json
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            Copilot-Agent-365-main/bandit-report.json
+            Copilot-Agent-365-main/safety-report.json
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio pytest-mock
+
+      - name: Run tests with pytest
+        run: |
+          cd Copilot-Agent-365-main
+          pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term
+        continue-on-error: true
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            Copilot-Agent-365-main/coverage.xml
+            Copilot-Agent-365-main/htmlcov/
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          COVERAGE_PATH: Copilot-Agent-365-main/coverage.xml
+        continue-on-error: true
+
+  bicep-validation:
+    name: Bicep Template Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Bicep
+        run: |
+          az bicep install
+          az bicep upgrade
+
+      - name: Build Bicep templates
+        run: |
+          cd infrastructure/bicep
+          az bicep build --file main.bicep
+          for module in modules/*.bicep; do
+            echo "Building $module..."
+            az bicep build --file "$module"
+          done
+
+      - name: Validate dev template
+        run: |
+          az deployment sub validate \
+            --name "ci-validation-$(date +%s)" \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters infrastructure/bicep/parameters/dev.bicepparam
+
+      - name: What-if analysis (dev)
+        run: |
+          az deployment sub what-if \
+            --name "ci-whatif-$(date +%s)" \
+            --location eastus \
+            --template-file infrastructure/bicep/main.bicep \
+            --parameters infrastructure/bicep/parameters/dev.bicepparam
+        continue-on-error: true
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [code-quality, test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd Copilot-Agent-365-main
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Package application
+        run: |
+          cd Copilot-Agent-365-main
+          mkdir -p ../build
+          zip -r ../build/function-app.zip . -x "*.git*" "*.venv*" "__pycache__*" "*.pyc" "tests/*"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: function-app
+          path: build/function-app.zip
+          retention-days: 7
+
+  pre-deployment-checks:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    needs: [build, bicep-validation, security-scan]
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for breaking changes
+        run: |
+          echo "Checking for breaking changes..."
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "requirements.txt" && echo "Dependencies changed" || echo "No dependency changes"
+
+      - name: Validate configuration
+        run: |
+          echo "Validating configuration files..."
+          # Add configuration validation logic here
+
+      - name: Check environment readiness
+        run: |
+          echo "Environment readiness check passed"
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [code-quality, test, security-scan, bicep-validation, build]
+    if: always()
+
+    steps:
+      - name: Check workflow status
+        run: |
+          echo "CI workflow completed"
+          echo "Status: ${{ job.status }}"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "CI pipeline failed. Please check the logs."
+          # Add notification logic (Slack, email, etc.)

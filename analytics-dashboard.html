@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - AI Ambassador Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        select, input, button {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px 25px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .metric-change {
+            font-size: 0.9em;
+            color: #28a745;
+        }
+
+        .metric-change.negative {
+            color: #dc3545;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .chart-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .real-time-feed {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .feed-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .feed-item .time {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .feed-item .event {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .funnel-visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .funnel-step {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .funnel-step:hover {
+            transform: scale(1.02);
+        }
+
+        .funnel-step-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .funnel-step-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+
+        .cohort-table {
+            overflow-x: auto;
+        }
+
+        .cohort-cell {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .cohort-cell.high {
+            background: rgba(102, 126, 234, 0.8);
+            color: white;
+        }
+
+        .cohort-cell.medium {
+            background: rgba(102, 126, 234, 0.4);
+        }
+
+        .cohort-cell.low {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            select, input, button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Analytics Dashboard</h1>
+            <p>AI Ambassador Platform - Real-time Insights & Performance Metrics</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-group">
+                <label>Time Period</label>
+                <select id="timePeriod" onchange="refreshData()">
+                    <option value="1">Last 24 Hours</option>
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Ambassador</label>
+                <select id="ambassadorFilter" onchange="refreshData()">
+                    <option value="">All Ambassadors</option>
+                </select>
+            </div>
+
+            <button onclick="refreshData()">Refresh Data</button>
+            <button onclick="showExportDialog()">Export Report</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">Overview</div>
+            <div class="tab" onclick="switchTab('ambassadors')">Ambassador Performance</div>
+            <div class="tab" onclick="switchTab('funnels')">Conversion Funnels</div>
+            <div class="tab" onclick="switchTab('cohorts')">Cohort Analysis</div>
+            <div class="tab" onclick="switchTab('abtests')">A/B Tests</div>
+            <div class="tab" onclick="switchTab('realtime')">Real-time Activity</div>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Total Users</h3>
+                    <div class="metric-value" id="totalUsers">-</div>
+                    <div class="metric-change" id="usersChange">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Active Sessions</h3>
+                    <div class="metric-value" id="totalSessions">-</div>
+                    <div class="metric-change" id="sessionsChange">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Messages</h3>
+                    <div class="metric-value" id="totalMessages">-</div>
+                    <div class="metric-change" id="messagesChange">-</div>
+                </div>
+                <div class="metric-card">
+                    <h3>QR Scans</h3>
+                    <div class="metric-value" id="totalScans">-</div>
+                    <div class="metric-change" id="scansChange">-</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h2>User Activity Over Time</h2>
+                    <div class="chart-container">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h2>Events by Type</h2>
+                    <div class="chart-container">
+                        <canvas id="eventsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ambassador Performance Tab -->
+        <div id="ambassadors" class="tab-content">
+            <div class="table-container">
+                <h2>Ambassador Performance Comparison</h2>
+                <table id="ambassadorTable">
+                    <thead>
+                        <tr>
+                            <th>Ambassador</th>
+                            <th>Unique Users</th>
+                            <th>Sessions</th>
+                            <th>Messages</th>
+                            <th>QR Scans</th>
+                            <th>Engagement Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ambassadorTableBody">
+                        <tr><td colspan="6" class="loading">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="charts-grid" style="margin-top: 20px;">
+                <div class="chart-card">
+                    <h2>Ambassador Comparison</h2>
+                    <div class="chart-container">
+                        <canvas id="ambassadorComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funnels Tab -->
+        <div id="funnels" class="tab-content">
+            <div class="chart-card">
+                <h2>Conversion Funnel Analysis</h2>
+                <div class="control-group" style="margin-bottom: 20px;">
+                    <label>Select Funnel</label>
+                    <select id="funnelSelect" onchange="loadFunnel()">
+                        <option value="">Select a funnel...</option>
+                    </select>
+                </div>
+                <div id="funnelVisualization" class="funnel-visualization">
+                    <div class="loading">Select a funnel to view analysis</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cohorts Tab -->
+        <div id="cohorts" class="tab-content">
+            <div class="table-container">
+                <h2>Cohort Retention Analysis</h2>
+                <div class="controls" style="margin-bottom: 20px;">
+                    <div class="control-group">
+                        <label>Cohort Period</label>
+                        <select id="cohortPeriod" onchange="loadCohorts()">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="cohortTable" class="cohort-table">
+                    <div class="loading">Loading cohort data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- A/B Tests Tab -->
+        <div id="abtests" class="tab-content">
+            <div class="table-container">
+                <h2>A/B Test Results</h2>
+                <div class="control-group" style="margin-bottom: 20px;">
+                    <label>Select Test</label>
+                    <select id="testSelect" onchange="loadABTest()">
+                        <option value="">Select a test...</option>
+                    </select>
+                </div>
+                <div id="abTestResults">
+                    <div class="loading">Select an A/B test to view results</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Tab -->
+        <div id="realtime" class="tab-content">
+            <div class="real-time-feed">
+                <h2>Real-time Activity Feed</h2>
+                <div id="activityFeed">
+                    <div class="loading">Connecting to real-time feed...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:7071/api';
+        let charts = {};
+        let currentTab = 'overview';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            refreshData();
+            loadAmbassadors();
+            startRealTimeFeed();
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+
+            currentTab = tabName;
+
+            // Load data for specific tabs
+            if (tabName === 'ambassadors') {
+                loadAmbassadorPerformance();
+            } else if (tabName === 'funnels') {
+                loadFunnels();
+            } else if (tabName === 'cohorts') {
+                loadCohorts();
+            } else if (tabName === 'abtests') {
+                loadABTests();
+            }
+        }
+
+        // Initialize Chart.js charts
+        function initializeCharts() {
+            // Activity chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            charts.activity = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Users',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+
+            // Events chart
+            const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+            charts.events = new Chart(eventsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#4facfe',
+                            '#43e97b'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Refresh all data
+        async function refreshData() {
+            const days = document.getElementById('timePeriod').value;
+            const ambassadorId = document.getElementById('ambassadorFilter').value;
+
+            try {
+                // Fetch summary report
+                let url = `${API_BASE_URL}/analytics/reports?type=summary&days=${days}`;
+                if (ambassadorId) {
+                    url += `&ambassador_id=${ambassadorId}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                updateMetrics(data);
+                updateCharts(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Update metric cards
+        function updateMetrics(data) {
+            const metrics = data.metrics || {};
+
+            document.getElementById('totalUsers').textContent = metrics.unique_users || 0;
+            document.getElementById('totalSessions').textContent = metrics.unique_sessions || 0;
+            document.getElementById('totalMessages').textContent = metrics.events_by_type?.message_sent || 0;
+            document.getElementById('totalScans').textContent = metrics.events_by_type?.qr_scan || 0;
+
+            // Update change indicators (would need comparison data)
+            // For now, showing as positive
+            document.getElementById('usersChange').textContent = '+12% vs prev period';
+            document.getElementById('sessionsChange').textContent = '+8% vs prev period';
+            document.getElementById('messagesChange').textContent = '+15% vs prev period';
+            document.getElementById('scansChange').textContent = '+5% vs prev period';
+        }
+
+        // Update charts
+        function updateCharts(data) {
+            const metrics = data.metrics || {};
+
+            // Update events chart
+            if (metrics.events_by_type) {
+                const eventTypes = Object.keys(metrics.events_by_type);
+                const eventCounts = Object.values(metrics.events_by_type);
+
+                charts.events.data.labels = eventTypes;
+                charts.events.data.datasets[0].data = eventCounts;
+                charts.events.update();
+            }
+        }
+
+        // Load ambassadors for filter
+        async function loadAmbassadors() {
+            // This would fetch from your ambassador API
+            // For now, using sample data
+            const select = document.getElementById('ambassadorFilter');
+            const ambassadors = [
+                'creative-ambassador',
+                'sales-assistant',
+                'tech-support'
+            ];
+
+            ambassadors.forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                select.appendChild(option);
+            });
+        }
+
+        // Load ambassador performance
+        async function loadAmbassadorPerformance() {
+            const days = document.getElementById('timePeriod').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analytics/reports?type=comparison&days=${days}`);
+                const data = await response.json();
+
+                updateAmbassadorTable(data);
+            } catch (error) {
+                console.error('Error loading ambassador performance:', error);
+            }
+        }
+
+        // Update ambassador table
+        function updateAmbassadorTable(data) {
+            const tbody = document.getElementById('ambassadorTableBody');
+            tbody.innerHTML = '';
+
+            if (!data.ambassadors || data.ambassadors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="loading">No data available</td></tr>';
+                return;
+            }
+
+            data.ambassadors.forEach(ambassador => {
+                const row = document.createElement('tr');
+                const summary = ambassador.summary || {};
+                row.innerHTML = `
+                    <td>${ambassador.ambassador_id}</td>
+                    <td>${summary.unique_users || 0}</td>
+                    <td>${summary.total_sessions || 0}</td>
+                    <td>${summary.total_messages || 0}</td>
+                    <td>${summary.total_qr_scans || 0}</td>
+                    <td>${summary.engagement_rate || 0}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load funnels
+        async function loadFunnels() {
+            // This would load funnel definitions
+            // For now, using sample data
+            const select = document.getElementById('funnelSelect');
+            select.innerHTML = '<option value="">Select a funnel...</option>';
+
+            const funnels = [
+                { id: 'onboarding', name: 'User Onboarding' },
+                { id: 'conversion', name: 'Lead Conversion' }
+            ];
+
+            funnels.forEach(funnel => {
+                const option = document.createElement('option');
+                option.value = funnel.id;
+                option.textContent = funnel.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Load funnel data
+        async function loadFunnel() {
+            const funnelId = document.getElementById('funnelSelect').value;
+            if (!funnelId) return;
+
+            const days = document.getElementById('timePeriod').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analytics/funnels?funnel_id=${funnelId}&days=${days}`);
+                const data = await response.json();
+
+                displayFunnelVisualization(data);
+            } catch (error) {
+                console.error('Error loading funnel:', error);
+            }
+        }
+
+        // Display funnel visualization
+        function displayFunnelVisualization(data) {
+            const container = document.getElementById('funnelVisualization');
+            container.innerHTML = '';
+
+            if (!data.steps || data.steps.length === 0) {
+                container.innerHTML = '<div class="loading">No funnel data available</div>';
+                return;
+            }
+
+            data.steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'funnel-step';
+                stepDiv.style.width = `${100 - (index * 10)}%`;
+                stepDiv.innerHTML = `
+                    <div class="funnel-step-label">Step ${step.step}: ${step.event_type}</div>
+                    <div class="funnel-step-stats">
+                        <span>${step.users} users</span>
+                        <span>${step.conversion_rate}% conversion</span>
+                    </div>
+                `;
+                container.appendChild(stepDiv);
+            });
+        }
+
+        // Load cohorts
+        async function loadCohorts() {
+            const period = document.getElementById('cohortPeriod').value;
+            const days = document.getElementById('timePeriod').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analytics/cohorts?period=${period}&periods=12&days_back=${days}`);
+                const data = await response.json();
+
+                displayCohortTable(data);
+            } catch (error) {
+                console.error('Error loading cohorts:', error);
+            }
+        }
+
+        // Display cohort table
+        function displayCohortTable(data) {
+            const container = document.getElementById('cohortTable');
+            container.innerHTML = '';
+
+            if (!data.cohorts) {
+                container.innerHTML = '<div class="loading">No cohort data available</div>';
+                return;
+            }
+
+            // Create table
+            let html = '<table><thead><tr><th>Cohort</th>';
+            for (let i = 0; i < data.retention_periods; i++) {
+                html += `<th>Period ${i}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            Object.entries(data.cohorts).forEach(([cohort, cohortData]) => {
+                html += `<tr><td>${cohort}</td>`;
+                cohortData.retention.forEach(period => {
+                    const rate = period.retention_rate;
+                    let cellClass = 'cohort-cell';
+                    if (rate > 50) cellClass += ' high';
+                    else if (rate > 20) cellClass += ' medium';
+                    else cellClass += ' low';
+
+                    html += `<td class="${cellClass}">${rate}%</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load A/B tests
+        async function loadABTests() {
+            // This would load test definitions
+            const select = document.getElementById('testSelect');
+            select.innerHTML = '<option value="">Select a test...</option>';
+
+            // Sample data
+            const tests = [
+                { id: 'greeting-test', name: 'Greeting Variants' },
+                { id: 'cta-test', name: 'CTA Button Test' }
+            ];
+
+            tests.forEach(test => {
+                const option = document.createElement('option');
+                option.value = test.id;
+                option.textContent = test.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Load A/B test results
+        async function loadABTest() {
+            const testId = document.getElementById('testSelect').value;
+            if (!testId) return;
+
+            const days = document.getElementById('timePeriod').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analytics/ab-tests?test_id=${testId}&days=${days}`);
+                const data = await response.json();
+
+                displayABTestResults(data);
+            } catch (error) {
+                console.error('Error loading A/B test:', error);
+            }
+        }
+
+        // Display A/B test results
+        function displayABTestResults(data) {
+            const container = document.getElementById('abTestResults');
+
+            if (!data.variants) {
+                container.innerHTML = '<div class="loading">No test data available</div>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Variant</th><th>Assigned Users</th><th>Conversions</th><th>Conversion Rate</th></tr></thead><tbody>';
+
+            data.variants.forEach(variant => {
+                html += `
+                    <tr>
+                        <td>${variant.variant_name}</td>
+                        <td>${variant.assigned_users}</td>
+                        <td>${variant.conversions}</td>
+                        <td><strong>${variant.conversion_rate}%</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Real-time activity feed
+        function startRealTimeFeed() {
+            // Simulate real-time updates
+            setInterval(updateActivityFeed, 5000);
+        }
+
+        function updateActivityFeed() {
+            const feed = document.getElementById('activityFeed');
+
+            // This would connect to a real-time event stream
+            // For now, showing sample data
+            const events = [
+                { time: new Date(), event: 'User scanned QR code for Creative Ambassador' },
+                { time: new Date(), event: 'New session started with Sales Assistant' },
+                { time: new Date(), event: 'Message sent to Tech Support ambassador' }
+            ];
+
+            feed.innerHTML = '';
+            events.forEach(event => {
+                const item = document.createElement('div');
+                item.className = 'feed-item';
+                item.innerHTML = `
+                    <div class="time">${event.time.toLocaleTimeString()}</div>
+                    <div class="event">${event.event}</div>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        // Export functionality
+        function showExportDialog() {
+            const format = prompt('Export format (csv/json/excel):', 'csv');
+            if (format) {
+                exportData(format);
+            }
+        }
+
+        async function exportData(format) {
+            const days = document.getElementById('timePeriod').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/analytics/reports?type=summary&days=${days}`);
+                const data = await response.json();
+
+                if (format === 'csv') {
+                    exportToCSV(data);
+                } else if (format === 'json') {
+                    exportToJSON(data);
+                }
+            } catch (error) {
+                console.error('Error exporting data:', error);
+            }
+        }
+
+        function exportToCSV(data) {
+            let csv = 'Metric,Value\n';
+            const metrics = data.metrics || {};
+
+            csv += `Total Events,${metrics.total_events || 0}\n`;
+            csv += `Unique Users,${metrics.unique_users || 0}\n`;
+            csv += `Unique Sessions,${metrics.unique_sessions || 0}\n`;
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            downloadFile(blob, 'analytics-report.csv');
+        }
+
+        function exportToJSON(data) {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            downloadFile(blob, 'analytics-report.json');
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

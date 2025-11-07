@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "送信",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "delete": "削除",
+      "edit": "編集",
+      "close": "閉じる",
+      "back": "戻る",
+      "next": "次へ",
+      "finish": "完了",
+      "send": "送信",
+      "retry": "再試行",
+      "refresh": "更新",
+      "download": "ダウンロード",
+      "upload": "アップロード",
+      "share": "共有",
+      "copy": "コピー",
+      "start": "開始",
+      "stop": "停止",
+      "pause": "一時停止",
+      "resume": "再開"
+    },
+    "labels": {
+      "language": "言語",
+      "welcome": "ようこそ",
+      "ambassador": "アンバサダー",
+      "chat": "チャット",
+      "settings": "設定",
+      "profile": "プロフィール",
+      "help": "ヘルプ",
+      "about": "について",
+      "search": "検索",
+      "filter": "フィルター",
+      "sort": "並び替え",
+      "name": "名前",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "date": "日付",
+      "time": "時刻",
+      "location": "場所",
+      "status": "ステータス",
+      "type": "タイプ",
+      "category": "カテゴリー",
+      "description": "説明",
+      "loading": "読み込み中...",
+      "processing": "処理中...",
+      "saving": "保存中...",
+      "deleting": "削除中..."
+    },
+    "navigation": {
+      "home": "ホーム",
+      "ambassadors": "アンバサダー",
+      "discover": "発見",
+      "collections": "マイコレクション",
+      "history": "履歴",
+      "favorites": "お気に入り",
+      "notifications": "通知",
+      "logout": "ログアウト"
+    },
+    "language_selector": {
+      "title": "言語を選択",
+      "current": "現在の言語",
+      "change": "言語を変更"
+    }
+  },
+  "system": {
+    "welcome_message": "AI Ambassadors へようこそ！",
+    "scan_qr_prompt": "QRコードをスキャンしてAIアンバサダーを発見",
+    "connecting": "アンバサダーに接続中...",
+    "connection_success": "接続成功！",
+    "initialization": "エクスペリエンスを初期化中...",
+    "ready": "チャット準備完了！",
+    "thinking": "アンバサダーが考え中...",
+    "typing": "アンバサダーが入力中..."
+  },
+  "errors": {
+    "generic": "問題が発生しました。もう一度お試しください。",
+    "network": "ネットワークエラー。接続を確認してください。",
+    "timeout": "リクエストがタイムアウトしました。もう一度お試しください。",
+    "not_found": "リソースが見つかりません。",
+    "unauthorized": "このリソースにアクセスする権限がありません。",
+    "forbidden": "アクセスが禁止されています。",
+    "validation": "入力内容を確認してもう一度お試しください。",
+    "server": "サーバーエラー。後でもう一度お試しください。",
+    "ambassador_not_found": "アンバサダーが見つかりません。QRコードを確認してください。",
+    "invalid_qr": "無効なQRコード。有効なアンバサダーコードをスキャンしてください。",
+    "session_expired": "セッションの有効期限が切れました。もう一度スキャンしてください。",
+    "translation_error": "翻訳が利用できません。デフォルト言語を使用します。",
+    "file_too_large": "ファイルが大きすぎます。最大サイズ：{max_size}。",
+    "invalid_format": "無効なファイル形式。受け入れ可能な形式：{formats}。",
+    "connection_lost": "接続が失われました。再接続中..."
+  },
+  "help": {
+    "getting_started": "はじめに",
+    "how_to_scan": "QRコードのスキャン方法",
+    "chat_tips": "チャットのヒント",
+    "troubleshooting": "トラブルシューティング",
+    "faq": "よくある質問",
+    "contact_support": "サポートに連絡",
+    "privacy_policy": "プライバシーポリシー",
+    "terms_of_service": "利用規約"
+  },
+  "ambassadors": {
+    "greeting": "こんにちは！私は {name}、あなたのAIアンバサダーです。",
+    "introduction": "{purpose} のお手伝いをします。",
+    "capabilities": "以下のことをお手伝いできます：",
+    "ask_anything": "何でも聞いてください！",
+    "examples": "試してみることができることをいくつか紹介します：",
+    "unavailable": "このアンバサダーは現在利用できません。",
+    "offline": "アンバサダーはオフラインです。",
+    "busy": "アンバサダーは忙しいです。お待ちください...",
+    "ended": "この会話は終了しました。",
+    "new_conversation": "新しい会話を開始",
+    "share_conversation": "この会話を共有",
+    "report": "問題を報告",
+    "rating_prompt": "体験はいかがでしたか？",
+    "feedback_thanks": "フィードバックありがとうございます！"
+  },
+  "demo": {
+    "title": "デモモード",
+    "description": "これはコンテキストがプリロードされたデモンストレーションです。",
+    "disclaimer": "デモデータは合成されたもので、展示目的のみです。",
+    "exit": "デモを終了",
+    "restart": "デモを再起動",
+    "scenario": "デモシナリオ：{scenario}"
+  },
+  "notifications": {
+    "new_message": "{name} からの新しいメッセージ",
+    "ambassador_available": "{name} が利用可能になりました",
+    "update_available": "更新が利用可能",
+    "session_ending": "セッションは {time} 分後に終了します",
+    "saved": "保存されました！",
+    "deleted": "削除されました！",
+    "copied": "クリップボードにコピーしました！",
+    "shared": "共有されました！",
+    "translation_changed": "言語が {language} に変更されました"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "AI Ambassadors へようこそ！",
+      "greeting": "こんにちは {name} さん、",
+      "body": "AI Ambassadors にご参加いただきありがとうございます。QRコードをスキャンして、お近くのAIコンパニオンを発見しましょう。",
+      "cta": "アンバサダーを発見",
+      "signature": "AI Ambassadors チーム"
+    },
+    "password_reset": {
+      "subject": "パスワードをリセット",
+      "greeting": "こんにちは {name} さん、",
+      "body": "パスワードをリセットするリクエストを受け取りました。下のボタンをクリックして新しいパスワードを作成してください。",
+      "cta": "パスワードをリセット",
+      "expires": "このリンクは {hours} 時間後に期限切れになります。",
+      "ignore": "このリクエストをしていない場合は、このメールを無視してください。"
+    },
+    "new_ambassador": {
+      "subject": "新しいアンバサダーが利用可能：{name}",
+      "greeting": "こんにちは {name} さん、",
+      "body": "お近くに新しいAIアンバサダーが利用可能です：{ambassador_name}。QRコードをスキャンして接続しましょう！",
+      "cta": "詳細を見る"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, other {# 項目}}",
+    "ambassadors": "{count, plural, other {# 人のアンバサダー}}",
+    "messages": "{count, plural, other {# 件のメッセージ}}",
+    "users": "{count, plural, other {# 人のユーザー}}",
+    "days": "{count, plural, other {# 日}}",
+    "hours": "{count, plural, other {# 時間}}",
+    "minutes": "{count, plural, other {# 分}}",
+    "seconds": "{count, plural, other {# 秒}}"
+  },
+  "time": {
+    "just_now": "たった今",
+    "minutes_ago": "{minutes} 分前",
+    "hours_ago": "{hours} 時間前",
+    "days_ago": "{days} 日前",
+    "yesterday": "昨日",
+    "today": "今日",
+    "tomorrow": "明日",
+    "morning": "朝",
+    "afternoon": "午後",
+    "evening": "夕方",
+    "night": "夜"
+  },
+  "cultural": {
+    "greeting_formal": "こんにちは",
+    "greeting_informal": "やあ",
+    "farewell_formal": "さようなら",
+    "farewell_informal": "じゃあね",
+    "please": "お願いします",
+    "thank_you": "ありがとう",
+    "yes": "はい",
+    "no": "いいえ",
+    "sorry": "すみません",
+    "excuse_me": "すみません"
+  }
+}

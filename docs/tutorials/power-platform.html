@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Power Platform - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle"><button id="themeToggle"><span class="theme-icon">🌙</span></button></div>
+    <nav class="sidebar"><div class="logo"><h1>AI Ambassador</h1></div></nav>
+    <main class="content">
+        <header class="page-header">
+            <h1>Power Platform Integration</h1>
+            <p class="subtitle">Integrate with Microsoft Teams and Microsoft 365 Copilot</p>
+        </header>
+        <section>
+            <h2>Prerequisites</h2>
+            <ul>
+                <li>Microsoft 365 subscription</li>
+                <li>Power Platform license</li>
+                <li>Azure subscription</li>
+                <li>Deployed AI Ambassador Platform</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Teams Bot Setup</h2>
+            <pre><code># Install Bot Framework
+npm install -g @microsoft/generator-botframework
+
+# Create Teams app
+yo botframework --template=teams
+
+# Configure endpoint
+"messagingEndpoint": "https://your-function-app.azurewebsites.net/api/teams_endpoint"</code></pre>
+        </section>
+        <section>
+            <h2>Microsoft 365 Copilot Integration</h2>
+            <p>Ambassadors can be deployed as Microsoft 365 Copilot plugins for enterprise use. See official documentation for plugin development.</p>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>

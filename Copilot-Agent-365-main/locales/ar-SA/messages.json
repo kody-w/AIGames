@@ -1,0 +1,198 @@
+{
+  "ui": {
+    "buttons": {
+      "submit": "إرسال",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "close": "إغلاق",
+      "back": "رجوع",
+      "next": "التالي",
+      "finish": "إنهاء",
+      "send": "إرسال",
+      "retry": "إعادة المحاولة",
+      "refresh": "تحديث",
+      "download": "تنزيل",
+      "upload": "رفع",
+      "share": "مشاركة",
+      "copy": "نسخ",
+      "start": "بدء",
+      "stop": "إيقاف",
+      "pause": "إيقاف مؤقت",
+      "resume": "استئناف"
+    },
+    "labels": {
+      "language": "اللغة",
+      "welcome": "مرحباً",
+      "ambassador": "السفير",
+      "chat": "دردشة",
+      "settings": "الإعدادات",
+      "profile": "الملف الشخصي",
+      "help": "المساعدة",
+      "about": "حول",
+      "search": "بحث",
+      "filter": "تصفية",
+      "sort": "ترتيب",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "location": "الموقع",
+      "status": "الحالة",
+      "type": "النوع",
+      "category": "الفئة",
+      "description": "الوصف",
+      "loading": "جارٍ التحميل...",
+      "processing": "جارٍ المعالجة...",
+      "saving": "جارٍ الحفظ...",
+      "deleting": "جارٍ الحذف..."
+    },
+    "navigation": {
+      "home": "الرئيسية",
+      "ambassadors": "السفراء",
+      "discover": "اكتشف",
+      "collections": "مجموعاتي",
+      "history": "السجل",
+      "favorites": "المفضلة",
+      "notifications": "الإشعارات",
+      "logout": "تسجيل الخروج"
+    },
+    "language_selector": {
+      "title": "اختر اللغة",
+      "current": "اللغة الحالية",
+      "change": "تغيير اللغة"
+    }
+  },
+  "system": {
+    "welcome_message": "مرحباً بك في AI Ambassadors!",
+    "scan_qr_prompt": "امسح رمز QR لاكتشاف سفير الذكاء الاصطناعي",
+    "connecting": "جارٍ الاتصال بالسفير...",
+    "connection_success": "تم الاتصال بنجاح!",
+    "initialization": "جارٍ تهيئة تجربتك...",
+    "ready": "جاهز للدردشة!",
+    "thinking": "السفير يفكر...",
+    "typing": "السفير يكتب..."
+  },
+  "errors": {
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "network": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "timeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.",
+    "not_found": "لم يتم العثور على المورد.",
+    "unauthorized": "ليس لديك إذن للوصول إلى هذا المورد.",
+    "forbidden": "الوصول ممنوع.",
+    "validation": "يرجى التحقق من إدخالك والمحاولة مرة أخرى.",
+    "server": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+    "ambassador_not_found": "لم يتم العثور على السفير. يرجى التحقق من رمز QR.",
+    "invalid_qr": "رمز QR غير صالح. يرجى مسح رمز سفير صالح.",
+    "session_expired": "انتهت صلاحية الجلسة. يرجى المسح مرة أخرى.",
+    "translation_error": "الترجمة غير متاحة. استخدام اللغة الافتراضية.",
+    "file_too_large": "الملف كبير جداً. الحجم الأقصى: {max_size}.",
+    "invalid_format": "تنسيق ملف غير صالح. التنسيقات المقبولة: {formats}.",
+    "connection_lost": "فُقد الاتصال. إعادة الاتصال..."
+  },
+  "help": {
+    "getting_started": "البدء",
+    "how_to_scan": "كيفية مسح رموز QR",
+    "chat_tips": "نصائح الدردشة",
+    "troubleshooting": "استكشاف الأخطاء",
+    "faq": "الأسئلة الشائعة",
+    "contact_support": "اتصل بالدعم",
+    "privacy_policy": "سياسة الخصوصية",
+    "terms_of_service": "شروط الخدمة"
+  },
+  "ambassadors": {
+    "greeting": "مرحباً! أنا {name}، سفيرك في الذكاء الاصطناعي.",
+    "introduction": "أنا هنا لمساعدتك في {purpose}.",
+    "capabilities": "يمكنني مساعدتك في:",
+    "ask_anything": "اسألني أي شيء!",
+    "examples": "إليك بعض الأشياء التي يمكنك تجربتها:",
+    "unavailable": "هذا السفير غير متاح حالياً.",
+    "offline": "السفير غير متصل.",
+    "busy": "السفير مشغول. يرجى الانتظار...",
+    "ended": "انتهت هذه المحادثة.",
+    "new_conversation": "بدء محادثة جديدة",
+    "share_conversation": "مشاركة هذه المحادثة",
+    "report": "الإبلاغ عن مشكلة",
+    "rating_prompt": "كيف كانت تجربتك؟",
+    "feedback_thanks": "شكراً على ملاحظاتك!"
+  },
+  "demo": {
+    "title": "وضع التجريبي",
+    "description": "هذا عرض توضيحي مع سياق محمّل مسبقاً.",
+    "disclaimer": "بيانات العرض التوضيحي اصطناعية ولأغراض العرض فقط.",
+    "exit": "الخروج من العرض التوضيحي",
+    "restart": "إعادة تشغيل العرض التوضيحي",
+    "scenario": "سيناريو العرض التوضيحي: {scenario}"
+  },
+  "notifications": {
+    "new_message": "رسالة جديدة من {name}",
+    "ambassador_available": "{name} متاح الآن",
+    "update_available": "تحديث متاح",
+    "session_ending": "الجلسة تنتهي خلال {time} دقيقة",
+    "saved": "تم الحفظ بنجاح!",
+    "deleted": "تم الحذف بنجاح!",
+    "copied": "تم النسخ إلى الحافظة!",
+    "shared": "تمت المشاركة بنجاح!",
+    "translation_changed": "تم تغيير اللغة إلى {language}"
+  },
+  "emails": {
+    "welcome": {
+      "subject": "مرحباً بك في AI Ambassadors!",
+      "greeting": "مرحباً {name}،",
+      "body": "شكراً لانضمامك إلى AI Ambassadors. ابدأ في اكتشاف رفقاء الذكاء الاصطناعي في منطقتك عن طريق مسح رموز QR.",
+      "cta": "اكتشف السفراء",
+      "signature": "فريق AI Ambassadors"
+    },
+    "password_reset": {
+      "subject": "إعادة تعيين كلمة المرور",
+      "greeting": "مرحباً {name}،",
+      "body": "تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بك. انقر على الزر أدناه لإنشاء كلمة مرور جديدة.",
+      "cta": "إعادة تعيين كلمة المرور",
+      "expires": "تنتهي صلاحية هذا الرابط خلال {hours} ساعة.",
+      "ignore": "إذا لم تطلب ذلك، يرجى تجاهل هذا البريد الإلكتروني."
+    },
+    "new_ambassador": {
+      "subject": "سفير جديد متاح: {name}",
+      "greeting": "مرحباً {name}،",
+      "body": "سفير ذكاء اصطناعي جديد متاح في منطقتك: {ambassador_name}. امسح رمز QR للاتصال!",
+      "cta": "معرفة المزيد"
+    }
+  },
+  "pluralization": {
+    "items": "{count, plural, zero {لا عناصر} one {عنصر واحد} two {عنصران} few {# عناصر} many {# عنصراً} other {# عنصر}}",
+    "ambassadors": "{count, plural, zero {لا سفراء} one {سفير واحد} two {سفيران} few {# سفراء} many {# سفيراً} other {# سفير}}",
+    "messages": "{count, plural, zero {لا رسائل} one {رسالة واحدة} two {رسالتان} few {# رسائل} many {# رسالة} other {# رسالة}}",
+    "users": "{count, plural, zero {لا مستخدمين} one {مستخدم واحد} two {مستخدمان} few {# مستخدمين} many {# مستخدماً} other {# مستخدم}}",
+    "days": "{count, plural, zero {لا أيام} one {يوم واحد} two {يومان} few {# أيام} many {# يوماً} other {# يوم}}",
+    "hours": "{count, plural, zero {لا ساعات} one {ساعة واحدة} two {ساعتان} few {# ساعات} many {# ساعة} other {# ساعة}}",
+    "minutes": "{count, plural, zero {لا دقائق} one {دقيقة واحدة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "seconds": "{count, plural, zero {لا ثوانٍ} one {ثانية واحدة} two {ثانيتان} few {# ثوانٍ} many {# ثانية} other {# ثانية}}"
+  },
+  "time": {
+    "just_now": "الآن",
+    "minutes_ago": "منذ {minutes} دقيقة",
+    "hours_ago": "منذ {hours} ساعة",
+    "days_ago": "منذ {days} يوم",
+    "yesterday": "أمس",
+    "today": "اليوم",
+    "tomorrow": "غداً",
+    "morning": "صباحاً",
+    "afternoon": "بعد الظهر",
+    "evening": "مساءً",
+    "night": "ليلاً"
+  },
+  "cultural": {
+    "greeting_formal": "السلام عليكم",
+    "greeting_informal": "مرحباً",
+    "farewell_formal": "مع السلامة",
+    "farewell_informal": "باي",
+    "please": "من فضلك",
+    "thank_you": "شكراً",
+    "yes": "نعم",
+    "no": "لا",
+    "sorry": "آسف",
+    "excuse_me": "عفواً"
+  }
+}

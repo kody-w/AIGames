@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Your First Ambassador - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <h1>AI Ambassador</h1>
+            <p>Platform Documentation</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation..." aria-label="Search">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../getting-started/index.html">Getting Started</a></li>
+            <li>
+                <a href="index.html">Tutorials</a>
+                <ul class="submenu">
+                    <li><a href="first-ambassador.html" class="active">First Ambassador</a></li>
+                    <li><a href="qr-codes.html">QR Code Setup</a></li>
+                    <li><a href="seeded-demos.html">Seeded Demos</a></li>
+                    <li><a href="custom-agents.html">Custom Agents</a></li>
+                    <li><a href="power-platform.html">Power Platform</a></li>
+                    <li><a href="multi-language.html">Multi-Language</a></li>
+                    <li><a href="ab-testing.html">A/B Testing</a></li>
+                </ul>
+            </li>
+            <li><a href="../api-reference/index.html">API Reference</a></li>
+            <li><a href="../admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="../deployment/index.html">Deployment</a></li>
+            <li><a href="../troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="../faq/index.html">FAQ</a></li>
+            <li><a href="../api-explorer.html">API Explorer</a></li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a> <span>/</span>
+            <a href="index.html">Tutorials</a> <span>/</span>
+            <span>First Ambassador</span>
+        </div>
+
+        <header class="page-header">
+            <h1>Creating Your First Ambassador</h1>
+            <p class="subtitle">Build a custom AI ambassador from scratch in 30 minutes</p>
+        </header>
+
+        <div class="alert alert-info">
+            <strong>Difficulty:</strong> Beginner | <strong>Time:</strong> 30 minutes | <strong>Prerequisites:</strong> Completed <a href="../getting-started/index.html">Getting Started</a>
+        </div>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul></ul>
+        </div>
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>In this tutorial, you'll create a custom AI ambassador for a coffee shop. The ambassador will help customers with menu recommendations, answer questions about coffee origins, and provide brewing tips.</p>
+
+            <h3>What You'll Build</h3>
+            <ul>
+                <li>Coffee shop ambassador with personality</li>
+                <li>Custom avatar and visual theme</li>
+                <li>Shared knowledge base</li>
+                <li>QR code entry point</li>
+            </ul>
+
+            <h3>What You'll Learn</h3>
+            <ul>
+                <li>Ambassador JSON configuration structure</li>
+                <li>Identity and personality design</li>
+                <li>Visual theming and avatars</li>
+                <li>World and environment settings</li>
+                <li>Capabilities and agent mapping</li>
+            </ul>
+        </section>
+
+        <section id="step1">
+            <h2>Step 1: Define Ambassador Identity</h2>
+
+            <p>Every ambassador needs a unique identity. Create a new file called <code>coffee-ambassador-001.json</code>:</p>
+
+            <pre><code>{
+  "ambassador": {
+    "id": "coffee-ambassador-001",
+    "name": "Barista Bean",
+    "tagline": "Your Coffee Companion",
+    "avatar": {
+      "type": "emoji",
+      "value": "☕"
+    },
+    "description": "Expert barista with 10 years of coffee knowledge, passionate about helping customers discover their perfect brew."
+  }
+}</code></pre>
+
+            <h3>Identity Fields Explained</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>id</code></td>
+                        <td>Unique identifier (URL-safe)</td>
+                        <td>coffee-ambassador-001</td>
+                    </tr>
+                    <tr>
+                        <td><code>name</code></td>
+                        <td>Display name</td>
+                        <td>Barista Bean</td>
+                    </tr>
+                    <tr>
+                        <td><code>tagline</code></td>
+                        <td>Short description (1 line)</td>
+                        <td>Your Coffee Companion</td>
+                    </tr>
+                    <tr>
+                        <td><code>avatar.type</code></td>
+                        <td>Avatar format (emoji, image, 3d)</td>
+                        <td>emoji</td>
+                    </tr>
+                    <tr>
+                        <td><code>avatar.value</code></td>
+                        <td>Avatar content</td>
+                        <td>☕</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="step2">
+            <h2>Step 2: Configure World and Environment</h2>
+
+            <p>Define the setting where your ambassador operates. Add this to your configuration:</p>
+
+            <pre><code>"world": {
+  "type": "coffee_shop",
+  "environment": {
+    "setting": "artisan_cafe",
+    "mood": "warm_welcoming",
+    "colors": ["#6F4E37", "#D2B48C", "#8B4513"],
+    "ambiance": "cozy_rustic",
+    "music": "soft_jazz"
+  },
+  "physical_location": {
+    "name": "The Daily Grind",
+    "address": "123 Coffee Street, Seattle, WA",
+    "coordinates": {
+      "lat": 47.6062,
+      "lon": -122.3321
+    }
+  }
+}</code></pre>
+
+            <h3>World Types</h3>
+            <ul>
+                <li><strong>coffee_shop:</strong> Cafes, coffee stands</li>
+                <li><strong>retail_store:</strong> Shops, boutiques</li>
+                <li><strong>museum:</strong> Galleries, exhibitions</li>
+                <li><strong>conference_booth:</strong> Events, trade shows</li>
+                <li><strong>restaurant:</strong> Dining establishments</li>
+                <li><strong>hotel_lobby:</strong> Hospitality venues</li>
+                <li><strong>campus:</strong> Educational institutions</li>
+            </ul>
+        </section>
+
+        <section id="step3">
+            <h2>Step 3: Define Capabilities</h2>
+
+            <p>Specify what your ambassador can do:</p>
+
+            <pre><code>"capabilities": {
+  "languages": ["en", "es", "fr"],
+  "specialties": [
+    "menu_recommendations",
+    "coffee_origins",
+    "brewing_methods",
+    "latte_art",
+    "dietary_restrictions"
+  ],
+  "features": {
+    "voice_enabled": true,
+    "image_recognition": false,
+    "payment_integration": false,
+    "location_aware": true
+  }
+}</code></pre>
+
+            <h3>Common Specialties by Use Case</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Use Case</th>
+                        <th>Specialties</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Retail</td>
+                        <td>product_info, sizing_help, style_advice, inventory_check</td>
+                    </tr>
+                    <tr>
+                        <td>Museum</td>
+                        <td>exhibit_info, artist_biography, historical_context, tour_guide</td>
+                    </tr>
+                    <tr>
+                        <td>Restaurant</td>
+                        <td>menu_help, allergen_info, wine_pairing, reservation_assist</td>
+                    </tr>
+                    <tr>
+                        <td>Conference</td>
+                        <td>schedule_info, speaker_bio, networking_help, venue_directions</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="step4">
+            <h2>Step 4: Configure Agent Mapping</h2>
+
+            <p>Map system agents to your ambassador:</p>
+
+            <pre><code>"agent_mapping": {
+  "base_agent": "BasicAgent",
+  "memory_agent": "ContextMemoryAgent",
+  "manage_memory_agent": "ManageMemoryAgent",
+  "custom_agents": []
+}</code></pre>
+
+            <h3>Standard Agents</h3>
+            <ul>
+                <li><strong>BasicAgent:</strong> Base functionality for all ambassadors</li>
+                <li><strong>ContextMemoryAgent:</strong> Manages conversation context</li>
+                <li><strong>ManageMemoryAgent:</strong> Handles long-term memory operations</li>
+                <li><strong>GitHubAgentLibraryManager:</strong> Loads agents from GitHub</li>
+            </ul>
+
+            <div class="alert alert-info">
+                <strong>Custom Agents:</strong> Learn how to create custom agents in the <a href="custom-agents.html">Building Custom Agents</a> tutorial.
+            </div>
+        </section>
+
+        <section id="step5">
+            <h2>Step 5: Write System Prompt</h2>
+
+            <p>The system prompt defines your ambassador's personality and behavior:</p>
+
+            <pre><code>"system_prompt": "You are Barista Bean, an expert coffee ambassador at The Daily Grind. You have 10 years of experience in specialty coffee and are passionate about helping customers discover their perfect brew.\n\nYour expertise includes:\n- Coffee bean origins and roasting profiles\n- Brewing methods (espresso, pour-over, French press, cold brew)\n- Latte art techniques\n- Pairing food with coffee\n- Dietary accommodations (oat milk, almond milk, decaf)\n\nYour personality:\n- Warm and welcoming\n- Educational but not pretentious\n- Enthusiastic about coffee\n- Patient with beginners\n- Detail-oriented\n\nAlways:\n- Greet customers warmly\n- Ask questions to understand preferences\n- Provide specific recommendations\n- Explain the reasoning behind suggestions\n- Offer to answer follow-up questions\n\nKeep responses:\n- Conversational and friendly\n- Concise but informative\n- Focused on customer needs\n- Free of jargon (unless requested)"</code></pre>
+
+            <h3>System Prompt Best Practices</h3>
+            <ol>
+                <li><strong>Clear Identity:</strong> State who the ambassador is and their role</li>
+                <li><strong>Expertise:</strong> List specific knowledge areas</li>
+                <li><strong>Personality Traits:</strong> Define 4-6 key characteristics</li>
+                <li><strong>Behavioral Guidelines:</strong> Use "Always" and "Never" rules</li>
+                <li><strong>Response Style:</strong> Specify tone, length, and format</li>
+            </ol>
+        </section>
+
+        <section id="step6">
+            <h2>Step 6: Add Shared Knowledge</h2>
+
+            <p>Create shared memory that all users can access:</p>
+
+            <pre><code>"shared_memory": {
+  "menu": {
+    "espresso_drinks": [
+      {
+        "name": "Classic Espresso",
+        "price": 3.50,
+        "description": "Rich, bold single shot"
+      },
+      {
+        "name": "Cappuccino",
+        "price": 4.75,
+        "description": "Espresso with steamed milk and foam"
+      },
+      {
+        "name": "Latte",
+        "price": 5.00,
+        "description": "Espresso with steamed milk, light foam"
+      }
+    ],
+    "pour_over": [
+      {
+        "name": "Ethiopian Yirgacheffe",
+        "price": 5.50,
+        "notes": "Floral, citrus, bright acidity"
+      },
+      {
+        "name": "Colombian Supremo",
+        "price": 5.00,
+        "notes": "Balanced, nutty, chocolate"
+      }
+    ]
+  },
+  "brewing_tips": {
+    "espresso": "19-21g coffee, 30 second extraction, 200°F water",
+    "pour_over": "1:16 coffee to water ratio, 200-205°F water, 3-4 minute brew",
+    "french_press": "1:15 ratio, 200°F water, 4 minute steep, coarse grind"
+  },
+  "faqs": [
+    {
+      "question": "Do you have dairy-free options?",
+      "answer": "Yes! We offer oat milk, almond milk, soy milk, and coconut milk."
+    },
+    {
+      "question": "What's the difference between light and dark roast?",
+      "answer": "Light roasts preserve origin flavors and have higher acidity. Dark roasts have bold, smoky flavors and less caffeine."
+    }
+  ]
+}</code></pre>
+        </section>
+
+        <section id="step7">
+            <h2>Step 7: Complete Configuration</h2>
+
+            <p>Add final configuration details:</p>
+
+            <pre><code>"demo_configuration": {
+  "seeded_run": false,
+  "parameters": {}
+},
+"metadata": {
+  "created_at": "2025-01-15T10:00:00Z",
+  "version": "1.0.0",
+  "author": "your-name",
+  "tags": ["coffee", "food-beverage", "retail"]
+}</code></pre>
+
+            <p>Here's the complete configuration file:</p>
+
+            <pre><code>{
+  "ambassador": {
+    "id": "coffee-ambassador-001",
+    "name": "Barista Bean",
+    "tagline": "Your Coffee Companion",
+    "avatar": {
+      "type": "emoji",
+      "value": "☕"
+    },
+    "description": "Expert barista with 10 years of coffee knowledge",
+    "world": {
+      "type": "coffee_shop",
+      "environment": {
+        "setting": "artisan_cafe",
+        "mood": "warm_welcoming",
+        "colors": ["#6F4E37", "#D2B48C", "#8B4513"]
+      }
+    },
+    "capabilities": {
+      "languages": ["en", "es", "fr"],
+      "specialties": [
+        "menu_recommendations",
+        "coffee_origins",
+        "brewing_methods"
+      ]
+    },
+    "agent_mapping": {
+      "base_agent": "BasicAgent",
+      "memory_agent": "ContextMemoryAgent"
+    },
+    "system_prompt": "You are Barista Bean...",
+    "shared_memory": { /* ... */ },
+    "demo_configuration": {
+      "seeded_run": false
+    }
+  }
+}</code></pre>
+        </section>
+
+        <section id="step8">
+            <h2>Step 8: Upload to Azure</h2>
+
+            <p>Upload your ambassador configuration to Azure File Storage:</p>
+
+            <pre><code># Using Azure CLI
+az storage file upload \
+  --account-name your-storage-account \
+  --account-key your-storage-key \
+  --share-name ambassadors \
+  --source coffee-ambassador-001.json \
+  --path ambassadors/coffee-ambassador-001.json
+
+# Or using Azure Storage Explorer (GUI)
+# 1. Open Azure Storage Explorer
+# 2. Navigate to your storage account
+# 3. Open the 'ambassadors' file share
+# 4. Upload coffee-ambassador-001.json</code></pre>
+        </section>
+
+        <section id="step9">
+            <h2>Step 9: Test Your Ambassador</h2>
+
+            <p>Test the ambassador via API:</p>
+
+            <pre><code>curl -X POST http://localhost:7071/api/businessinsightbot_function \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_input": "Hi! I need a coffee recommendation",
+    "conversation_history": [],
+    "user_guid": "test-user-001",
+    "ambassador_id": "coffee-ambassador-001"
+  }'</code></pre>
+
+            <h3>Expected Response</h3>
+            <pre><code>{
+  "response": "Hello! I'm Barista Bean, happy to help you find your perfect coffee! To give you the best recommendation, could you tell me:\n\n1. Do you prefer something bold or mild?\n2. Hot or cold brew?\n3. Any dietary preferences? (dairy-free milk options available)\n\nI'm excited to help you discover something delicious!|||VOICE|||Hi! I'm Barista Bean. Tell me about your coffee preferences and I'll find the perfect drink for you!",
+  "conversation_history": [...],
+  "user_guid": "test-user-001"
+}</code></pre>
+        </section>
+
+        <section id="step10">
+            <h2>Step 10: Create QR Code</h2>
+
+            <p>Generate a QR code for physical deployment:</p>
+
+            <pre><code># Using Python
+import qrcode
+
+url = "https://ai-ambassadors.app/enter/coffee-ambassador-001?source=counter"
+
+qr = qrcode.QRCode(
+    version=1,
+    error_correction=qrcode.constants.ERROR_CORRECT_H,
+    box_size=10,
+    border=4,
+)
+
+qr.add_data(url)
+qr.make(fit=True)
+
+img = qr.make_image(fill_color="black", back_color="white")
+img.save("coffee-ambassador-qr.png")</code></pre>
+
+            <p>See the <a href="qr-codes.html">QR Code Setup Tutorial</a> for design and placement best practices.</p>
+        </section>
+
+        <section id="testing">
+            <h2>Testing Checklist</h2>
+
+            <ul style="list-style: none; padding-left: 0;">
+                <li>✅ Ambassador loads without errors</li>
+                <li>✅ Responds with correct personality</li>
+                <li>✅ Can access shared memory (menu items)</li>
+                <li>✅ Handles follow-up questions</li>
+                <li>✅ Remembers user context</li>
+                <li>✅ QR code scans correctly</li>
+                <li>✅ Works on mobile devices</li>
+            </ul>
+        </section>
+
+        <section id="next-steps">
+            <h2>Next Steps</h2>
+
+            <div class="link-grid">
+                <a href="qr-codes.html" class="quick-link">
+                    <h3>🔲 QR Code Setup</h3>
+                    <p>Design and deploy QR codes</p>
+                </a>
+
+                <a href="seeded-demos.html" class="quick-link">
+                    <h3>🎭 Seeded Demos</h3>
+                    <p>Create reproducible demos</p>
+                </a>
+
+                <a href="custom-agents.html" class="quick-link">
+                    <h3>🤖 Custom Agents</h3>
+                    <p>Extend capabilities with Python</p>
+                </a>
+
+                <a href="multi-language.html" class="quick-link">
+                    <h3>🌍 Multi-Language</h3>
+                    <p>Add more languages</p>
+                </a>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>AI Ambassador Platform v1.0.0</p>
+        </footer>
+    </main>
+
+    <script src="../scripts.js"></script>
+</body>
+</html>

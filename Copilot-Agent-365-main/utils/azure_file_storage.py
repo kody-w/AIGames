@@ -144,6 +144,12 @@ class AzureFileStorageManager:
                 self.shared_memory_path,
                 self.default_file_name
             )
+            # Track memory read operation
+            try:
+                from utils.monitoring import MetricsCollector
+                MetricsCollector.record_memory_operation('read')
+            except:
+                pass  # Don't fail if monitoring not available
             return safe_json_loads(file_content.content)
         except Exception as e:
             logging.error(f"Error reading from shared memory: {str(e)}")
@@ -158,6 +164,12 @@ class AzureFileStorageManager:
                 self.current_memory_path,
                 "user_memory.json"
             )
+            # Track memory read operation
+            try:
+                from utils.monitoring import MetricsCollector
+                MetricsCollector.record_memory_operation('read')
+            except:
+                pass  # Don't fail if monitoring not available
             return safe_json_loads(file_content.content)
         except Exception as e:
             logging.error(f"Error reading from GUID memory: {str(e)}")
@@ -185,6 +197,12 @@ class AzureFileStorageManager:
                 self.default_file_name,
                 json_content
             )
+            # Track memory write operation
+            try:
+                from utils.monitoring import MetricsCollector
+                MetricsCollector.record_memory_operation('write')
+            except:
+                pass  # Don't fail if monitoring not available
         except Exception as e:
             logging.error(f"Error writing to shared memory: {str(e)}")
             if "ResourceNotFound" in str(e):
@@ -200,6 +218,12 @@ class AzureFileStorageManager:
                 "user_memory.json",
                 json_content
             )
+            # Track memory write operation
+            try:
+                from utils.monitoring import MetricsCollector
+                MetricsCollector.record_memory_operation('write')
+            except:
+                pass  # Don't fail if monitoring not available
         except Exception as e:
             logging.error(f"Error writing to GUID memory: {str(e)}")
             raise  # Let write_json handle the fallback

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ambassador Platform - Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <h1>AI Ambassador</h1>
+            <p>Platform Documentation</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation..." aria-label="Search">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="#home" class="active">Home</a></li>
+            <li><a href="getting-started/index.html">Getting Started</a></li>
+            <li>
+                <a href="tutorials/index.html">Tutorials</a>
+                <ul class="submenu">
+                    <li><a href="tutorials/first-ambassador.html">First Ambassador</a></li>
+                    <li><a href="tutorials/qr-codes.html">QR Code Setup</a></li>
+                    <li><a href="tutorials/seeded-demos.html">Seeded Demos</a></li>
+                    <li><a href="tutorials/custom-agents.html">Custom Agents</a></li>
+                    <li><a href="tutorials/power-platform.html">Power Platform</a></li>
+                    <li><a href="tutorials/multi-language.html">Multi-Language</a></li>
+                    <li><a href="tutorials/ab-testing.html">A/B Testing</a></li>
+                </ul>
+            </li>
+            <li><a href="api-reference/index.html">API Reference</a></li>
+            <li><a href="admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="deployment/index.html">Deployment</a></li>
+            <li><a href="troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="faq/index.html">FAQ</a></li>
+            <li><a href="api-explorer.html">API Explorer</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="https://github.com/yourusername/aigames" target="_blank">GitHub</a>
+            <span>•</span>
+            <a href="../CHANGELOG.md">Changelog</a>
+        </div>
+    </nav>
+
+    <main class="content">
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+        </div>
+
+        <header class="page-header">
+            <h1>AI Ambassador Platform</h1>
+            <p class="subtitle">Transform technical agents into culturally-adaptable AI Ambassadors</p>
+        </header>
+
+        <section class="hero">
+            <div class="hero-content">
+                <h2>Bridge Physical and Digital Worlds</h2>
+                <p>The AI Ambassador Platform creates Pokemon GO-style AI experiences that users discover by scanning QR codes in physical locations. Turn any space into an interactive AI-powered environment.</p>
+                <div class="cta-buttons">
+                    <a href="getting-started/index.html" class="btn btn-primary">Get Started</a>
+                    <a href="tutorials/first-ambassador.html" class="btn btn-secondary">Create Ambassador</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2>Platform Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>QR Code Integration</h3>
+                    <p>Seamlessly connect physical locations to digital AI experiences through QR codes.</p>
+                    <a href="tutorials/qr-codes.html">Learn more →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Custom AI Agents</h3>
+                    <p>Build specialized agents with unique capabilities, personalities, and knowledge bases.</p>
+                    <a href="tutorials/custom-agents.html">Learn more →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Cultural Adaptation</h3>
+                    <p>Create ambassadors that adapt to different cultures, languages, and contexts.</p>
+                    <a href="tutorials/multi-language.html">Learn more →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Persistent Memory</h3>
+                    <p>User-specific memory contexts that remember conversations and preferences.</p>
+                    <a href="api-reference/index.html#memory">Learn more →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Visual Theming</h3>
+                    <p>Custom avatars, environments, and 3D worlds for immersive experiences.</p>
+                    <a href="tutorials/first-ambassador.html#theming">Learn more →</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Seeded Demos</h3>
+                    <p>Create reproducible demo experiences with synthetic memory for sales and showcases.</p>
+                    <a href="tutorials/seeded-demos.html">Learn more →</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-links">
+            <h2>Quick Links</h2>
+            <div class="link-grid">
+                <a href="getting-started/index.html" class="quick-link">
+                    <h3>🚀 Getting Started</h3>
+                    <p>Set up your first ambassador in 5 minutes</p>
+                </a>
+                <a href="api-reference/index.html" class="quick-link">
+                    <h3>📚 API Reference</h3>
+                    <p>Complete endpoint documentation</p>
+                </a>
+                <a href="deployment/index.html" class="quick-link">
+                    <h3>☁️ Deploy to Azure</h3>
+                    <p>Step-by-step deployment guide</p>
+                </a>
+                <a href="troubleshooting/index.html" class="quick-link">
+                    <h3>🔧 Troubleshooting</h3>
+                    <p>Common issues and solutions</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="architecture">
+            <h2>Architecture Overview</h2>
+            <div class="architecture-diagram">
+                <pre><code>Physical QR Code → User Scans → Web Interface → Azure Function → Agent System
+                                                      ↓
+                                              Azure OpenAI + Memory
+                                                      ↓
+                                              Ambassador Response</code></pre>
+            </div>
+            <p>Built on Azure Functions, Azure OpenAI, and Azure File Storage for scalable, serverless AI experiences.</p>
+        </section>
+
+        <section class="use-cases">
+            <h2>Use Cases</h2>
+            <div class="use-case-list">
+                <div class="use-case">
+                    <h3>🏪 Retail Assistance</h3>
+                    <p>Product information, recommendations, and customer support in stores</p>
+                    <span class="metric">500-2K scans/day</span>
+                </div>
+                <div class="use-case">
+                    <h3>🏛️ Museum Guides</h3>
+                    <p>Interactive educational experiences and exhibit information</p>
+                    <span class="metric">200-1K scans/day</span>
+                </div>
+                <div class="use-case">
+                    <h3>🎤 Conference Demos</h3>
+                    <p>Event assistance, information booths, and interactive demos</p>
+                    <span class="metric">100-500 scans/event</span>
+                </div>
+                <div class="use-case">
+                    <h3>🍽️ Restaurant Helpers</h3>
+                    <p>Menu explanations, dietary information, and ordering assistance</p>
+                    <span class="metric">50-200 scans/day</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>AI Ambassador Platform v1.0.0</p>
+            <p>Built with Azure Functions, Azure OpenAI, and AIBAST Framework</p>
+        </footer>
+    </main>
+
+    <script src="scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <h1>AI Ambassador</h1>
+            <p>Platform Documentation</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation..." aria-label="Search">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="index.html" class="active">Getting Started</a></li>
+            <li>
+                <a href="../tutorials/index.html">Tutorials</a>
+                <ul class="submenu">
+                    <li><a href="../tutorials/first-ambassador.html">First Ambassador</a></li>
+                    <li><a href="../tutorials/qr-codes.html">QR Code Setup</a></li>
+                    <li><a href="../tutorials/seeded-demos.html">Seeded Demos</a></li>
+                    <li><a href="../tutorials/custom-agents.html">Custom Agents</a></li>
+                    <li><a href="../tutorials/power-platform.html">Power Platform</a></li>
+                    <li><a href="../tutorials/multi-language.html">Multi-Language</a></li>
+                    <li><a href="../tutorials/ab-testing.html">A/B Testing</a></li>
+                </ul>
+            </li>
+            <li><a href="../api-reference/index.html">API Reference</a></li>
+            <li><a href="../admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="../deployment/index.html">Deployment</a></li>
+            <li><a href="../troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="../faq/index.html">FAQ</a></li>
+            <li><a href="../api-explorer.html">API Explorer</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="https://github.com/yourusername/aigames" target="_blank">GitHub</a>
+            <span>•</span>
+            <a href="../../CHANGELOG.md">Changelog</a>
+        </div>
+    </nav>
+
+    <main class="content">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a> <span>/</span> <span>Getting Started</span>
+        </div>
+
+        <header class="page-header">
+            <h1>Getting Started</h1>
+            <p class="subtitle">Set up your first AI Ambassador in 5 minutes</p>
+        </header>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#quick-start">Quick Start</a></li>
+                <li><a href="#platform-overview">Platform Overview</a></li>
+                <li><a href="#key-concepts">Key Concepts</a></li>
+                <li><a href="#first-setup">First Ambassador Setup</a></li>
+                <li><a href="#first-conversation">First Conversation</a></li>
+                <li><a href="#next-steps">Next Steps</a></li>
+            </ul>
+        </div>
+
+        <section id="quick-start">
+            <h2>Quick Start (5 Minutes)</h2>
+
+            <div class="alert alert-info">
+                <strong>Prerequisites:</strong> Python 3.11, Azure account, Node.js (optional for local testing)
+            </div>
+
+            <h3>1. Clone the Repository</h3>
+            <pre><code>git clone https://github.com/yourusername/AIGames.git
+cd AIGames/Copilot-Agent-365-main</code></pre>
+
+            <h3>2. Install Dependencies</h3>
+            <pre><code>python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r requirements.txt</code></pre>
+
+            <h3>3. Configure Environment</h3>
+            <p>Create <code>local.settings.json</code> in the <code>Copilot-Agent-365-main/</code> directory:</p>
+            <pre><code>{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AZURE_OPENAI_API_KEY": "your-openai-key-here",
+    "AZURE_OPENAI_ENDPOINT": "https://your-endpoint.openai.azure.com/",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+    "AZURE_FILES_SHARE_NAME": "ambassadors",
+    "ASSISTANT_NAME": "AI Ambassador",
+    "CHARACTERISTIC_DESCRIPTION": "Your friendly AI companion"
+  }
+}</code></pre>
+
+            <div class="alert alert-warning">
+                <strong>Security Note:</strong> Never commit <code>local.settings.json</code> to version control. It contains sensitive credentials.
+            </div>
+
+            <h3>4. Start Local Development Server</h3>
+            <pre><code># Mac/Linux
+./run.sh
+
+# Windows PowerShell
+.\run.ps1
+
+# Or use Azure Functions Core Tools directly
+func start</code></pre>
+
+            <h3>5. Test Your First Request</h3>
+            <pre><code>curl -X POST http://localhost:7071/api/businessinsightbot_function \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_input": "Hello, introduce yourself!",
+    "conversation_history": []
+  }'</code></pre>
+
+            <div class="alert alert-success">
+                <strong>Success!</strong> You should receive a JSON response with the ambassador's introduction.
+            </div>
+        </section>
+
+        <section id="platform-overview">
+            <h2>Platform Overview</h2>
+
+            <h3>What is the AI Ambassador Platform?</h3>
+            <p>The AI Ambassador Platform transforms technical "agents" into culturally-adaptable "AI Ambassadors" that users discover by scanning QR codes in physical locations. Think Pokemon GO, but for AI interactions.</p>
+
+            <h3>Core Capabilities</h3>
+            <ul>
+                <li><strong>QR Code Integration:</strong> Bridge physical and digital worlds seamlessly</li>
+                <li><strong>Custom AI Personalities:</strong> Create unique ambassadors with distinct capabilities</li>
+                <li><strong>Persistent Memory:</strong> Remember user preferences and conversation history</li>
+                <li><strong>Multi-Language Support:</strong> Speak to users in their preferred language</li>
+                <li><strong>Seeded Demos:</strong> Create reproducible experiences for sales and showcases</li>
+                <li><strong>Scalable Architecture:</strong> Built on Azure serverless infrastructure</li>
+            </ul>
+
+            <h3>Architecture Flow</h3>
+            <pre><code>┌─────────────────┐
+│  Physical QR    │
+│     Code        │
+└────────┬────────┘
+         │ User Scans
+         ▼
+┌─────────────────┐
+│  Web Interface  │
+└────────┬────────┘
+         │ HTTP Request
+         ▼
+┌─────────────────┐
+│ Azure Function  │◄────┐
+└────────┬────────┘     │
+         │              │
+         ├──────────────┤
+         │              │
+    ┌────▼────┐    ┌────▼────┐
+    │ Azure   │    │  Azure  │
+    │ OpenAI  │    │  Files  │
+    └────┬────┘    └────┬────┘
+         │              │
+         │   Memory     │
+         │   Context    │
+         └──────┬───────┘
+                ▼
+      ┌──────────────────┐
+      │   Ambassador     │
+      │    Response      │
+      └──────────────────┘</code></pre>
+        </section>
+
+        <section id="key-concepts">
+            <h2>Key Concepts</h2>
+
+            <h3>1. Ambassadors</h3>
+            <p>An ambassador is a configured AI personality with:</p>
+            <ul>
+                <li><strong>Identity:</strong> Name, avatar, visual theme</li>
+                <li><strong>Capabilities:</strong> Custom agents and functions</li>
+                <li><strong>World:</strong> Environmental context (retail, museum, conference, etc.)</li>
+                <li><strong>Memory:</strong> Shared knowledge and user-specific context</li>
+            </ul>
+
+            <h3>2. Agents</h3>
+            <p>Agents are specialized tools that ambassadors use to perform tasks:</p>
+            <ul>
+                <li><strong>BasicAgent:</strong> Base class for all agents</li>
+                <li><strong>ContextMemoryAgent:</strong> Manages conversation memory</li>
+                <li><strong>ManageMemoryAgent:</strong> Handles memory operations</li>
+                <li><strong>Custom Agents:</strong> Your specialized implementations</li>
+            </ul>
+
+            <h3>3. Memory System</h3>
+            <p>Two-layer memory architecture:</p>
+            <ul>
+                <li><strong>Shared Memory:</strong> Available to all users (product info, FAQs, etc.)</li>
+                <li><strong>User Memory:</strong> Personal to each user GUID (preferences, history)</li>
+            </ul>
+
+            <h3>4. User GUIDs</h3>
+            <p>Each user is identified by a unique GUID that isolates their memory context:</p>
+            <pre><code>// Example user GUID
+"user_guid": "abc123-def456-ghi789"
+
+// Demo/seeded GUID
+"user_guid": "demo-001"</code></pre>
+
+            <h3>5. Seeded Demos</h3>
+            <p>Reproducible demo experiences using synthetic memory for:</p>
+            <ul>
+                <li>Sales presentations</li>
+                <li>Trade show demonstrations</li>
+                <li>Testing and development</li>
+                <li>User onboarding</li>
+            </ul>
+
+            <h3>6. QR Code Entry Points</h3>
+            <p>URL pattern for physical-to-digital bridging:</p>
+            <pre><code>https://ai-ambassadors.app/enter/{ambassador_id}?source={location}</code></pre>
+        </section>
+
+        <section id="first-setup">
+            <h2>First Ambassador Setup</h2>
+
+            <h3>Create Ambassador Configuration</h3>
+            <p>Create a JSON file defining your ambassador:</p>
+
+            <pre><code>{
+  "ambassador": {
+    "id": "welcome-guide-001",
+    "name": "Alex",
+    "tagline": "Your Welcome Guide",
+    "avatar": {
+      "type": "emoji",
+      "value": "👋"
+    },
+    "world": {
+      "type": "conference_booth",
+      "environment": {
+        "setting": "tech_conference",
+        "mood": "welcoming",
+        "colors": ["#3498db", "#2ecc71"]
+      }
+    },
+    "capabilities": {
+      "languages": ["en", "es", "fr"],
+      "specialties": [
+        "greeting_visitors",
+        "answering_questions",
+        "providing_directions"
+      ]
+    },
+    "agent_mapping": {
+      "base_agent": "BasicAgent",
+      "memory_agent": "ContextMemoryAgent"
+    },
+    "system_prompt": "You are Alex, a friendly welcome guide at a tech conference. Help visitors find their way and answer questions about the event.",
+    "demo_configuration": {
+      "seeded_run": false,
+      "parameters": {}
+    }
+  }
+}</code></pre>
+
+            <h3>Upload to Azure File Storage</h3>
+            <pre><code># Using Azure CLI
+az storage file upload \
+  --account-name your-storage-account \
+  --share-name ambassadors \
+  --source welcome-guide-001.json \
+  --path ambassadors/welcome-guide-001.json</code></pre>
+
+            <h3>Generate QR Code</h3>
+            <p>Create a QR code pointing to:</p>
+            <pre><code>https://ai-ambassadors.app/enter/welcome-guide-001?source=booth-3</code></pre>
+
+            <div class="alert alert-info">
+                <strong>Tip:</strong> Use high error correction (Level H) for QR codes in busy environments.
+            </div>
+        </section>
+
+        <section id="first-conversation">
+            <h2>First Conversation</h2>
+
+            <h3>Test via API</h3>
+            <pre><code>curl -X POST http://localhost:7071/api/businessinsightbot_function \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_input": "Hi! What can you help me with?",
+    "conversation_history": [],
+    "user_guid": "test-user-001"
+  }'</code></pre>
+
+            <h3>Expected Response</h3>
+            <pre><code>{
+  "response": "Hello! I'm Alex, your welcome guide. I can help you with:\n- Finding event sessions\n- Locating facilities\n- Answering questions about the conference\n\nWhat would you like to know?|||VOICE|||Hi! I'm Alex. How can I help you today?",
+  "conversation_history": [...],
+  "user_guid": "test-user-001"
+}</code></pre>
+
+            <h3>Response Format</h3>
+            <p>The response is split by <code>|||VOICE|||</code>:</p>
+            <ul>
+                <li><strong>Before delimiter:</strong> Formatted markdown response for display</li>
+                <li><strong>After delimiter:</strong> Voice-optimized response for text-to-speech</li>
+            </ul>
+
+            <h3>Continue the Conversation</h3>
+            <pre><code>curl -X POST http://localhost:7071/api/businessinsightbot_function \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_input": "Where is the keynote session?",
+    "conversation_history": [
+      {"role": "user", "content": "Hi! What can you help me with?"},
+      {"role": "assistant", "content": "Hello! I'm Alex..."}
+    ],
+    "user_guid": "test-user-001"
+  }'</code></pre>
+        </section>
+
+        <section id="next-steps">
+            <h2>Next Steps</h2>
+
+            <div class="link-grid">
+                <a href="../tutorials/first-ambassador.html" class="quick-link">
+                    <h3>Create Your First Ambassador</h3>
+                    <p>Deep dive into ambassador configuration and customization</p>
+                </a>
+
+                <a href="../tutorials/qr-codes.html" class="quick-link">
+                    <h3>Set Up QR Codes</h3>
+                    <p>Learn QR code best practices and physical deployment</p>
+                </a>
+
+                <a href="../tutorials/custom-agents.html" class="quick-link">
+                    <h3>Build Custom Agents</h3>
+                    <p>Extend ambassador capabilities with custom Python agents</p>
+                </a>
+
+                <a href="../deployment/index.html" class="quick-link">
+                    <h3>Deploy to Production</h3>
+                    <p>Deploy your ambassadors to Azure for production use</p>
+                </a>
+            </div>
+
+            <h3>Learning Path</h3>
+            <ol>
+                <li><strong>Week 1:</strong> Complete all tutorials, create 2-3 test ambassadors</li>
+                <li><strong>Week 2:</strong> Build custom agents for your use case</li>
+                <li><strong>Week 3:</strong> Deploy to Azure staging environment</li>
+                <li><strong>Week 4:</strong> Production deployment and monitoring setup</li>
+            </ol>
+
+            <h3>Community Resources</h3>
+            <ul>
+                <li><a href="https://github.com/yourusername/aigames" target="_blank">GitHub Repository</a></li>
+                <li><a href="https://github.com/yourusername/aigames/discussions" target="_blank">Community Discussions</a></li>
+                <li><a href="https://discord.gg/your-server" target="_blank">Discord Server</a></li>
+                <li><a href="https://twitter.com/youraccount" target="_blank">Twitter Updates</a></li>
+            </ul>
+
+            <div class="alert alert-success">
+                <strong>Ready to build?</strong> Head to the <a href="../tutorials/first-ambassador.html">First Ambassador Tutorial</a> to create your first custom ambassador!
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>AI Ambassador Platform v1.0.0</p>
+            <p>Built with Azure Functions, Azure OpenAI, and AIBAST Framework</p>
+        </footer>
+    </main>
+
+    <script src="../scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorials - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle dark mode">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <nav class="sidebar">
+        <div class="logo">
+            <h1>AI Ambassador</h1>
+            <p>Platform Documentation</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation..." aria-label="Search">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../getting-started/index.html">Getting Started</a></li>
+            <li>
+                <a href="index.html" class="active">Tutorials</a>
+                <ul class="submenu">
+                    <li><a href="first-ambassador.html">First Ambassador</a></li>
+                    <li><a href="qr-codes.html">QR Code Setup</a></li>
+                    <li><a href="seeded-demos.html">Seeded Demos</a></li>
+                    <li><a href="custom-agents.html">Custom Agents</a></li>
+                    <li><a href="power-platform.html">Power Platform</a></li>
+                    <li><a href="multi-language.html">Multi-Language</a></li>
+                    <li><a href="ab-testing.html">A/B Testing</a></li>
+                </ul>
+            </li>
+            <li><a href="../api-reference/index.html">API Reference</a></li>
+            <li><a href="../admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="../deployment/index.html">Deployment</a></li>
+            <li><a href="../troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="../faq/index.html">FAQ</a></li>
+            <li><a href="../api-explorer.html">API Explorer</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="https://github.com/yourusername/aigames" target="_blank">GitHub</a>
+            <span>•</span>
+            <a href="../../CHANGELOG.md">Changelog</a>
+        </div>
+    </nav>
+
+    <main class="content">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a> <span>/</span> <span>Tutorials</span>
+        </div>
+
+        <header class="page-header">
+            <h1>Tutorials</h1>
+            <p class="subtitle">Step-by-step guides to master the AI Ambassador Platform</p>
+        </header>
+
+        <section>
+            <h2>Learning Path</h2>
+            <p>Follow these tutorials in order for the best learning experience:</p>
+
+            <div class="feature-grid">
+                <a href="first-ambassador.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">1️⃣</div>
+                    <h3>Creating Your First Ambassador</h3>
+                    <p>Learn the fundamentals of ambassador configuration, including identity, capabilities, and visual theming.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Start here →</span>
+                </a>
+
+                <a href="qr-codes.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">2️⃣</div>
+                    <h3>Setting Up QR Codes</h3>
+                    <p>Bridge physical and digital worlds. Learn QR code design, placement, and best practices.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Next →</span>
+                </a>
+
+                <a href="seeded-demos.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">3️⃣</div>
+                    <h3>Creating Seeded Demos</h3>
+                    <p>Build reproducible demo experiences with synthetic memory for sales and showcases.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Continue →</span>
+                </a>
+
+                <a href="custom-agents.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">4️⃣</div>
+                    <h3>Building Custom Agents</h3>
+                    <p>Extend ambassador capabilities by creating specialized Python agents.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Learn more →</span>
+                </a>
+
+                <a href="multi-language.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">5️⃣</div>
+                    <h3>Multi-Language Ambassadors</h3>
+                    <p>Create ambassadors that speak multiple languages and adapt to cultural contexts.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Expand reach →</span>
+                </a>
+
+                <a href="ab-testing.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">6️⃣</div>
+                    <h3>A/B Testing Ambassadors</h3>
+                    <p>Test different configurations and measure performance to optimize experiences.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Optimize →</span>
+                </a>
+
+                <a href="power-platform.html" class="feature-card" style="text-decoration: none;">
+                    <div class="feature-icon">7️⃣</div>
+                    <h3>Power Platform Integration</h3>
+                    <p>Integrate with Microsoft Teams and Microsoft 365 Copilot for enterprise deployment.</p>
+                    <span style="color: var(--accent-color); font-weight: 600;">Enterprise →</span>
+                </a>
+            </div>
+        </section>
+
+        <section style="margin-top: 60px;">
+            <h2>Tutorial Difficulty Levels</h2>
+
+            <div class="use-case-list">
+                <div class="use-case">
+                    <h3>🟢 Beginner</h3>
+                    <p>No prior experience required. Perfect for getting started.</p>
+                    <ul>
+                        <li><a href="first-ambassador.html">Creating Your First Ambassador</a></li>
+                        <li><a href="qr-codes.html">Setting Up QR Codes</a></li>
+                    </ul>
+                </div>
+
+                <div class="use-case">
+                    <h3>🟡 Intermediate</h3>
+                    <p>Basic understanding of ambassadors and some programming knowledge.</p>
+                    <ul>
+                        <li><a href="seeded-demos.html">Creating Seeded Demos</a></li>
+                        <li><a href="multi-language.html">Multi-Language Ambassadors</a></li>
+                        <li><a href="ab-testing.html">A/B Testing</a></li>
+                    </ul>
+                </div>
+
+                <div class="use-case">
+                    <h3>🔴 Advanced</h3>
+                    <p>Python programming and Azure experience recommended.</p>
+                    <ul>
+                        <li><a href="custom-agents.html">Building Custom Agents</a></li>
+                        <li><a href="power-platform.html">Power Platform Integration</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section style="margin-top: 60px;">
+            <h2>What You'll Learn</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tutorial</th>
+                        <th>Time</th>
+                        <th>Key Skills</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a href="first-ambassador.html">First Ambassador</a></td>
+                        <td>30 mins</td>
+                        <td>Configuration, JSON, Azure Storage</td>
+                    </tr>
+                    <tr>
+                        <td><a href="qr-codes.html">QR Code Setup</a></td>
+                        <td>20 mins</td>
+                        <td>QR generation, Physical deployment</td>
+                    </tr>
+                    <tr>
+                        <td><a href="seeded-demos.html">Seeded Demos</a></td>
+                        <td>45 mins</td>
+                        <td>Synthetic memory, Demo design</td>
+                    </tr>
+                    <tr>
+                        <td><a href="custom-agents.html">Custom Agents</a></td>
+                        <td>60 mins</td>
+                        <td>Python, Agent architecture</td>
+                    </tr>
+                    <tr>
+                        <td><a href="multi-language.html">Multi-Language</a></td>
+                        <td>40 mins</td>
+                        <td>Localization, Language detection</td>
+                    </tr>
+                    <tr>
+                        <td><a href="ab-testing.html">A/B Testing</a></td>
+                        <td>50 mins</td>
+                        <td>Testing, Analytics, Optimization</td>
+                    </tr>
+                    <tr>
+                        <td><a href="power-platform.html">Power Platform</a></td>
+                        <td>90 mins</td>
+                        <td>Microsoft 365, Teams integration</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section style="margin-top: 60px;">
+            <h2>Prerequisites</h2>
+
+            <div class="alert alert-info">
+                <h3 style="margin-bottom: 10px;">Before Starting Tutorials</h3>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Development Environment:</strong> Python 3.11, code editor (VS Code recommended)</li>
+                    <li><strong>Azure Account:</strong> Active subscription with credits</li>
+                    <li><strong>Azure Resources:</strong> OpenAI, Storage, Functions (see <a href="../deployment/index.html">Deployment Guide</a>)</li>
+                    <li><strong>Knowledge:</strong> Basic JSON, command line usage</li>
+                    <li><strong>Completion:</strong> <a href="../getting-started/index.html">Getting Started Guide</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section style="margin-top: 60px;">
+            <h2>Need Help?</h2>
+
+            <div class="link-grid">
+                <a href="../troubleshooting/index.html" class="quick-link">
+                    <h3>🔧 Troubleshooting</h3>
+                    <p>Common issues and solutions</p>
+                </a>
+
+                <a href="../faq/index.html" class="quick-link">
+                    <h3>❓ FAQ</h3>
+                    <p>Frequently asked questions</p>
+                </a>
+
+                <a href="../api-reference/index.html" class="quick-link">
+                    <h3>📚 API Reference</h3>
+                    <p>Complete API documentation</p>
+                </a>
+
+                <a href="https://github.com/yourusername/aigames/discussions" class="quick-link">
+                    <h3>💬 Community</h3>
+                    <p>Ask questions and share experiences</p>
+                </a>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <p>AI Ambassador Platform v1.0.0</p>
+            <p>Built with Azure Functions, Azure OpenAI, and AIBAST Framework</p>
+        </footer>
+    </main>
+
+    <script src="../scripts.js"></script>
+</body>
+</html>

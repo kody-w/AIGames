@@ -1,0 +1,239 @@
+{
+  "version": "1.0.0",
+  "description": "AI Ambassador Platform - Comprehensive Caching Configuration",
+
+  "memory_cache": {
+    "enabled": true,
+    "max_size": 1000,
+    "max_size_mb": 100,
+    "eviction_policy": "lru",
+    "description": "In-memory LRU cache for fastest access"
+  },
+
+  "file_cache": {
+    "enabled": true,
+    "cache_dir": "/tmp/ambassador_cache",
+    "max_size_mb": 500,
+    "cleanup_interval_hours": 24,
+    "description": "File-based persistent cache using local storage"
+  },
+
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "password": null,
+    "db": 0,
+    "connection_timeout": 5,
+    "socket_timeout": 5,
+    "max_connections": 50,
+    "description": "Redis distributed cache for production scaling"
+  },
+
+  "semantic_cache": {
+    "enabled": true,
+    "similarity_threshold": 0.95,
+    "max_entries": 500,
+    "embedding_model": "text-embedding-ada-002",
+    "use_openai_embeddings": false,
+    "description": "Semantic similarity cache for intelligent query matching"
+  },
+
+  "cache_types": {
+    "response": {
+      "enabled": true,
+      "ttl": 3600,
+      "max_entries": 500,
+      "auto_warm": false,
+      "bypass_conditions": [
+        "user_guid_in_request",
+        "real_time_required"
+      ],
+      "description": "Cache OpenAI API responses for identical queries",
+      "cost_per_miss_usd": 0.002
+    },
+    "semantic": {
+      "enabled": true,
+      "ttl": 7200,
+      "max_entries": 300,
+      "similarity_threshold": 0.95,
+      "description": "Cache semantically similar queries",
+      "cost_per_miss_usd": 0.002
+    },
+    "agent_metadata": {
+      "enabled": true,
+      "ttl": 86400,
+      "max_entries": 100,
+      "auto_warm": true,
+      "invalidate_on_deployment": true,
+      "description": "Cache agent function definitions and metadata",
+      "cost_per_miss_usd": 0.0
+    },
+    "ambassador_config": {
+      "enabled": true,
+      "ttl": 3600,
+      "max_entries": 50,
+      "auto_warm": true,
+      "tags": ["ambassador", "config"],
+      "description": "Cache ambassador configurations from Azure File Storage",
+      "cost_per_miss_usd": 0.0
+    },
+    "memory_context": {
+      "enabled": true,
+      "ttl": 1800,
+      "max_entries": 200,
+      "per_user": true,
+      "description": "Cache frequently accessed user memory contexts",
+      "cost_per_miss_usd": 0.0
+    },
+    "analytics": {
+      "enabled": true,
+      "ttl": 300,
+      "max_entries": 50,
+      "precompute": true,
+      "refresh_schedule": "*/5 * * * *",
+      "description": "Pre-computed analytics and dashboard data",
+      "cost_per_miss_usd": 0.0
+    }
+  },
+
+  "invalidation_strategies": {
+    "time_based": {
+      "enabled": true,
+      "description": "Automatic expiration based on TTL"
+    },
+    "event_based": {
+      "enabled": true,
+      "events": [
+        "ambassador_config_updated",
+        "agent_deployed",
+        "memory_updated"
+      ],
+      "description": "Invalidate on specific system events"
+    },
+    "tag_based": {
+      "enabled": true,
+      "description": "Invalidate groups of entries by tag"
+    },
+    "cascade": {
+      "enabled": true,
+      "rules": [
+        {
+          "trigger": "ambassador_config",
+          "invalidate": ["response", "semantic"]
+        },
+        {
+          "trigger": "agent_metadata",
+          "invalidate": ["response"]
+        }
+      ],
+      "description": "Cascade invalidation based on dependencies"
+    }
+  },
+
+  "cache_warming": {
+    "enabled": true,
+    "schedule": "0 */6 * * *",
+    "strategies": [
+      {
+        "type": "ambassador_config",
+        "method": "preload_all",
+        "description": "Load all ambassador configs on startup"
+      },
+      {
+        "type": "agent_metadata",
+        "method": "preload_all",
+        "description": "Load all agent metadata on startup"
+      },
+      {
+        "type": "analytics",
+        "method": "compute_on_schedule",
+        "schedule": "*/15 * * * *",
+        "description": "Pre-compute analytics every 15 minutes"
+      }
+    ]
+  },
+
+  "monitoring": {
+    "enabled": true,
+    "collect_stats": true,
+    "stats_retention_days": 30,
+    "export_to_app_insights": true,
+    "alert_thresholds": {
+      "hit_rate_below_percent": 50,
+      "cache_size_above_mb": 80,
+      "eviction_rate_above_per_minute": 10
+    },
+    "cost_tracking": {
+      "enabled": true,
+      "openai_cost_per_1k_tokens": 0.002,
+      "estimated_tokens_per_request": 1000
+    }
+  },
+
+  "performance": {
+    "max_lookup_time_ms": 1,
+    "max_cache_operation_time_ms": 10,
+    "parallel_cache_operations": true,
+    "async_cache_writes": true,
+    "compression_enabled": false,
+    "compression_threshold_bytes": 1024
+  },
+
+  "bypass_rules": {
+    "description": "Conditions under which cache should be bypassed",
+    "rules": [
+      {
+        "condition": "user_guid_in_request",
+        "cache_types": ["response", "semantic"],
+        "description": "Bypass for user-specific requests"
+      },
+      {
+        "condition": "admin_mode",
+        "cache_types": ["all"],
+        "description": "Bypass all caching in admin mode"
+      },
+      {
+        "condition": "force_refresh_header",
+        "cache_types": ["all"],
+        "description": "Bypass when X-Force-Refresh header present"
+      }
+    ]
+  },
+
+  "cost_optimization": {
+    "enabled": true,
+    "target_cost_reduction_percent": 70,
+    "strategies": [
+      {
+        "name": "aggressive_response_caching",
+        "description": "Cache all OpenAI responses aggressively",
+        "expected_savings_percent": 50
+      },
+      {
+        "name": "semantic_similarity_matching",
+        "description": "Match similar queries to reduce API calls",
+        "expected_savings_percent": 20
+      },
+      {
+        "name": "config_and_metadata_caching",
+        "description": "Eliminate repeated config/metadata loads",
+        "expected_savings_percent": 10
+      }
+    ]
+  },
+
+  "development": {
+    "enabled_in_development": true,
+    "clear_on_restart": false,
+    "verbose_logging": true,
+    "cache_debug_header": "X-Cache-Debug"
+  },
+
+  "production": {
+    "enabled_in_production": true,
+    "redis_required": true,
+    "health_check_enabled": true,
+    "automatic_scaling": true
+  }
+}

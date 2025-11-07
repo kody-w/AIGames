@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Setup - AI Ambassador Platform</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle"><span class="theme-icon">🌙</span></button>
+    </div>
+    <nav class="sidebar">
+        <div class="logo"><h1>AI Ambassador</h1><p>Platform Documentation</p></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search documentation...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="../getting-started/index.html">Getting Started</a></li>
+            <li><a href="index.html">Tutorials</a>
+                <ul class="submenu">
+                    <li><a href="first-ambassador.html">First Ambassador</a></li>
+                    <li><a href="qr-codes.html" class="active">QR Code Setup</a></li>
+                    <li><a href="seeded-demos.html">Seeded Demos</a></li>
+                    <li><a href="custom-agents.html">Custom Agents</a></li>
+                    <li><a href="power-platform.html">Power Platform</a></li>
+                    <li><a href="multi-language.html">Multi-Language</a></li>
+                    <li><a href="ab-testing.html">A/B Testing</a></li>
+                </ul>
+            </li>
+            <li><a href="../api-reference/index.html">API Reference</a></li>
+            <li><a href="../admin-guide/index.html">Admin Guide</a></li>
+            <li><a href="../deployment/index.html">Deployment</a></li>
+            <li><a href="../troubleshooting/index.html">Troubleshooting</a></li>
+            <li><a href="../faq/index.html">FAQ</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a> <span>/</span>
+            <a href="index.html">Tutorials</a> <span>/</span>
+            <span>QR Code Setup</span>
+        </div>
+        <header class="page-header">
+            <h1>Setting Up QR Codes</h1>
+            <p class="subtitle">Bridge physical and digital worlds with QR codes</p>
+        </header>
+        <section>
+            <h2>QR Code URL Pattern</h2>
+            <pre><code>https://ai-ambassadors.app/enter/{ambassador_id}?source={location}</code></pre>
+            <h3>Example URLs</h3>
+            <pre><code>https://ai-ambassadors.app/enter/coffee-ambassador-001?source=counter
+https://ai-ambassadors.app/enter/museum-guide-art-wing?source=gallery-3
+https://ai-ambassadors.app/enter/retail-assistant-main?source=entrance</code></pre>
+        </section>
+        <section>
+            <h2>QR Code Generation</h2>
+            <pre><code>import qrcode
+
+qr = qrcode.QRCode(
+    version=1,
+    error_correction=qrcode.constants.ERROR_CORRECT_H,
+    box_size=10,
+    border=4,
+)
+
+url = "https://ai-ambassadors.app/enter/coffee-ambassador-001?source=counter"
+qr.add_data(url)
+qr.make(fit=True)
+
+img = qr.make_image(fill_color="black", back_color="white")
+img.save("qr-code.png")</code></pre>
+        </section>
+        <section>
+            <h2>Design Requirements</h2>
+            <ul>
+                <li><strong>Size:</strong> Minimum 2" x 2" for reliable scanning</li>
+                <li><strong>Contrast:</strong> High contrast (black on white recommended)</li>
+                <li><strong>Error Correction:</strong> Level H (30% recovery) for durability</li>
+                <li><strong>Quiet Zone:</strong> Clear border around code</li>
+                <li><strong>Material:</strong> Weather-resistant if outdoors</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Placement Best Practices</h2>
+            <table>
+                <thead>
+                    <tr><th>Location</th><th>Placement</th><th>Height</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Retail Counter</td><td>Standing display</td><td>4-5 feet</td></tr>
+                    <tr><td>Museum Wall</td><td>Beside exhibit</td><td>5 feet</td></tr>
+                    <tr><td>Restaurant Table</td><td>Table tent</td><td>N/A</td></tr>
+                    <tr><td>Conference Booth</td><td>Banner or stand</td><td>5-6 feet</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <section>
+            <h2>Call-to-Action Examples</h2>
+            <ul>
+                <li>"Scan to meet your AI coffee guide"</li>
+                <li>"Discover more about this exhibit"</li>
+                <li>"Ask me about our menu"</li>
+                <li>"Get personalized recommendations"</li>
+            </ul>
+        </section>
+    </main>
+    <script src="../scripts.js"></script>
+</body>
+</html>
