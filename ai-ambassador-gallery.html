@@ -1236,6 +1236,19 @@
             document.getElementById('worldPreviewTitle').textContent = `${ambassador.name}'s World`;
             document.getElementById('worldPreviewDescription').textContent = worldDescriptions[ambassador.worldType] || "A unique virtual experience";
 
+            // Generate QR code
+            const ambassadorUrl = `https://ai-ambassadors.app/world/${ambassador.id}`;
+            const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(ambassadorUrl)}&size=300&margin=2&ecLevel=H`;
+
+            // Display QR code
+            const qrDisplay = document.getElementById('qrCodeDisplay');
+            qrDisplay.innerHTML = `
+                <img src="${qrCodeUrl}"
+                     alt="QR Code for ${ambassador.name}"
+                     style="width: 100%; height: 100%; border-radius: 8px;"
+                     title="Scan to enter ${ambassador.name}'s world">
+            `;
+
             // Show modal
             document.getElementById('ambassadorModal').classList.remove('hidden');
         }
@@ -1250,15 +1263,25 @@
         function simulateWorldEntry() {
             if (!currentAmbassador) return;
 
-            showToast(`🚀 Entering ${currentAmbassador.name}'s world...`, 'success');
-            
-            setTimeout(() => {
-                alert(`Welcome to ${currentAmbassador.name}'s World!\n\n` +
-                      `${currentAmbassador.description}\n\n` +
-                      `This is where you'd interact with the AI ambassador using the seeded demo parameters.\n\n` +
-                      `QR Code → Scan → Enter World → Meet Ambassador → Interact!\n\n` +
-                      `Perfect for physical deployments in stores, events, museums, and more!`);
-            }, 1000);
+            // Check if this is NatureGuide (id: 7)
+            if (currentAmbassador.id === 7) {
+                showToast(`🚀 Entering ${currentAmbassador.name}'s world...`, 'success');
+
+                setTimeout(() => {
+                    // Navigate to the actual NatureGuide world page
+                    window.location.href = 'nature-guide-world.html';
+                }, 1000);
+            } else {
+                // For other ambassadors, show "coming soon" message
+                showToast(`This world is under construction. NatureGuide's World is available now!`, 'success');
+
+                setTimeout(() => {
+                    alert(`${currentAmbassador.name}'s World - Coming Soon!\n\n` +
+                          `${currentAmbassador.description}\n\n` +
+                          `This world is currently under development.\n\n` +
+                          `Try NatureGuide's World to see a fully interactive 3D environment!`);
+                }, 1000);
+            }
         }
 
         // Quick scan simulation
@@ -1266,17 +1289,48 @@
             const ambassador = ambassadors.find(a => a.id === id);
             if (!ambassador) return;
 
-            showToast(`📱 Simulating QR scan for ${ambassador.name}...`, 'success');
-            
-            setTimeout(() => {
-                viewAmbassador(id);
-            }, 500);
+            // Check if this is NatureGuide (id: 7)
+            if (ambassador.id === 7) {
+                showToast(`📱 Simulating QR scan for ${ambassador.name}...`, 'success');
+
+                setTimeout(() => {
+                    // Show modal with option to enter world directly
+                    const shouldEnter = confirm(`Welcome to ${ambassador.name}!\n\n` +
+                                               `${ambassador.description}\n\n` +
+                                               `Would you like to enter the interactive 3D world now?`);
+                    if (shouldEnter) {
+                        window.location.href = 'nature-guide-world.html';
+                    } else {
+                        viewAmbassador(id);
+                    }
+                }, 500);
+            } else {
+                showToast(`📱 Simulating QR scan for ${ambassador.name}...`, 'success');
+
+                setTimeout(() => {
+                    viewAmbassador(id);
+                }, 500);
+            }
         }
 
         // Download QR code
         function downloadQR() {
             if (!currentAmbassador) return;
-            showToast('QR code download started! (In production, this would generate a real QR code)', 'success');
+
+            const ambassadorUrl = `https://ai-ambassadors.app/world/${currentAmbassador.id}`;
+
+            // Generate high-resolution QR code for download (600x600)
+            const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(ambassadorUrl)}&size=600&margin=4&ecLevel=H&format=png`;
+
+            // Create temporary link and trigger download
+            const link = document.createElement('a');
+            link.href = qrCodeUrl;
+            link.download = `qr-code-${currentAmbassador.id}-${currentAmbassador.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast(`QR code downloaded for ${currentAmbassador.name}!`, 'success');
         }
 
         // Share ambassador

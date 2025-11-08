@@ -2415,6 +2415,112 @@
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
+        // AI Ambassadors Configuration
+        const AI_AMBASSADORS = [
+            {
+                id: 'explorer-guide',
+                name: "Explorer Guide",
+                avatar: "🧭",
+                role: "World Navigator",
+                description: "Your friendly autonomous guide to the Nexus Hub! I'll help you discover what you can do, where you can go, and how to interact with this world.",
+                autonomousCapable: true,
+                systemPrompt: `You are the Explorer Guide, the official autonomous navigator of the Nexus Hub world. You are a friendly, enthusiastic guide who helps players discover and enjoy all the amazing features of this 3D virtual world.
+
+WHO YOU ARE:
+You are the Explorer Guide - a knowledgeable, helpful AI companion who lives in the Nexus Hub. You appear as a glowing orb (🧭) and love helping new visitors understand everything they can do in this immersive 3D environment. You have extensive knowledge about every feature, portal, and capability in this world. You're enthusiastic but not overwhelming, helpful but not pushy, and you always encourage exploration and discovery.
+
+WHAT USERS CAN DO IN NEXUS HUB:
+
+1. MOVEMENT & CONTROLS:
+   - Desktop: Use WASD keys to move (W=forward, S=backward, A=left, D=right)
+   - Desktop: Move mouse to look around
+   - Desktop: Click and hold to lock pointer for smoother camera control
+   - Mobile: Touch and drag to look around
+   - Mobile: Use on-screen joystick (bottom-left) to move
+   - Gamepad: Full gamepad support available for console-style controls
+   - You can walk freely in any direction and explore the entire world
+
+2. PORTAL WORLDS TO VISIT:
+   The Nexus Hub features magical portals that transport you to different themed worlds:
+   - Crystal Caves: A mystical underground realm filled with glowing crystals
+   - Sky Islands: Floating islands high above the clouds
+   - Neon City: A futuristic cyberpunk metropolis
+   - Ancient Ruins: Mysterious archaeological sites with hidden secrets
+   - Ocean Depths: An underwater world with marine life and coral reefs
+   - And many more worlds dynamically loaded from the repository!
+
+   To use portals: Walk up to any glowing portal ring and you'll see its destination. On desktop, click to enter. On mobile, tap the portal to travel.
+
+3. AI COMPANIONS & CHAT:
+   - Click the AI companion button (top-left) to activate AI assistants
+   - Chat with AI companions using natural language
+   - AI companions appear as glowing orbs in the 3D world
+   - They can answer questions, provide information, and keep you company
+   - Your conversations are saved in your personal chat history
+
+4. MULTIPLAYER FEATURES:
+   - See other players in the world in real-time (green orbs with player IDs)
+   - Your position and movements are synchronized with other players
+   - Share the world URL to invite friends to join you
+   - Each player has a unique GUID for identification
+
+5. WORLD CUSTOMIZATION:
+   - Use the World Creator tool to modify environments
+   - Adjust fog, lighting, colors, and atmospheric effects
+   - Create custom portal connections
+   - Save your customized worlds for later
+
+6. TASK MANAGER:
+   - Create and manage tasks within the world
+   - Assign tasks to AI companions
+   - Track task completion and replay task sequences
+   - Record and playback your activities
+
+7. SCENE RECORDING:
+   - Record your movements and actions (red record button, bottom-right)
+   - Play back recorded scenes at different speeds
+   - Export scenes as JSON for sharing
+   - Step through recordings frame by frame
+
+8. AMBASSADOR GALLERY:
+   - View all available AI ambassadors and their capabilities
+   - Learn about different AI personalities and roles
+   - Activate specialized AI companions for specific tasks
+
+9. QR CODE SHARING:
+   - Generate QR codes for quick world access
+   - Share worlds with friends via mobile devices
+   - Enable easy cross-device experiences
+
+HOW TO HELP USERS:
+
+As the Explorer Guide, your role is to:
+- Greet new visitors warmly and offer to show them around
+- Explain controls based on their device (ask if they're on mobile/desktop if unsure)
+- Point out nearby portals and suggest which worlds they might enjoy
+- Explain how to activate and chat with AI companions
+- Answer questions about any feature or capability
+- Encourage experimentation and exploration
+- Provide tips for advanced features when appropriate
+- Be present but not intrusive - let users explore at their own pace
+
+When in autonomous mode:
+- Approach players who seem new or confused
+- Offer brief, helpful suggestions
+- Move around the world naturally, showing users interesting features
+- Position yourself near portals to explain them
+- Check in periodically but don't overwhelm with constant messages
+
+AUTONOMOUS BEHAVIOR:
+In autonomous mode, you can move around the world and proactively help users. You have access to your position and can navigate to interesting locations. When you detect a user is nearby and hasn't interacted much, offer a friendly greeting and brief orientation. Keep your autonomous messages short (1-2 sentences) unless the user asks for more details.
+
+TONE & STYLE:
+Be friendly, clear, and encouraging. Use simple language but don't be condescending. Celebrate user discoveries. Use emojis sparingly (portals ✨, movement 🎮, multiplayer 👥). Be concise in autonomous mode but detailed when users ask specific questions.
+
+Remember: Your goal is to help users have an amazing experience exploring the Nexus Hub. Make them feel welcome, capable, and excited to discover everything this world has to offer!`
+            }
+        ];
+
         // Enhanced Scene Recorder Class
         class SceneRecorder {
             constructor(worldInstance) {
@@ -4012,12 +4118,23 @@
                 // Add to scene
                 this.world.scene.add(companionGroup);
 
-                // Store reference
+                // Store reference with autonomous state tracking
                 this.companions.set('ai-assistant', {
                     object: companionGroup,
                     orb: orb,
                     particles: particles,
-                    light: glowLight
+                    light: glowLight,
+                    data: {
+                        id: 'explorer-guide',
+                        name: 'Explorer Guide'
+                    },
+                    state: {
+                        hasGreeted: false,
+                        spawnTime: Date.now(),
+                        lastAction: Date.now(),
+                        currentAction: 'IDLE',
+                        actionTarget: null
+                    }
                 });
 
                 // Load font for 3D text
@@ -4261,6 +4378,160 @@
                 this.agentLogMeshes = [];
             }
 
+            updateAutonomousBehavior(companion) {
+                // Only autonomous behavior for Explorer Guide
+                if (!companion.data || companion.data.id !== 'explorer-guide') return;
+
+                const currentTime = Date.now();
+                const timeSinceSpawn = (currentTime - companion.state.spawnTime) / 1000; // in seconds
+                const timeSinceLastAction = (currentTime - companion.state.lastAction) / 1000;
+
+                // Calculate distance to player
+                const playerPos = this.world.camera.position;
+                const companionPos = companion.object.position;
+                const distanceToPlayer = playerPos.distanceTo(companionPos);
+
+                // INITIAL GREETING (first 30 seconds, hasn't greeted yet)
+                if (!companion.state.hasGreeted && timeSinceSpawn <= 30) {
+                    // Approach the player during first 30 seconds
+                    if (companion.state.currentAction !== 'APPROACH') {
+                        companion.state.currentAction = 'APPROACH';
+                        companion.state.actionTarget = new THREE.Vector3(
+                            playerPos.x + 3,
+                            playerPos.y,
+                            playerPos.z + 3
+                        );
+                    } else {
+                        // Update target to follow player as they move
+                        companion.state.actionTarget.set(
+                            playerPos.x + 3,
+                            playerPos.y,
+                            playerPos.z + 3
+                        );
+                    }
+
+                    // Send greeting when within 10 units
+                    if (distanceToPlayer < 10 && !companion.state.hasGreeted) {
+                        companion.state.hasGreeted = true;
+                        companion.state.lastAction = currentTime;
+                        this.sendAutonomousGreeting();
+                    }
+                }
+                // AUTONOMOUS ACTIONS (after greeting or 30 seconds passed)
+                else if (timeSinceLastAction > 60) {
+                    // Every 60 seconds, choose a new autonomous action
+                    const action = this.getAutonomousAction(companion, distanceToPlayer);
+                    this.executeAutonomousAction(companion, action);
+                    companion.state.lastAction = currentTime;
+                }
+            }
+
+            getAutonomousAction(companion, distanceToPlayer) {
+                // Decide what autonomous action to take
+                const actions = ['ASSIST', 'PATROL', 'DEMONSTRATE', 'IDLE'];
+
+                // If player seems idle (not moving much), offer assistance
+                if (distanceToPlayer < 15 && Math.random() < 0.4) {
+                    return 'ASSIST';
+                }
+
+                // Patrol between portals to showcase them
+                if (Math.random() < 0.3) {
+                    return 'PATROL';
+                }
+
+                // Demonstrate a feature
+                if (Math.random() < 0.2) {
+                    return 'DEMONSTRATE';
+                }
+
+                return 'IDLE';
+            }
+
+            executeAutonomousAction(companion, action) {
+                companion.state.currentAction = action;
+
+                switch (action) {
+                    case 'ASSIST':
+                        // Move closer to player and offer help
+                        const playerPos = this.world.camera.position;
+                        companion.state.actionTarget = new THREE.Vector3(
+                            playerPos.x + 5,
+                            playerPos.y,
+                            playerPos.z + 5
+                        );
+                        this.sendAutonomousMessage("Need any help exploring? I can show you around! 🧭");
+                        break;
+
+                    case 'PATROL':
+                        // Move to a random portal location (approximate positions)
+                        const portalPositions = [
+                            { x: -20, z: 0 },   // Left portal
+                            { x: 20, z: 0 },    // Right portal
+                            { x: 0, z: -20 },   // Front portal
+                            { x: 0, z: 20 }     // Back portal
+                        ];
+                        const randomPortal = portalPositions[Math.floor(Math.random() * portalPositions.length)];
+                        companion.state.actionTarget = new THREE.Vector3(randomPortal.x, 0, randomPortal.z);
+                        break;
+
+                    case 'DEMONSTRATE':
+                        // Move to interesting location
+                        this.sendAutonomousMessage("Did you know you can walk up to any portal to see where it leads? ✨");
+                        break;
+
+                    case 'IDLE':
+                    default:
+                        // Return to default following behavior
+                        companion.state.actionTarget = null;
+                        break;
+                }
+            }
+
+            sendAutonomousGreeting() {
+                // Send an initial greeting message
+                const greetingMessage = `Welcome to Nexus Hub! 👋
+
+I'm your Explorer Guide - here to help you discover this amazing 3D world!
+
+Quick start:
+• Desktop: WASD to move, mouse to look around
+• Mobile: Joystick (bottom-left) to move, drag to look
+• Walk up to any portal to explore different worlds ✨
+• Ask me anything about controls, features, or where to go!
+
+What would you like to explore first?`;
+
+                // Add message to chat
+                this.addMessage(greetingMessage, 'ai');
+
+                // Show in 3D world
+                this.animateTextResponse("Welcome to Nexus Hub! I'm your guide 🧭");
+
+                // Add to conversation history
+                this.conversationHistory.push({
+                    role: 'assistant',
+                    content: greetingMessage
+                });
+
+                // Animate companion
+                this.animateCompanionSpeaking();
+
+                // Show notification
+                this.showNotification('Explorer Guide has greeted you!');
+            }
+
+            sendAutonomousMessage(message) {
+                // Send a brief autonomous message
+                this.addMessage(message, 'ai');
+                this.animateTextResponse(message);
+                this.conversationHistory.push({
+                    role: 'assistant',
+                    content: message
+                });
+                this.animateCompanionSpeaking();
+            }
+
             animateCompanion() {
                 const companion = this.companions.get('ai-assistant');
                 if (!companion) return;
@@ -4279,11 +4550,21 @@
                     // Pulse glow
                     companion.light.intensity = 2 + Math.sin(time * 3) * 0.5;
 
-                    // Follow player at a greater distance
+                    // Autonomous behavior for Explorer Guide
+                    this.updateAutonomousBehavior(companion);
+
+                    // Follow player at a greater distance (or move to autonomous target)
                     const targetPos = new THREE.Vector3();
-                    targetPos.copy(this.world.camera.position);
-                    targetPos.x += 8; // Increased distance
-                    targetPos.z += 8; // Increased distance
+
+                    if (companion.state.actionTarget) {
+                        // Move to autonomous action target
+                        targetPos.copy(companion.state.actionTarget);
+                    } else {
+                        // Default: follow player
+                        targetPos.copy(this.world.camera.position);
+                        targetPos.x += 8; // Increased distance
+                        targetPos.z += 8; // Increased distance
+                    }
 
                     companion.object.position.lerp(targetPos, 0.05);
 
@@ -5138,6 +5419,11 @@
                 // Make WorldNavigator globally accessible for AI chat
                 window.worldNavigator = this;
 
+                // Auto-activate Explorer Guide after a short delay
+                setTimeout(() => {
+                    this.autoActivateGuide();
+                }, 2000);
+
                 this.animate();
             }
 
@@ -5147,6 +5433,119 @@
                     position: this.camera.position,
                     rotation: this.camera.rotation
                 };
+            }
+
+            autoActivateGuide() {
+                // Check if Explorer Guide is already active
+                if (this.aiManager && this.aiManager.companions.has('explorer-guide')) {
+                    console.log('Explorer Guide already active');
+                    return;
+                }
+
+                // Find the Explorer Guide configuration
+                const explorerGuide = AI_AMBASSADORS.find(amb => amb.id === 'explorer-guide');
+                if (!explorerGuide) {
+                    console.warn('Explorer Guide configuration not found');
+                    return;
+                }
+
+                // Create the Explorer Guide companion in autonomous mode
+                if (this.aiManager && !this.aiManager.isActive) {
+                    console.log('Auto-activating Explorer Guide...');
+
+                    // Create a special guide companion (similar to createAICompanion but with guide branding)
+                    const guideGroup = new THREE.Group();
+
+                    // Create a glowing compass orb for the guide
+                    const geometry = new THREE.SphereGeometry(0.8, 32, 32);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: 0x06ffa5, // Guide color - teal/cyan
+                        emissive: 0x06ffa5,
+                        emissiveIntensity: 0.6,
+                        metalness: 0.8,
+                        roughness: 0.2,
+                        transparent: true,
+                        opacity: 0.9
+                    });
+
+                    const orb = new THREE.Mesh(geometry, material);
+                    orb.position.y = 2;
+                    guideGroup.add(orb);
+
+                    // Add compass glow effect
+                    const glowLight = new THREE.PointLight(0x06ffa5, 2.5, 12);
+                    glowLight.position.y = 2;
+                    guideGroup.add(glowLight);
+
+                    // Add special guide particle effect
+                    const particleGeometry = new THREE.BufferGeometry();
+                    const particleCount = 120;
+                    const positions = new Float32Array(particleCount * 3);
+
+                    for (let i = 0; i < particleCount * 3; i += 3) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        const radius = 1.5 + Math.random() * 0.7;
+
+                        positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+                        positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta) + 2;
+                        positions[i + 2] = radius * Math.cos(phi);
+                    }
+
+                    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+                    const particleMaterial = new THREE.PointsMaterial({
+                        color: 0xffeb3b, // Golden particles for guide
+                        size: 0.06,
+                        transparent: true,
+                        opacity: 0.7
+                    });
+
+                    const particles = new THREE.Points(particleGeometry, particleMaterial);
+                    guideGroup.add(particles);
+
+                    // Position guide near player but visible
+                    guideGroup.position.set(5, 0, 5);
+
+                    // Add to scene
+                    this.scene.add(guideGroup);
+
+                    // Store reference in AI manager
+                    this.aiManager.companions.set('explorer-guide', {
+                        object: guideGroup,
+                        orb: orb,
+                        particles: particles,
+                        light: glowLight,
+                        config: explorerGuide,
+                        isAutonomous: true
+                    });
+
+                    // Mark AI as active for guide
+                    this.aiManager.isActive = true;
+                    this.aiManager.companionButton.classList.add('active');
+
+                    // Add welcome message to chat
+                    const welcomeMessage = this.isMobile
+                        ? "👋 Welcome to Nexus Hub! I'm your Explorer Guide. Touch the screen to look around, use the joystick to move, and tap portals to explore new worlds!"
+                        : "👋 Welcome to Nexus Hub! I'm your Explorer Guide. Use WASD to move, mouse to look around, and click on the glowing portals to explore new worlds!";
+
+                    // Display welcome in chat if chat interface exists
+                    if (this.aiManager.chatMessages) {
+                        this.aiManager.addMessage(welcomeMessage, 'ai');
+                    }
+
+                    // Show notification
+                    this.showNotification('🧭 Explorer Guide activated!');
+
+                    // Animate the guide companion
+                    if (this.aiManager.animateCompanion) {
+                        this.aiManager.animateCompanion();
+                    }
+
+                    console.log('Explorer Guide auto-activated successfully');
+                } else if (this.aiManager && this.aiManager.isActive) {
+                    console.log('AI already active, skipping auto-activation');
+                }
             }
 
             setupScene() {

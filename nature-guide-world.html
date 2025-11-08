@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 NatureGuide's World - A Serene Sanctuary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #2d5016 0%, #1a3409 100%);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(45, 80, 22, 0.95);
+            backdrop-filter: blur(10px);
+            color: #e8f5e9;
+            padding: 15px 30px;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #4caf50;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 3D Canvas Container */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2d5016 0%, #1a3409 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: #e8f5e9;
+        }
+
+        #loading-screen h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(76, 175, 80, 0.3);
+            border-top: 4px solid #4caf50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Features Panel */
+        #features-panel {
+            position: fixed;
+            left: 20px;
+            top: 100px;
+            background: rgba(45, 80, 22, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid #4caf50;
+            max-width: 250px;
+        }
+
+        #features-panel h3 {
+            color: #e8f5e9;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .feature-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .feature-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .feature-btn:active {
+            transform: translateY(0);
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        /* Chat Interface */
+        #chat-container {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            bottom: 20px;
+            width: 380px;
+            background: rgba(45, 80, 22, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 2px solid #4caf50;
+        }
+
+        #chat-header {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 13px 13px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #chat-header .avatar {
+            font-size: 28px;
+        }
+
+        #chat-header h3 {
+            font-size: 18px;
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 12px 15px;
+            border-radius: 12px;
+            color: #e8f5e9;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: rgba(139, 195, 74, 0.3);
+        }
+
+        #chat-input-container {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(76, 175, 80, 0.3);
+            display: flex;
+            gap: 10px;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 8px;
+            color: #e8f5e9;
+            font-size: 14px;
+        }
+
+        #chat-input::placeholder {
+            color: rgba(232, 245, 233, 0.5);
+        }
+
+        #send-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        #send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Info Card */
+        #info-card {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(45, 80, 22, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 30px;
+            z-index: 200;
+            max-width: 500px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+            border: 2px solid #4caf50;
+            transition: transform 0.3s ease;
+        }
+
+        #info-card.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #info-card h3 {
+            color: #4caf50;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        #info-card p {
+            color: #e8f5e9;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        #close-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        #close-info:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Controls Info */
+        #controls-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(45, 80, 22, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px 20px;
+            z-index: 100;
+            color: #e8f5e9;
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+
+        #controls-info h4 {
+            margin-bottom: 8px;
+            color: #4caf50;
+        }
+
+        #controls-info p {
+            font-size: 13px;
+            margin: 3px 0;
+        }
+
+        /* Audio Controls */
+        #audio-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 420px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .audio-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(45, 80, 22, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid #4caf50;
+            color: #4caf50;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-btn:hover {
+            background: rgba(76, 175, 80, 0.3);
+            transform: scale(1.1);
+        }
+
+        .audio-btn.active {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #chat-container {
+                width: 100%;
+                right: 0;
+                left: 0;
+                top: auto;
+                bottom: 0;
+                border-radius: 15px 15px 0 0;
+                max-height: 50vh;
+            }
+
+            #features-panel {
+                left: 10px;
+                top: 80px;
+                max-width: 200px;
+                padding: 15px;
+            }
+
+            #controls-info {
+                display: none;
+            }
+
+            #audio-controls {
+                right: 10px;
+                bottom: auto;
+                top: 80px;
+                flex-direction: column;
+            }
+        }
+
+        /* Scrollbar Styling */
+        #chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(76, 175, 80, 0.5);
+            border-radius: 4px;
+        }
+
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(76, 175, 80, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <h2>🌿 Loading Nature Sanctuary...</h2>
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 20px;">Preparing your immersive experience</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <h1>🌿 NatureGuide's World - A Serene Sanctuary</h1>
+    </header>
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Features Panel -->
+    <div id="features-panel">
+        <h3>🌱 Nature Tools</h3>
+        <button class="feature-btn" id="species-btn">🔍 Species Identification</button>
+        <button class="feature-btn" id="eco-tips-btn">💡 Eco Tips</button>
+        <button class="feature-btn" id="conservation-btn">🌍 Conservation Facts</button>
+        <button class="feature-btn toggle-btn" id="explore-btn">🚶 Explore Mode</button>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chat-container">
+        <div id="chat-header">
+            <span class="avatar">🌿</span>
+            <div>
+                <h3>NatureGuide AI</h3>
+                <small style="opacity: 0.9;">Your Nature Companion</small>
+            </div>
+        </div>
+        <div id="chat-messages">
+            <div class="message">
+                <div class="message-avatar">🌿</div>
+                <div class="message-content">
+                    Welcome to my sanctuary! I'm NatureGuide, your AI companion for exploring the natural world. Ask me about plants, wildlife, ecology, or conservation. What would you like to discover today?
+                </div>
+            </div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Ask about nature...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div id="info-card">
+        <button id="close-info">×</button>
+        <h3 id="info-title">Oak Tree</h3>
+        <div id="info-content">
+            <p><strong>Species:</strong> Quercus robur (English Oak)</p>
+            <p><strong>Age:</strong> Approximately 150 years</p>
+            <p><strong>Height:</strong> 25-30 meters</p>
+            <p><strong>Fun Fact:</strong> Oak trees can live for over 1,000 years and support hundreds of species of insects and wildlife!</p>
+        </div>
+    </div>
+
+    <!-- Controls Info -->
+    <div id="controls-info">
+        <h4>🎮 Controls</h4>
+        <p><strong>WASD</strong> - Move around</p>
+        <p><strong>Mouse</strong> - Look around</p>
+        <p><strong>Click</strong> - Interact with nature</p>
+    </div>
+
+    <!-- Audio Controls -->
+    <div id="audio-controls">
+        <button class="audio-btn" id="music-btn" title="Toggle Music">🎵</button>
+        <button class="audio-btn" id="sounds-btn" title="Toggle Nature Sounds">🔊</button>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls;
+        let trees = [];
+        let rocks = [];
+        let exploreMode = true;
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let velocity = new THREE.Vector3();
+        let direction = new THREE.Vector3();
+        let prevTime = performance.now();
+        let conversationHistory = [];
+
+        // API Configuration
+        const API_CONFIG = {
+            endpoint: 'http://localhost:7071/api/businessinsightbot_function',
+            model: 'gpt-4',
+            temperature: 0.5,
+            user_guid: 'demo-nature-007'
+        };
+
+        // Initialize the 3D scene
+        function initScene() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue
+            scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.6, 10); // Eye level height
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfff8dc, 0.8);
+            sunLight.position.set(50, 50, 50);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 500;
+            scene.add(sunLight);
+
+            // Ground
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundMaterial = new THREE.MeshLambertMaterial({
+                color: 0x3d5a2c,
+                side: THREE.DoubleSide
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Add grass texture effect
+            for (let i = 0; i < 1000; i++) {
+                const grassGeometry = new THREE.CircleGeometry(0.3, 6);
+                const grassMaterial = new THREE.MeshBasicMaterial({
+                    color: Math.random() > 0.5 ? 0x4a7c31 : 0x3d5a2c,
+                    side: THREE.DoubleSide
+                });
+                const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+                grass.position.x = (Math.random() - 0.5) * 200;
+                grass.position.z = (Math.random() - 0.5) * 200;
+                grass.position.y = 0.01;
+                grass.rotation.x = -Math.PI / 2;
+                scene.add(grass);
+            }
+
+            // Create trees
+            createForest();
+
+            // Create rocks
+            createRocks();
+
+            // Add clouds
+            createClouds();
+
+            // Mouse controls for looking around
+            let isPointerLocked = false;
+            const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+
+            renderer.domElement.addEventListener('click', () => {
+                renderer.domElement.requestPointerLock();
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                isPointerLocked = document.pointerLockElement === renderer.domElement;
+            });
+
+            document.addEventListener('mousemove', (event) => {
+                if (!isPointerLocked) return;
+
+                const movementX = event.movementX || 0;
+                const movementY = event.movementY || 0;
+
+                euler.setFromQuaternion(camera.quaternion);
+                euler.y -= movementX * 0.002;
+                euler.x -= movementY * 0.002;
+                euler.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, euler.x));
+                camera.quaternion.setFromEuler(euler);
+            });
+
+            // Keyboard controls
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+
+            // Raycaster for clicking objects
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            renderer.domElement.addEventListener('click', (event) => {
+                if (document.pointerLockElement) return;
+
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects([...trees, ...rocks]);
+
+                if (intersects.length > 0) {
+                    showInfoCard(intersects[0].object.userData);
+                }
+            });
+
+            // Window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+            }, 1500);
+
+            // Start animation loop
+            animate();
+        }
+
+        function createForest() {
+            const treeTypes = [
+                { name: 'Oak Tree', species: 'Quercus robur', color: 0x2d5016 },
+                { name: 'Pine Tree', species: 'Pinus sylvestris', color: 0x1a4d2e },
+                { name: 'Birch Tree', species: 'Betula pendula', color: 0x3d5a2c }
+            ];
+
+            for (let i = 0; i < 30; i++) {
+                const treeType = treeTypes[Math.floor(Math.random() * treeTypes.length)];
+                const tree = createTree(treeType);
+
+                tree.position.x = (Math.random() - 0.5) * 150;
+                tree.position.z = (Math.random() - 0.5) * 150;
+
+                // Don't place trees too close to starting position
+                if (Math.abs(tree.position.x) < 15 && Math.abs(tree.position.z) < 15) {
+                    continue;
+                }
+
+                tree.userData = {
+                    type: 'tree',
+                    name: treeType.name,
+                    species: treeType.species,
+                    age: Math.floor(Math.random() * 200) + 50,
+                    height: (Math.random() * 10 + 20).toFixed(1)
+                };
+
+                scene.add(tree);
+                trees.push(tree);
+            }
+        }
+
+        function createTree(treeType) {
+            const treeGroup = new THREE.Group();
+
+            // Trunk
+            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.5, 4, 8);
+            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x4a3420 });
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.position.y = 2;
+            trunk.castShadow = true;
+            treeGroup.add(trunk);
+
+            // Foliage
+            const foliageGeometry = new THREE.ConeGeometry(3, 6, 8);
+            const foliageMaterial = new THREE.MeshLambertMaterial({ color: treeType.color });
+            const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+            foliage.position.y = 6;
+            foliage.castShadow = true;
+            treeGroup.add(foliage);
+
+            return treeGroup;
+        }
+
+        function createRocks() {
+            for (let i = 0; i < 20; i++) {
+                const rockGeometry = new THREE.DodecahedronGeometry(Math.random() * 0.8 + 0.3, 0);
+                const rockMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+                const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+
+                rock.position.x = (Math.random() - 0.5) * 150;
+                rock.position.y = 0.3;
+                rock.position.z = (Math.random() - 0.5) * 150;
+                rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                rock.castShadow = true;
+
+                rock.userData = {
+                    type: 'rock',
+                    name: 'Stone Formation',
+                    composition: 'Granite/Limestone',
+                    formed: 'Millions of years ago'
+                };
+
+                scene.add(rock);
+                rocks.push(rock);
+            }
+        }
+
+        function createClouds() {
+            for (let i = 0; i < 10; i++) {
+                const cloudGeometry = new THREE.SphereGeometry(5, 8, 8);
+                const cloudMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+
+                cloud.position.x = (Math.random() - 0.5) * 200;
+                cloud.position.y = 30 + Math.random() * 20;
+                cloud.position.z = (Math.random() - 0.5) * 200;
+                cloud.scale.set(1 + Math.random(), 0.5, 1 + Math.random());
+
+                scene.add(cloud);
+            }
+        }
+
+        function onKeyDown(event) {
+            switch (event.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyD': moveRight = true; break;
+            }
+        }
+
+        function onKeyUp(event) {
+            switch (event.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyD': moveRight = false; break;
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+            const delta = (time - prevTime) / 1000;
+
+            if (exploreMode) {
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                direction.z = Number(moveForward) - Number(moveBackward);
+                direction.x = Number(moveRight) - Number(moveLeft);
+                direction.normalize();
+
+                if (moveForward || moveBackward) velocity.z -= direction.z * 40.0 * delta;
+                if (moveLeft || moveRight) velocity.x -= direction.x * 40.0 * delta;
+
+                camera.translateX(velocity.x * delta);
+                camera.translateZ(velocity.z * delta);
+
+                // Keep camera at eye level
+                camera.position.y = 1.6;
+            }
+
+            prevTime = time;
+
+            renderer.render(scene, camera);
+        }
+
+        function showInfoCard(data) {
+            const infoCard = document.getElementById('info-card');
+            const infoTitle = document.getElementById('info-title');
+            const infoContent = document.getElementById('info-content');
+
+            infoTitle.textContent = data.name;
+
+            if (data.type === 'tree') {
+                infoContent.innerHTML = `
+                    <p><strong>Species:</strong> ${data.species}</p>
+                    <p><strong>Age:</strong> Approximately ${data.age} years</p>
+                    <p><strong>Height:</strong> ${data.height} meters</p>
+                    <p><strong>Fun Fact:</strong> This tree provides habitat for countless species and helps purify our air!</p>
+                `;
+            } else if (data.type === 'rock') {
+                infoContent.innerHTML = `
+                    <p><strong>Type:</strong> ${data.name}</p>
+                    <p><strong>Composition:</strong> ${data.composition}</p>
+                    <p><strong>Formed:</strong> ${data.formed}</p>
+                    <p><strong>Fun Fact:</strong> Rocks are the foundation of ecosystems, providing minerals and structure for life!</p>
+                `;
+            }
+
+            infoCard.classList.add('show');
+        }
+
+        // Chat functionality
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+            input.value = '';
+
+            // Add to conversation history
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            try {
+                // Call API
+                const response = await fetch(API_CONFIG.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_input: message,
+                        conversation_history: conversationHistory,
+                        user_guid: API_CONFIG.user_guid,
+                        model: API_CONFIG.model,
+                        temperature: API_CONFIG.temperature
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const aiResponse = data.response || data.message || 'I appreciate your interest in nature. How can I help you explore today?';
+
+                // Add AI response to chat
+                addMessageToChat('ai', aiResponse);
+
+                // Add to conversation history
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: aiResponse
+                });
+
+            } catch (error) {
+                console.error('Error calling API:', error);
+                addMessageToChat('ai', 'I apologize, but I\'m having trouble connecting right now. As NatureGuide, I\'m here to share knowledge about plants, wildlife, ecology, and conservation. What would you like to learn about?');
+            }
+        }
+
+        function addMessageToChat(sender, text) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? '👤' : '🌿';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Feature button handlers
+        document.getElementById('species-btn').addEventListener('click', () => {
+            addMessageToChat('ai', 'Click on any tree or plant in the 3D world to identify it! I can tell you about species, age, and ecological importance. You can also ask me to identify plants from descriptions.');
+        });
+
+        document.getElementById('eco-tips-btn').addEventListener('click', () => {
+            const tips = [
+                'Reduce, reuse, recycle! Every small action counts.',
+                'Plant native species in your garden to support local wildlife.',
+                'Reduce water usage by fixing leaks and using efficient fixtures.',
+                'Choose sustainable products and reduce single-use plastics.',
+                'Support conservation efforts and protect natural habitats.'
+            ];
+            const randomTip = tips[Math.floor(Math.random() * tips.length)];
+            addMessageToChat('ai', `🌱 Eco Tip: ${randomTip}`);
+        });
+
+        document.getElementById('conservation-btn').addEventListener('click', () => {
+            const facts = [
+                'Forests cover 31% of Earth\'s land area and are home to 80% of terrestrial biodiversity.',
+                'Wetlands filter water naturally and protect against floods and storms.',
+                'One mature tree can absorb 48 pounds of CO2 per year.',
+                'Protecting biodiversity ensures ecosystem resilience and human survival.',
+                'Over 1 million species are at risk of extinction due to human activities.'
+            ];
+            const randomFact = facts[Math.floor(Math.random() * facts.length)];
+            addMessageToChat('ai', `🌍 Conservation Fact: ${randomFact}`);
+        });
+
+        document.getElementById('explore-btn').addEventListener('click', function() {
+            exploreMode = !exploreMode;
+            this.classList.toggle('active');
+            this.textContent = exploreMode ? '🚶 Explore Mode' : '👁️ View Mode';
+        });
+
+        document.getElementById('music-btn').addEventListener('click', function() {
+            this.classList.toggle('active');
+            // Music toggle logic would go here
+            addMessageToChat('ai', this.classList.contains('active') ?
+                '🎵 Background music enabled (feature coming soon!)' :
+                '🎵 Background music disabled');
+        });
+
+        document.getElementById('sounds-btn').addEventListener('click', function() {
+            this.classList.toggle('active');
+            // Nature sounds toggle logic would go here
+            addMessageToChat('ai', this.classList.contains('active') ?
+                '🔊 Nature sounds enabled (feature coming soon!)' :
+                '🔊 Nature sounds disabled');
+        });
+
+        document.getElementById('close-info').addEventListener('click', () => {
+            document.getElementById('info-card').classList.remove('show');
+        });
+
+        // Chat input handlers
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initialize scene on load
+        window.addEventListener('load', initScene);
+    </script>
+</body>
+</html>
