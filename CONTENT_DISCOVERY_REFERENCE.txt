@@ -1,0 +1,331 @@
+================================================================================
+CONTENT DISCOVERY REFERENCE - AI Ambassador Platform
+================================================================================
+Quick lookup guide for all platform content
+Generated: 2025-11-07
+
+================================================================================
+1. ROOT-LEVEL HTML APPLICATIONS (19 total)
+================================================================================
+
+MAIN ENTRY POINTS:
+  index.html                          - Landing page (needs navigation update)
+  ai-ambassador-gallery.html          - Core user experience app
+  Copilot-Agent-365-main/index.html   - Chat interface with voice support
+
+ADMIN & MANAGEMENT:
+  h.html                              - Admin console (comprehensive dashboard)
+  admin-dashboard.html                - Admin management interface
+  analytics-dashboard.html            - Real-time analytics & metrics
+  moderation-dashboard.html           - Content moderation tools
+  webhook-manager.html                - Webhook configuration
+  prompt-template-manager.html        - Prompt template management
+  prompt-mixer-pro.html               - Advanced prompt engineering
+  translation-manager.html            - Multi-language management
+  cache-manager.html                  - Cache system management
+  backup-manager.html                 - Backup and recovery interface
+
+SHOWCASES & DEMOS:
+  avatar-3d-procedural.html           - Procedural 3D avatar demo
+  avatar-3d-fps-explorer.html         - 3D FPS environment explorer
+  NEW_FEATURES_SHOWCASE.html          - Feature demonstration page
+  NexusWorlds.html                    - Advanced 3D world system
+  mobile-chat.html                    - Mobile-optimized chat
+
+SPECIALIZED:
+  offline.html                        - Offline functionality
+  nexus-holographic-companion.html    - Holographic companion interface
+
+================================================================================
+2. DOCUMENTATION PORTAL (13 pages + search)
+================================================================================
+
+MAIN HUB:
+  docs/index.html                     - Central documentation portal
+
+GETTING STARTED:
+  docs/getting-started/index.html     - Quick start guide
+
+TUTORIALS (7 pages):
+  docs/tutorials/index.html           - Tutorials overview
+  docs/tutorials/first-ambassador.html - Create first ambassador
+  docs/tutorials/qr-codes.html        - QR code setup
+  docs/tutorials/seeded-demos.html    - Seeded demo implementation
+  docs/tutorials/custom-agents.html   - Build custom agents
+  docs/tutorials/power-platform.html  - Power Platform integration
+  docs/tutorials/multi-language.html  - Multi-language support
+  docs/tutorials/ab-testing.html      - A/B testing ambassadors
+
+REFERENCE SECTIONS:
+  docs/api-reference/index.html       - API documentation
+  docs/admin-guide/index.html         - Admin guide
+  docs/deployment/index.html          - Deployment instructions
+  docs/troubleshooting/index.html     - Troubleshooting
+
+================================================================================
+3. MARKDOWN DOCUMENTATION (40+ files)
+================================================================================
+
+CRITICAL PLATFORM DOCS:
+  README.md                           - Project overview
+  CLAUDE.md                           - Development guidelines
+  AI_Ambassador_Implementation_Spec.md - Complete spec
+  AI_Ambassador_Integration_Map.md    - Architecture
+
+FEATURE DOCUMENTATION:
+  NEW_FEATURES_GUIDE.md               - 3 new features (Emotion, Memory, Swarm)
+  PROCEDURAL_3D_AVATAR_SYSTEM.md      - 3D avatar system (code-based, no assets)
+  SHOWCASE_FEATURES_SUMMARY.md        - 3 showcase features (Spectacle, Symphony, Infection)
+  SHOWCASE_INTEGRATION_GUIDE.md       - Integration instructions
+  DEMO_SHOWCASE_MASTER.md             - 10 production demo scenarios
+
+DEPLOYMENT:
+  DEPLOYMENT_GUIDE.md                 - Step-by-step deployment
+  DEPLOYMENT_SUMMARY.md               - Overview
+  INFRASTRUCTURE.md                   - Azure infrastructure
+  FINAL_DEPLOYMENT_PACKAGE_REPORT.md  - Validation report
+  TROUBLESHOOTING_DEPLOYMENT.md       - Troubleshooting
+
+ADVANCED FEATURES:
+  PWA_GUIDE.md                        - Progressive Web App
+  PWA_QUICK_START.md                  - PWA setup
+  CACHING_IMPLEMENTATION_SUMMARY.md   - Caching strategy
+  BACKUP_RECOVERY_GUIDE.md            - Backup & recovery
+  WEBHOOK_GUIDE.md                    - Webhook system
+  WEBHOOK_EXAMPLES.md                 - Webhook examples
+  WEBHOOK_SYSTEM_SUMMARY.md           - System overview
+  QUICK_START_AMBASSADOR_ENTRY.md     - Ambassador entry guide
+
+SAFETY & OPERATIONS:
+  SECURITY.md                         - Security best practices
+  CONTENT_MODERATION_GUIDE.md         - Content moderation
+  CODE_OF_CONDUCT.md                  - Community guidelines
+  CICD_SETUP.md                       - CI/CD pipeline
+  CICD_IMPLEMENTATION_SUMMARY.md      - Pipeline overview
+  README_CICD.md                      - CI/CD documentation
+
+ADMIN:
+  ADMIN_GUIDE.md                      - Admin console guide
+  ADMIN_DASHBOARD_IMPLEMENTATION.md   - Dashboard implementation
+
+COPILOT AGENT FRAMEWORK DOCS:
+  Copilot-Agent-365-main/README.md
+  Copilot-Agent-365-main/CLAUDE.md
+  Copilot-Agent-365-main/AGENT_DEPLOYMENT.md
+  Copilot-Agent-365-main/CACHING_GUIDE.md
+  Copilot-Agent-365-main/EDGE_DEPLOYMENT.md
+  Copilot-Agent-365-main/TESTING.md
+  Copilot-Agent-365-main/docs/GETTING_STARTED.md
+  Copilot-Agent-365-main/docs/API_REFERENCE.md
+  Copilot-Agent-365-main/docs/ARCHITECTURE.md
+  Copilot-Agent-365-main/docs/AGENT_DEVELOPMENT.md
+  Copilot-Agent-365-main/docs/DEPLOYMENT.md
+  Copilot-Agent-365-main/docs/POWER_PLATFORM_INTEGRATION.md
+  Copilot-Agent-365-main/docs/TROUBLESHOOTING.md
+  Copilot-Agent-365-main/docs/SECURITY.md
+
+OTHER:
+  PRODUCTION_AGENTS_SUMMARY.md        - Production agents
+  IMPLEMENTATION_SUMMARY.md           - Implementation status
+  MERGE_SUMMARY.md                    - Feature merge info
+  ULTRA_THINK_SUMMARY.md              - Development summary
+  EDGE_DEPLOYMENT.md                  - Edge computing
+
+================================================================================
+4. JAVASCRIPT UTILITIES
+================================================================================
+
+  showcase-features.js                - 3D showcase implementations (25KB)
+  analytics-tracker.js                - Analytics tracking system
+  service-worker.js                   - PWA offline support
+  docs/scripts.js                     - Documentation portal functionality
+
+================================================================================
+5. CONFIGURATION & TEMPLATES
+================================================================================
+
+AMBASSADORS:
+  ambassador-creative-001.json        - Creative ambassador config
+  ambassador-sales-002.json           - Sales ambassador config
+  master-ambassador-import.json       - Master import configuration
+
+SYSTEM CONFIG:
+  admin_config.json                   - Admin settings
+  cache_config.json                   - Cache configuration
+  moderation_config.json              - Moderation settings
+  manifest.json                       - PWA manifest
+
+INFRASTRUCTURE:
+  infrastructure/main.bicep           - Azure Bicep template
+  Copilot-Agent-365-main/azuredeploy.json - ARM template
+  infrastructure/app-settings.template.json
+
+EXAMPLES:
+  examples/creative-studio/ambassador.json
+  examples/education-tutor/ambassador.json
+  examples/retail-shopping/ambassador.json
+
+LOCALIZATION (11 languages):
+  Copilot-Agent-365-main/locales/en-US/messages.json
+  Copilot-Agent-365-main/locales/es-ES/messages.json
+  Copilot-Agent-365-main/locales/fr-FR/messages.json
+  Copilot-Agent-365-main/locales/de-DE/messages.json
+  Copilot-Agent-365-main/locales/ja-JP/messages.json
+  Copilot-Agent-365-main/locales/pt-BR/messages.json
+  Copilot-Agent-365-main/locales/zh-CN/messages.json
+  Copilot-Agent-365-main/locales/ar-SA/messages.json
+  Copilot-Agent-365-main/locales/ru-RU/messages.json
+  Copilot-Agent-365-main/locales/hi-IN/messages.json
+
+================================================================================
+6. SUGGESTED NAVIGATION STRUCTURE FOR INDEX.HTML
+================================================================================
+
+TIER 1 - PRIMARY (Featured):
+  - Ambassador Gallery (ai-ambassador-gallery.html)
+  - Admin Console (h.html)
+  - Chat Interface (Copilot-Agent-365-main/index.html)
+
+TIER 2 - SHOWCASE (Features):
+  - Documentation Portal (docs/index.html)
+  - 3D Avatar Demo (avatar-3d-procedural.html)
+  - 3D FPS Explorer (avatar-3d-fps-explorer.html)
+  - Feature Showcase (NEW_FEATURES_SHOWCASE.html)
+  - Analytics (analytics-dashboard.html)
+
+TIER 3 - TOOLS (Admin & Management):
+  - Admin Dashboard (admin-dashboard.html)
+  - Mobile Chat (mobile-chat.html)
+  - Webhook Manager (webhook-manager.html)
+  - Prompt Manager (prompt-template-manager.html)
+  - Translation Manager (translation-manager.html)
+
+TIER 4 - ADVANCED (Specialized):
+  - Advanced Worlds (NexusWorlds.html)
+  - Holographic Companion (nexus-holographic-companion.html)
+  - Cache Manager (cache-manager.html)
+  - Backup Manager (backup-manager.html)
+  - Moderation (moderation-dashboard.html)
+  - Offline Mode (offline.html)
+  - Prompt Mixer Pro (prompt-mixer-pro.html)
+
+================================================================================
+7. CONTENT BY AUDIENCE
+================================================================================
+
+END USERS:
+  - index.html
+  - ai-ambassador-gallery.html
+  - avatar-3d-procedural.html
+  - avatar-3d-fps-explorer.html
+  - mobile-chat.html
+  - NEW_FEATURES_SHOWCASE.html
+  - Copilot-Agent-365-main/index.html
+
+ADMINISTRATORS:
+  - h.html
+  - admin-dashboard.html
+  - webhook-manager.html
+  - moderation-dashboard.html
+  - backup-manager.html
+  - ADMIN_GUIDE.md
+  - ADMIN_DASHBOARD_IMPLEMENTATION.md
+
+DEVELOPERS:
+  - docs/index.html (full tutorial suite)
+  - Copilot-Agent-365-main/docs/
+  - AI_Ambassador_Implementation_Spec.md
+  - PROCEDURAL_3D_AVATAR_SYSTEM.md
+  - NEW_FEATURES_GUIDE.md
+  - All markdown documentation
+
+MANAGERS/EXECUTIVES:
+  - analytics-dashboard.html
+  - DEMO_SHOWCASE_MASTER.md
+  - DEPLOYMENT_SUMMARY.md
+  - PRODUCTION_AGENTS_SUMMARY.md
+  - SHOWCASE_FEATURES_SUMMARY.md
+
+================================================================================
+8. CONTENT BY FEATURE
+================================================================================
+
+QR CODE & DISCOVERY:
+  - ai-ambassador-gallery.html
+  - docs/tutorials/qr-codes.html
+  - QUICK_START_AMBASSADOR_ENTRY.md
+
+3D AVATARS & VISUALIZATION:
+  - avatar-3d-procedural.html
+  - avatar-3d-fps-explorer.html
+  - NexusWorlds.html
+  - PROCEDURAL_3D_AVATAR_SYSTEM.md
+  - showcase-features.js
+
+CHAT & CONVERSATION:
+  - mobile-chat.html
+  - Copilot-Agent-365-main/index.html
+  - docs/tutorials/custom-agents.html
+
+ADMIN MANAGEMENT:
+  - h.html
+  - admin-dashboard.html
+  - ADMIN_GUIDE.md
+  - ADMIN_DASHBOARD_IMPLEMENTATION.md
+
+ANALYTICS & MONITORING:
+  - analytics-dashboard.html
+  - analytics-tracker.js
+  - Docs about deployment monitoring
+
+SHOWCASE & MARKETING:
+  - NEW_FEATURES_SHOWCASE.html
+  - DEMO_SHOWCASE_MASTER.md
+  - SHOWCASE_FEATURES_SUMMARY.md
+  - SHOWCASE_INTEGRATION_GUIDE.md
+
+DEPLOYMENT & INFRASTRUCTURE:
+  - DEPLOYMENT_GUIDE.md
+  - infrastructure/main.bicep
+  - docs/deployment/index.html
+
+WEBHOOKS & INTEGRATIONS:
+  - webhook-manager.html
+  - WEBHOOK_GUIDE.md
+  - WEBHOOK_EXAMPLES.md
+  - WEBHOOK_SYSTEM_SUMMARY.md
+
+OFFLINE & PWA:
+  - offline.html
+  - PWA_GUIDE.md
+  - PWA_QUICK_START.md
+  - service-worker.js
+
+MULTI-LANGUAGE SUPPORT:
+  - translation-manager.html
+  - docs/tutorials/multi-language.html
+  - All locales/*/messages.json files
+
+AGENT DEVELOPMENT:
+  - Copilot-Agent-365-main/docs/AGENT_DEVELOPMENT.md
+  - docs/tutorials/custom-agents.html
+  - NEW_FEATURES_GUIDE.md
+  - Copilot-Agent-365-main/AGENT_DEPLOYMENT.md
+
+POWER PLATFORM:
+  - docs/tutorials/power-platform.html
+  - Copilot-Agent-365-main/docs/POWER_PLATFORM_INTEGRATION.md
+
+TESTING & QUALITY:
+  - docs/tutorials/ab-testing.html
+  - Copilot-Agent-365-main/TESTING.md
+
+SECURITY & SAFETY:
+  - SECURITY.md
+  - CONTENT_MODERATION_GUIDE.md
+  - moderation-dashboard.html
+  - CODE_OF_CONDUCT.md
+
+================================================================================
+END OF REFERENCE GUIDE
+================================================================================

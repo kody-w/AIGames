@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Ambassador Explorer - Hotel Lobby</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            cursor: grab;
+        }
+
+        canvas.fps-mode {
+            cursor: none;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            font-family: 'Courier New', monospace;
+        }
+
+        .hud h3 {
+            margin-bottom: 10px;
+            color: #6366f1;
+            font-size: 16px;
+        }
+
+        .hud div {
+            margin: 5px 0;
+        }
+
+        .controls-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-panel h3 {
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0;
+            align-items: center;
+        }
+
+        .key {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px 0;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+        }
+
+        .crosshair.active {
+            display: block;
+        }
+
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .crosshair::before {
+            width: 2px;
+            height: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .crosshair::after {
+            width: 10px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(99, 102, 241, 0.9);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <div class="hud" id="hud">
+            <h3>🎮 FPS Mode</h3>
+            <div>Position: <span id="pos">0, 0, 0</span></div>
+            <div>Camera: <span id="camera-mode">Third Person</span></div>
+            <div>Speed: <span id="speed">0</span></div>
+            <div>FPS: <span id="fps">60</span></div>
+        </div>
+
+        <div class="controls-panel">
+            <h3>⌨️ Controls</h3>
+            <div class="control-row">
+                <span class="key">W A S D</span>
+                <span>Move</span>
+            </div>
+            <div class="control-row">
+                <span class="key">MOUSE</span>
+                <span>Look Around</span>
+            </div>
+            <div class="control-row">
+                <span class="key">SHIFT</span>
+                <span>Run</span>
+            </div>
+            <div class="control-row">
+                <span class="key">V</span>
+                <span>Toggle Camera</span>
+            </div>
+            <div class="control-row">
+                <span class="key">CLICK</span>
+                <span>Lock Pointer</span>
+            </div>
+            <button id="toggle-camera-btn">Toggle Camera (V)</button>
+            <button id="reset-position-btn">Reset Position</button>
+        </div>
+
+        <div class="crosshair" id="crosshair"></div>
+        <div class="notification" id="notification"></div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+
+        // ================================================================
+        // FIRST-PERSON EXPLORER SYSTEM
+        // Control a 3D avatar in a procedurally generated hotel lobby
+        // ================================================================
+
+        class ProceduralHotelLobby {
+            constructor() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x87ceeb); // Sky blue
+                this.scene.fog = new THREE.Fog(0x87ceeb, 10, 50);
+
+                this.objects = []; // For collision detection
+
+                this.createLobby();
+            }
+
+            createLobby() {
+                // Floor
+                const floorGeo = new THREE.PlaneGeometry(40, 40);
+                const floorMat = new THREE.MeshStandardMaterial({
+                    color: 0xcccccc,
+                    roughness: 0.8,
+                    metalness: 0.2
+                });
+                const floor = new THREE.Mesh(floorGeo, floorMat);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                this.scene.add(floor);
+
+                // Add tile pattern
+                this.createTilePattern(floor);
+
+                // Walls
+                this.createWalls();
+
+                // Ceiling
+                const ceilingGeo = new THREE.PlaneGeometry(40, 40);
+                const ceilingMat = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: 0.9
+                });
+                const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+                ceiling.rotation.x = Math.PI / 2;
+                ceiling.position.y = 5;
+                this.scene.add(ceiling);
+
+                // Reception Desk
+                this.createReceptionDesk();
+
+                // Furniture
+                this.createSeatingArea();
+                this.createTables();
+
+                // Plants
+                this.createPlants();
+
+                // Artwork
+                this.createArtwork();
+
+                // Lighting
+                this.setupLighting();
+
+                // Ambient objects
+                this.createAmbientObjects();
+            }
+
+            createTilePattern(floor) {
+                // Create alternating tile pattern
+                const tileSize = 2;
+                const tilesX = 20;
+                const tilesZ = 20;
+
+                for (let x = 0; x < tilesX; x++) {
+                    for (let z = 0; z < tilesZ; z++) {
+                        if ((x + z) % 2 === 0) {
+                            const tileGeo = new THREE.PlaneGeometry(tileSize, tileSize);
+                            const tileMat = new THREE.MeshStandardMaterial({
+                                color: 0xaaaaaa,
+                                roughness: 0.8
+                            });
+                            const tile = new THREE.Mesh(tileGeo, tileMat);
+                            tile.rotation.x = -Math.PI / 2;
+                            tile.position.set(
+                                (x - tilesX / 2) * tileSize + tileSize / 2,
+                                0.001,
+                                (z - tilesZ / 2) * tileSize + tileSize / 2
+                            );
+                            this.scene.add(tile);
+                        }
+                    }
+                }
+            }
+
+            createWalls() {
+                const wallHeight = 5;
+                const wallMat = new THREE.MeshStandardMaterial({
+                    color: 0xf5f5dc,
+                    roughness: 0.9
+                });
+
+                // North wall
+                const northWall = this.createWall(40, wallHeight, 0.2, wallMat);
+                northWall.position.set(0, wallHeight / 2, -20);
+                this.objects.push(northWall);
+
+                // South wall
+                const southWall = this.createWall(40, wallHeight, 0.2, wallMat);
+                southWall.position.set(0, wallHeight / 2, 20);
+                this.objects.push(southWall);
+
+                // East wall
+                const eastWall = this.createWall(0.2, wallHeight, 40, wallMat);
+                eastWall.position.set(20, wallHeight / 2, 0);
+                this.objects.push(eastWall);
+
+                // West wall
+                const westWall = this.createWall(0.2, wallHeight, 40, wallMat);
+                westWall.position.set(-20, wallHeight / 2, 0);
+                this.objects.push(westWall);
+            }
+
+            createWall(width, height, depth, material) {
+                const wallGeo = new THREE.BoxGeometry(width, height, depth);
+                const wall = new THREE.Mesh(wallGeo, material);
+                wall.castShadow = true;
+                wall.receiveShadow = true;
+                this.scene.add(wall);
+                return wall;
+            }
+
+            createReceptionDesk() {
+                const deskGroup = new THREE.Group();
+
+                // Main desk
+                const deskGeo = new THREE.BoxGeometry(8, 1.2, 3);
+                const deskMat = new THREE.MeshStandardMaterial({
+                    color: 0x8b4513,
+                    roughness: 0.4,
+                    metalness: 0.3
+                });
+                const desk = new THREE.Mesh(deskGeo, deskMat);
+                desk.position.y = 0.6;
+                desk.castShadow = true;
+                deskGroup.add(desk);
+
+                // Desk top (marble)
+                const topGeo = new THREE.BoxGeometry(8.2, 0.1, 3.2);
+                const topMat = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: 0.2,
+                    metalness: 0.8
+                });
+                const top = new THREE.Mesh(topGeo, topMat);
+                top.position.y = 1.25;
+                top.castShadow = true;
+                deskGroup.add(top);
+
+                // Computer monitor (simple)
+                const monitorGeo = new THREE.BoxGeometry(0.6, 0.4, 0.05);
+                const monitorMat = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    emissive: 0x0066ff,
+                    emissiveIntensity: 0.3
+                });
+                const monitor = new THREE.Mesh(monitorGeo, monitorMat);
+                monitor.position.set(0, 1.5, 0);
+                deskGroup.add(monitor);
+
+                deskGroup.position.set(0, 0, -15);
+                this.scene.add(deskGroup);
+                this.objects.push(desk);
+            }
+
+            createSeatingArea() {
+                // Create a few couches
+                this.createCouch(-8, 5, 0x6366f1);
+                this.createCouch(8, 5, 0x8b5cf6);
+                this.createCouch(-8, -5, 0x10b981);
+            }
+
+            createCouch(x, z, color) {
+                const couchGroup = new THREE.Group();
+
+                const couchMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.8
+                });
+
+                // Seat
+                const seatGeo = new THREE.BoxGeometry(2.5, 0.5, 1.2);
+                const seat = new THREE.Mesh(seatGeo, couchMat);
+                seat.position.y = 0.5;
+                seat.castShadow = true;
+                couchGroup.add(seat);
+
+                // Backrest
+                const backGeo = new THREE.BoxGeometry(2.5, 0.8, 0.2);
+                const back = new THREE.Mesh(backGeo, couchMat);
+                back.position.set(0, 0.9, -0.5);
+                back.castShadow = true;
+                couchGroup.add(back);
+
+                // Arms
+                const armGeo = new THREE.BoxGeometry(0.2, 0.6, 1.2);
+                const leftArm = new THREE.Mesh(armGeo, couchMat);
+                leftArm.position.set(-1.15, 0.7, 0);
+                leftArm.castShadow = true;
+                couchGroup.add(leftArm);
+
+                const rightArm = leftArm.clone();
+                rightArm.position.x = 1.15;
+                couchGroup.add(rightArm);
+
+                couchGroup.position.set(x, 0, z);
+                this.scene.add(couchGroup);
+                this.objects.push(seat);
+            }
+
+            createTables() {
+                this.createCoffeeTable(0, 8);
+                this.createCoffeeTable(-8, -8);
+                this.createCoffeeTable(8, -8);
+            }
+
+            createCoffeeTable(x, z) {
+                const tableGroup = new THREE.Group();
+
+                // Table top
+                const topGeo = new THREE.CylinderGeometry(1, 1, 0.1, 32);
+                const topMat = new THREE.MeshStandardMaterial({
+                    color: 0x654321,
+                    roughness: 0.3,
+                    metalness: 0.5
+                });
+                const top = new THREE.Mesh(topGeo, topMat);
+                top.position.y = 0.6;
+                top.castShadow = true;
+                tableGroup.add(top);
+
+                // Legs
+                const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8);
+                const legMat = new THREE.MeshStandardMaterial({
+                    color: 0x8b4513,
+                    roughness: 0.6
+                });
+
+                for (let i = 0; i < 4; i++) {
+                    const angle = (i / 4) * Math.PI * 2;
+                    const leg = new THREE.Mesh(legGeo, legMat);
+                    leg.position.set(
+                        Math.cos(angle) * 0.7,
+                        0.3,
+                        Math.sin(angle) * 0.7
+                    );
+                    leg.castShadow = true;
+                    tableGroup.add(leg);
+                }
+
+                tableGroup.position.set(x, 0, z);
+                this.scene.add(tableGroup);
+                this.objects.push(top);
+            }
+
+            createPlants() {
+                this.createPlant(-15, -15);
+                this.createPlant(15, -15);
+                this.createPlant(-15, 10);
+                this.createPlant(15, 10);
+            }
+
+            createPlant(x, z) {
+                const plantGroup = new THREE.Group();
+
+                // Pot
+                const potGeo = new THREE.CylinderGeometry(0.3, 0.2, 0.5, 16);
+                const potMat = new THREE.MeshStandardMaterial({
+                    color: 0x8b4513,
+                    roughness: 0.9
+                });
+                const pot = new THREE.Mesh(potGeo, potMat);
+                pot.position.y = 0.25;
+                pot.castShadow = true;
+                plantGroup.add(pot);
+
+                // Plant (simple spheres as leaves)
+                const leafMat = new THREE.MeshStandardMaterial({
+                    color: 0x228b22,
+                    roughness: 0.8
+                });
+
+                for (let i = 0; i < 5; i++) {
+                    const leafGeo = new THREE.SphereGeometry(0.2 + Math.random() * 0.1, 8, 8);
+                    const leaf = new THREE.Mesh(leafGeo, leafMat);
+                    leaf.position.set(
+                        (Math.random() - 0.5) * 0.4,
+                        0.7 + i * 0.2,
+                        (Math.random() - 0.5) * 0.4
+                    );
+                    leaf.castShadow = true;
+                    plantGroup.add(leaf);
+                }
+
+                plantGroup.position.set(x, 0, z);
+                this.scene.add(plantGroup);
+                this.objects.push(pot);
+            }
+
+            createArtwork() {
+                // Create framed pictures on walls
+                this.createFrame(-10, 2.5, -19.8, 0x6366f1);
+                this.createFrame(10, 2.5, -19.8, 0x8b5cf6);
+                this.createFrame(-19.8, 2.5, -10, 0x10b981, true);
+                this.createFrame(-19.8, 2.5, 10, 0xf59e0b, true);
+            }
+
+            createFrame(x, y, z, color, rotateY = false) {
+                const frameGroup = new THREE.Group();
+
+                // Frame
+                const frameGeo = new THREE.BoxGeometry(2, 1.5, 0.1);
+                const frameMat = new THREE.MeshStandardMaterial({
+                    color: 0x8b4513,
+                    roughness: 0.6
+                });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                frameGroup.add(frame);
+
+                // Art (colored rectangle)
+                const artGeo = new THREE.PlaneGeometry(1.8, 1.3);
+                const artMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    roughness: 0.7
+                });
+                const art = new THREE.Mesh(artGeo, artMat);
+                art.position.z = 0.06;
+                frameGroup.add(art);
+
+                if (rotateY) {
+                    frameGroup.rotation.y = Math.PI / 2;
+                }
+
+                frameGroup.position.set(x, y, z);
+                this.scene.add(frameGroup);
+            }
+
+            createAmbientObjects() {
+                // Add some decorative items
+
+                // Chandelier
+                const chandelier = new THREE.Group();
+                const chandGeo = new THREE.CylinderGeometry(0.8, 0.4, 1, 8);
+                const chandMat = new THREE.MeshStandardMaterial({
+                    color: 0xffd700,
+                    roughness: 0.2,
+                    metalness: 0.9,
+                    emissive: 0xffff00,
+                    emissiveIntensity: 0.2
+                });
+                const chandBody = new THREE.Mesh(chandGeo, chandMat);
+                chandelier.add(chandBody);
+
+                // Light bulbs
+                for (let i = 0; i < 8; i++) {
+                    const bulbGeo = new THREE.SphereGeometry(0.1, 8, 8);
+                    const bulbMat = new THREE.MeshStandardMaterial({
+                        color: 0xffffaa,
+                        emissive: 0xffffaa,
+                        emissiveIntensity: 0.5
+                    });
+                    const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+                    const angle = (i / 8) * Math.PI * 2;
+                    bulb.position.set(
+                        Math.cos(angle) * 0.6,
+                        -0.3,
+                        Math.sin(angle) * 0.6
+                    );
+                    chandelier.add(bulb);
+                }
+
+                chandelier.position.set(0, 4.5, 0);
+                this.scene.add(chandelier);
+
+                // Rug in center
+                const rugGeo = new THREE.CircleGeometry(3, 32);
+                const rugMat = new THREE.MeshStandardMaterial({
+                    color: 0xdc143c,
+                    roughness: 0.95
+                });
+                const rug = new THREE.Mesh(rugGeo, rugMat);
+                rug.rotation.x = -Math.PI / 2;
+                rug.position.y = 0.01;
+                this.scene.add(rug);
+            }
+
+            setupLighting() {
+                // Ambient light
+                const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+                this.scene.add(ambient);
+
+                // Main overhead light (from chandelier)
+                const chandLight = new THREE.PointLight(0xffffdd, 1, 30);
+                chandLight.position.set(0, 4, 0);
+                chandLight.castShadow = true;
+                chandLight.shadow.mapSize.width = 2048;
+                chandLight.shadow.mapSize.height = 2048;
+                this.scene.add(chandLight);
+
+                // Desk light
+                const deskLight = new THREE.PointLight(0xffffff, 0.5, 10);
+                deskLight.position.set(0, 2, -15);
+                this.scene.add(deskLight);
+
+                // Wall lights
+                const wallLight1 = new THREE.PointLight(0xffffdd, 0.4, 15);
+                wallLight1.position.set(-15, 3, -15);
+                this.scene.add(wallLight1);
+
+                const wallLight2 = new THREE.PointLight(0xffffdd, 0.4, 15);
+                wallLight2.position.set(15, 3, -15);
+                this.scene.add(wallLight2);
+
+                // Hemisphere light
+                const hemiLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.3);
+                this.scene.add(hemiLight);
+            }
+        }
+
+        // ================================================================
+        // FIRST-PERSON CONTROLLER
+        // ================================================================
+
+        class FirstPersonController {
+            constructor(scene, character) {
+                this.scene = scene;
+                this.character = character;
+
+                // Camera setup
+                this.camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+
+                // Camera modes
+                this.cameraMode = 'third-person'; // 'first-person' or 'third-person'
+                this.thirdPersonDistance = 5;
+                this.thirdPersonHeight = 2;
+
+                // Movement
+                this.moveSpeed = 0.1;
+                this.runMultiplier = 2;
+                this.velocity = new THREE.Vector3();
+                this.direction = new THREE.Vector3();
+
+                // Rotation
+                this.yaw = 0;
+                this.pitch = 0;
+                this.mouseSensitivity = 0.002;
+
+                // Input state
+                this.keys = {};
+                this.isRunning = false;
+                this.isPointerLocked = false;
+
+                // Collision
+                this.characterRadius = 0.5;
+                this.characterHeight = 1.7;
+
+                this.setupControls();
+                // Note: setupPointerLock() is called after canvas is created in FPSExplorer
+
+                // Initial position
+                this.character.position.set(0, 0, 10);
+                this.updateCameraPosition();
+            }
+
+            setupControls() {
+                // Keyboard
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+
+                    if (e.key.toLowerCase() === 'v') {
+                        this.toggleCamera();
+                    }
+
+                    if (e.key.toLowerCase() === 'shift') {
+                        this.isRunning = true;
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+
+                    if (e.key.toLowerCase() === 'shift') {
+                        this.isRunning = false;
+                    }
+                });
+
+                // Mouse movement
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isPointerLocked) {
+                        this.yaw -= e.movementX * this.mouseSensitivity;
+                        this.pitch -= e.movementY * this.mouseSensitivity;
+
+                        // Clamp pitch
+                        this.pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitch));
+                    }
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                });
+            }
+
+            setupPointerLock() {
+                const canvas = document.querySelector('canvas');
+
+                // Canvas might not exist yet, check before adding listeners
+                if (!canvas) {
+                    console.warn('Canvas not found during setupPointerLock, will retry later');
+                    return;
+                }
+
+                canvas.addEventListener('click', () => {
+                    canvas.requestPointerLock();
+                });
+
+                document.addEventListener('pointerlockchange', () => {
+                    const canvasElem = document.querySelector('canvas');
+                    if (!canvasElem) return;
+
+                    this.isPointerLocked = document.pointerLockElement === canvasElem;
+                    const crosshair = document.getElementById('crosshair');
+
+                    if (this.isPointerLocked) {
+                        if (crosshair) crosshair.classList.add('active');
+                        canvasElem.classList.add('fps-mode');
+                    } else {
+                        if (crosshair) crosshair.classList.remove('active');
+                        canvasElem.classList.remove('fps-mode');
+                    }
+                });
+            }
+
+            update(obstacles) {
+                // Calculate movement direction
+                this.direction.set(0, 0, 0);
+
+                if (this.keys['w']) this.direction.z -= 1;
+                if (this.keys['s']) this.direction.z += 1;
+                if (this.keys['a']) this.direction.x -= 1;
+                if (this.keys['d']) this.direction.x += 1;
+
+                // Normalize diagonal movement
+                if (this.direction.length() > 0) {
+                    this.direction.normalize();
+                }
+
+                // Apply rotation to movement direction
+                const rotation = new THREE.Euler(0, this.yaw, 0, 'YXZ');
+                this.direction.applyEuler(rotation);
+
+                // Calculate speed
+                const speed = this.isRunning ? this.moveSpeed * this.runMultiplier : this.moveSpeed;
+
+                // Apply movement
+                const newPosition = this.character.position.clone();
+                newPosition.add(this.direction.multiplyScalar(speed));
+
+                // Check collisions
+                if (!this.checkCollisions(newPosition, obstacles)) {
+                    this.character.position.copy(newPosition);
+                }
+
+                // Keep character on ground
+                this.character.position.y = 0;
+
+                // Update character rotation (only Y axis)
+                this.character.rotation.y = this.yaw;
+
+                // Update camera
+                this.updateCameraPosition();
+
+                // Update HUD
+                this.updateHUD();
+            }
+
+            checkCollisions(newPosition, obstacles) {
+                for (const obstacle of obstacles) {
+                    const box = new THREE.Box3().setFromObject(obstacle);
+                    const characterBox = new THREE.Box3().setFromCenterAndSize(
+                        newPosition,
+                        new THREE.Vector3(
+                            this.characterRadius * 2,
+                            this.characterHeight,
+                            this.characterRadius * 2
+                        )
+                    );
+
+                    if (box.intersectsBox(characterBox)) {
+                        return true; // Collision detected
+                    }
+                }
+
+                // Check world boundaries
+                const worldSize = 19;
+                if (Math.abs(newPosition.x) > worldSize || Math.abs(newPosition.z) > worldSize) {
+                    return true;
+                }
+
+                return false; // No collision
+            }
+
+            updateCameraPosition() {
+                if (this.cameraMode === 'first-person') {
+                    // First-person: Camera at character's eye level
+                    const eyeHeight = 1.5;
+                    this.camera.position.copy(this.character.position);
+                    this.camera.position.y += eyeHeight;
+
+                    // Look direction
+                    const lookAt = new THREE.Vector3(
+                        Math.sin(this.yaw) * Math.cos(this.pitch),
+                        Math.sin(this.pitch),
+                        Math.cos(this.yaw) * Math.cos(this.pitch)
+                    );
+                    this.camera.lookAt(this.camera.position.clone().add(lookAt));
+
+                } else {
+                    // Third-person: Camera behind character
+                    const offset = new THREE.Vector3(
+                        Math.sin(this.yaw) * this.thirdPersonDistance,
+                        this.thirdPersonHeight,
+                        Math.cos(this.yaw) * this.thirdPersonDistance
+                    );
+
+                    this.camera.position.copy(this.character.position).add(offset);
+                    this.camera.lookAt(this.character.position.clone().add(new THREE.Vector3(0, 1, 0)));
+                }
+            }
+
+            toggleCamera() {
+                if (this.cameraMode === 'first-person') {
+                    this.cameraMode = 'third-person';
+                    this.showNotification('Third Person Camera');
+                } else {
+                    this.cameraMode = 'first-person';
+                    this.showNotification('First Person Camera');
+                }
+                this.updateCameraPosition();
+            }
+
+            resetPosition() {
+                this.character.position.set(0, 0, 10);
+                this.yaw = 0;
+                this.pitch = 0;
+                this.showNotification('Position Reset');
+            }
+
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 2000);
+            }
+
+            updateHUD() {
+                const pos = this.character.position;
+                document.getElementById('pos').textContent =
+                    `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}`;
+
+                document.getElementById('camera-mode').textContent =
+                    this.cameraMode === 'first-person' ? 'First Person' : 'Third Person';
+
+                const speed = this.direction.length() * (this.isRunning ? this.runMultiplier : 1);
+                document.getElementById('speed').textContent = speed.toFixed(2);
+            }
+
+            getCamera() {
+                return this.camera;
+            }
+        }
+
+        // ================================================================
+        // PROCEDURAL CHARACTER (Simplified for FPS)
+        // ================================================================
+
+        class SimpleCharacter {
+            constructor(config) {
+                this.config = config;
+                this.group = new THREE.Group();
+                this.parts = {};
+                this.createCharacter();
+            }
+
+            createCharacter() {
+                const primaryColor = new THREE.Color(this.config.branding.primary_color);
+                const secondaryColor = new THREE.Color(this.config.branding.secondary_color);
+
+                // Simple character for FPS mode
+                const bodyGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.7, 8);
+                const bodyMat = new THREE.MeshStandardMaterial({
+                    color: primaryColor,
+                    roughness: 0.7
+                });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.position.y = 0.85;
+                body.castShadow = true;
+                this.group.add(body);
+
+                // Head
+                const headGeo = new THREE.SphereGeometry(0.2, 16, 16);
+                const headMat = new THREE.MeshStandardMaterial({
+                    color: 0xffdbac,
+                    roughness: 0.8
+                });
+                const head = new THREE.Mesh(headGeo, headMat);
+                head.position.y = 1.8;
+                head.castShadow = true;
+                this.group.add(head);
+                this.parts.head = head;
+
+                return this.group;
+            }
+
+            get position() {
+                return this.group.position;
+            }
+
+            get rotation() {
+                return this.group.rotation;
+            }
+        }
+
+        // ================================================================
+        // MAIN APPLICATION
+        // ================================================================
+
+        class FPSExplorer {
+            constructor() {
+                this.container = document.getElementById('canvas-container');
+
+                // Create lobby environment
+                this.lobby = new ProceduralHotelLobby();
+                this.scene = this.lobby.scene;
+
+                // Create character
+                const config = {
+                    branding: {
+                        primary_color: '#6366f1',
+                        secondary_color: '#8b5cf6'
+                    }
+                };
+                this.character = new SimpleCharacter(config);
+                this.scene.add(this.character.group);
+
+                // Create controller
+                this.controller = new FirstPersonController(this.scene, this.character.group);
+                window.controller = this.controller; // For button access
+
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.container.appendChild(this.renderer.domElement);
+
+                // Now that canvas exists, setup pointer lock
+                this.controller.setupPointerLock();
+
+                // Setup button event listeners
+                this.setupButtonListeners();
+
+                // Window resize
+                window.addEventListener('resize', () => this.onResize());
+
+                // Animation loop
+                this.clock = new THREE.Clock();
+                this.lastTime = 0;
+                this.frameCount = 0;
+                this.animate();
+
+                console.log('🎮 FPS Explorer initialized!');
+                console.log('Click to lock pointer, WASD to move, Mouse to look, V to toggle camera');
+            }
+
+            setupButtonListeners() {
+                const toggleCameraBtn = document.getElementById('toggle-camera-btn');
+                const resetPositionBtn = document.getElementById('reset-position-btn');
+
+                if (toggleCameraBtn) {
+                    toggleCameraBtn.addEventListener('click', () => {
+                        this.controller.toggleCamera();
+                    });
+                }
+
+                if (resetPositionBtn) {
+                    resetPositionBtn.addEventListener('click', () => {
+                        this.controller.resetPosition();
+                    });
+                }
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                const delta = this.clock.getDelta();
+                const elapsed = this.clock.getElapsedTime();
+
+                // Update controller
+                this.controller.update(this.lobby.objects);
+
+                // Render
+                this.renderer.render(this.scene, this.controller.getCamera());
+
+                // FPS counter
+                this.frameCount++;
+                if (elapsed - this.lastTime >= 1.0) {
+                    document.getElementById('fps').textContent = this.frameCount;
+                    this.frameCount = 0;
+                    this.lastTime = elapsed;
+                }
+            }
+
+            onResize() {
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.controller.camera.aspect = window.innerWidth / window.innerHeight;
+                this.controller.camera.updateProjectionMatrix();
+            }
+        }
+
+        // Initialize
+        const app = new FPSExplorer();
+    </script>
+</body>
+</html>

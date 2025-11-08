@@ -40,12 +40,39 @@
             animation: fadeIn 0.8s ease-out 0.2s both;
         }
 
+        .section {
+            margin-bottom: 60px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-title {
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: left;
+            opacity: 0.95;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: fadeIn 0.6s ease-out both;
+        }
+
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 25px;
+            animation: fadeIn 0.8s ease-out both;
+        }
+
+        .cards.featured {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+
+        .cards.regular {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .cards.compact {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         }
 
         .card {
@@ -53,17 +80,21 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            padding: 40px;
+            padding: 30px;
             text-decoration: none;
             color: white;
             transition: all 0.3s ease;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             animation: fadeInUp 0.6s ease-out both;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
-        .card:nth-child(1) { animation-delay: 0.3s; }
-        .card:nth-child(2) { animation-delay: 0.4s; }
-        .card:nth-child(3) { animation-delay: 0.5s; }
+        .card.featured {
+            padding: 40px;
+        }
 
         .card:hover {
             transform: translateY(-10px);
@@ -72,31 +103,74 @@
         }
 
         .card-icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+        }
+
+        .card.featured .card-icon {
             font-size: 4em;
             margin-bottom: 20px;
         }
 
         .card h2 {
+            font-size: 1.4em;
+            margin-bottom: 12px;
+        }
+
+        .card.featured h2 {
             font-size: 1.8em;
             margin-bottom: 15px;
         }
 
         .card p {
-            font-size: 1.1em;
+            font-size: 0.95em;
             opacity: 0.9;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .card.featured p {
+            font-size: 1.1em;
             line-height: 1.6;
         }
 
         .badge {
             display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        .badge.featured {
             background: rgba(16, 185, 129, 0.2);
             border: 1px solid rgba(16, 185, 129, 0.5);
             color: #10b981;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-top: 15px;
-            font-weight: 600;
+        }
+
+        .badge.user {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #3b82f6;
+        }
+
+        .badge.admin {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #8b5cf6;
+        }
+
+        .badge.developer {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: #f59e0b;
+        }
+
+        .badge.docs {
+            background: rgba(20, 184, 166, 0.2);
+            border: 1px solid rgba(20, 184, 166, 0.5);
+            color: #14b8a6;
         }
 
         .footer {
@@ -146,8 +220,20 @@
                 font-size: 1.2em;
             }
 
-            .cards {
+            .section-title {
+                font-size: 1.5em;
+                text-align: center;
+            }
+
+            .cards.featured,
+            .cards.regular,
+            .cards.compact {
                 grid-template-columns: 1fr;
+            }
+
+            .card,
+            .card.featured {
+                padding: 25px;
             }
         }
     </style>
@@ -157,31 +243,179 @@
         <h1>🤖 AI Ambassador Platform</h1>
         <p class="subtitle">Your Gateway to Intelligent Virtual Experiences</p>
 
-        <div class="cards">
-            <a href="ai-ambassador-gallery.html" class="card">
-                <div class="card-icon">🎨</div>
-                <h2>Ambassador Gallery</h2>
-                <p>Browse and interact with AI Ambassadors. Scan QR codes to enter immersive virtual worlds.</p>
-                <span class="badge">User Experience</span>
-            </a>
+        <!-- Featured Experiences -->
+        <div class="section">
+            <h2 class="section-title">✨ Featured Experiences</h2>
+            <div class="cards featured">
+                <a href="ai-ambassador-gallery.html" class="card featured">
+                    <div class="card-icon">🎨</div>
+                    <h2>Ambassador Gallery</h2>
+                    <p>Browse and interact with AI Ambassadors. Scan QR codes to enter immersive virtual worlds.</p>
+                    <span class="badge featured">Featured</span>
+                </a>
 
-            <a href="h.html" class="card">
-                <div class="card-icon">⚙️</div>
-                <h2>Admin Console</h2>
-                <p>Manage ambassadors, users, analytics, webhooks, and all platform features.</p>
-                <span class="badge">Admin Access</span>
-            </a>
+                <a href="NEW_FEATURES_SHOWCASE.html" class="card featured">
+                    <div class="card-icon">🚀</div>
+                    <h2>Mind-Blowing Demos</h2>
+                    <p>Explore 10 revolutionary features showcasing cutting-edge AI and 3D technology.</p>
+                    <span class="badge featured">Featured</span>
+                </a>
 
-            <a href="Copilot-Agent-365-main/index.html" class="card">
-                <div class="card-icon">💬</div>
-                <h2>Chat Interface</h2>
-                <p>Direct chat interface to interact with AI ambassadors and agents.</p>
-                <span class="badge">Developer Tools</span>
-            </a>
+                <a href="avatar-3d-procedural.html" class="card featured">
+                    <div class="card-icon">🎮</div>
+                    <h2>Procedural 3D Avatars</h2>
+                    <p>Experience real-time procedurally generated 3D avatars with dynamic worlds.</p>
+                    <span class="badge featured">Featured</span>
+                </a>
+
+                <a href="avatar-3d-fps-explorer.html" class="card featured">
+                    <div class="card-icon">🕹️</div>
+                    <h2>3D FPS Explorer</h2>
+                    <p>Navigate immersive first-person 3D environments with AI-powered interactions.</p>
+                    <span class="badge featured">Featured</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- User Experiences -->
+        <div class="section">
+            <h2 class="section-title">👥 User Experiences</h2>
+            <div class="cards regular">
+                <a href="mobile-chat.html" class="card">
+                    <div class="card-icon">💬</div>
+                    <h2>Mobile Chat</h2>
+                    <p>Optimized mobile chat interface for seamless AI conversations on the go.</p>
+                    <span class="badge user">User</span>
+                </a>
+
+                <a href="nexus-holographic-companion.html" class="card">
+                    <div class="card-icon">🌐</div>
+                    <h2>Holographic Companion</h2>
+                    <p>Interactive holographic AI companion with stunning visual effects.</p>
+                    <span class="badge user">User</span>
+                </a>
+
+                <a href="NexusWorlds.html" class="card">
+                    <div class="card-icon">🌍</div>
+                    <h2>Nexus Worlds</h2>
+                    <p>Advanced 3D virtual worlds with dynamic environments and AI interactions.</p>
+                    <span class="badge user">User</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Admin & Management Tools -->
+        <div class="section">
+            <h2 class="section-title">⚙️ Admin & Management Tools</h2>
+            <div class="cards compact">
+                <a href="h.html" class="card">
+                    <div class="card-icon">🎛️</div>
+                    <h2>Admin Console</h2>
+                    <p>Central management hub for all platform features and settings.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="admin-dashboard.html" class="card">
+                    <div class="card-icon">📊</div>
+                    <h2>Admin Dashboard</h2>
+                    <p>Comprehensive dashboard with system metrics and user analytics.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="analytics-dashboard.html" class="card">
+                    <div class="card-icon">📈</div>
+                    <h2>Analytics Dashboard</h2>
+                    <p>Real-time analytics with charts, metrics, and performance insights.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="webhook-manager.html" class="card">
+                    <div class="card-icon">🔗</div>
+                    <h2>Webhook Manager</h2>
+                    <p>Configure and monitor webhook integrations with external services.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="translation-manager.html" class="card">
+                    <div class="card-icon">🌐</div>
+                    <h2>Translation Manager</h2>
+                    <p>Manage multi-language support and translation configurations.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="cache-manager.html" class="card">
+                    <div class="card-icon">💾</div>
+                    <h2>Cache Manager</h2>
+                    <p>Control caching strategies and optimize performance.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="backup-manager.html" class="card">
+                    <div class="card-icon">💿</div>
+                    <h2>Backup Manager</h2>
+                    <p>Schedule and manage automated backups and data restoration.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+
+                <a href="moderation-dashboard.html" class="card">
+                    <div class="card-icon">🛡️</div>
+                    <h2>Moderation Dashboard</h2>
+                    <p>Content moderation tools with AI-powered safety features.</p>
+                    <span class="badge admin">Admin</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Developer Tools -->
+        <div class="section">
+            <h2 class="section-title">🔧 Developer Tools</h2>
+            <div class="cards regular">
+                <a href="Copilot-Agent-365-main/index.html" class="card">
+                    <div class="card-icon">💻</div>
+                    <h2>Agent Chat Interface</h2>
+                    <p>Direct chat interface to interact with AI ambassadors and agents.</p>
+                    <span class="badge developer">Developer</span>
+                </a>
+
+                <a href="prompt-template-manager.html" class="card">
+                    <div class="card-icon">📝</div>
+                    <h2>Prompt Template Manager</h2>
+                    <p>Create, edit, and manage AI prompt templates for custom behaviors.</p>
+                    <span class="badge developer">Developer</span>
+                </a>
+
+                <a href="prompt-mixer-pro.html" class="card">
+                    <div class="card-icon">🎨</div>
+                    <h2>Prompt Mixer Pro</h2>
+                    <p>Advanced prompt engineering tools with mixing and testing capabilities.</p>
+                    <span class="badge developer">Developer</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Documentation & Support -->
+        <div class="section">
+            <h2 class="section-title">📚 Documentation & Support</h2>
+            <div class="cards regular">
+                <a href="docs/index.html" class="card">
+                    <div class="card-icon">📖</div>
+                    <h2>Documentation Portal</h2>
+                    <p>Complete documentation, guides, API references, and tutorials.</p>
+                    <span class="badge docs">Documentation</span>
+                </a>
+
+                <a href="offline.html" class="card">
+                    <div class="card-icon">📱</div>
+                    <h2>Offline Mode</h2>
+                    <p>Access the platform features when offline using local storage.</p>
+                    <span class="badge docs">Support</span>
+                </a>
+            </div>
         </div>
 
         <div class="footer">
             <p>Platform Status: <strong>Running</strong> | Backend: <code>http://localhost:7071</code></p>
+            <p style="margin-top: 10px; opacity: 0.6;">20 Applications | 5 Categories | Zero 404s</p>
         </div>
     </div>
 </body>

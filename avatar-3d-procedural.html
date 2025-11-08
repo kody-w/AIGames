@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedural 3D Ambassador - CreativeBot 🎨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        #avatar-container {
+            position: relative;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 15px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #1f2937;
+            font-size: 1.1em;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .emotion-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .stats {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #4b5563;
+        }
+
+        .stats div {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Procedural 3D Ambassador</h1>
+            <p>Fully code-generated character with zero external assets</p>
+        </div>
+
+        <div class="main-content">
+            <div id="avatar-container"></div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>🎭 Emotions</h3>
+                    <button class="emotion-btn" onclick="avatar.playEmotion('happy')">
+                        <span>😊</span> Happy
+                    </button>
+                    <button class="emotion-btn" onclick="avatar.playEmotion('excited')">
+                        <span>🎉</span> Excited
+                    </button>
+                    <button class="emotion-btn" onclick="avatar.playEmotion('thinking')">
+                        <span>🤔</span> Thinking
+                    </button>
+                    <button class="emotion-btn" onclick="avatar.playEmotion('surprised')">
+                        <span>😮</span> Surprised
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <h3>👋 Gestures</h3>
+                    <button onclick="avatar.playGesture('wave')">👋 Wave</button>
+                    <button onclick="avatar.playGesture('point')">👉 Point</button>
+                    <button onclick="avatar.playGesture('present')">🙌 Present</button>
+                    <button onclick="avatar.playGesture('celebrate')">🎊 Celebrate</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>💬 AI Response Simulation</h3>
+                    <button onclick="avatar.simulateAIResponse('positive')">
+                        Positive Response
+                    </button>
+                    <button onclick="avatar.simulateAIResponse('thinking')">
+                        Analytical Response
+                    </button>
+                    <button onclick="avatar.simulateAIResponse('excited')">
+                        Enthusiastic Response
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <h3>📊 Stats</h3>
+                    <div class="stats" id="stats">
+                        <div>FPS: <span id="fps">60</span></div>
+                        <div>State: <span id="state">idle</span></div>
+                        <div>Triangles: <span id="triangles">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+
+        // ===================================================================
+        // PROCEDURAL 3D AVATAR SYSTEM
+        // All geometry and materials generated from code - zero external files
+        // ===================================================================
+
+        class ProceduralAvatar {
+            constructor(container, config) {
+                this.container = container;
+                this.config = config;
+                this.currentState = 'idle';
+                this.animationQueue = [];
+
+                // Animation timers
+                this.idleTime = 0;
+                this.blinkTime = 0;
+                this.bounceTime = 0;
+
+                // Body parts
+                this.parts = {};
+
+                this.init();
+            }
+
+            init() {
+                // Scene setup
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0xf3f4f6);
+
+                // Camera
+                const aspect = this.container.clientWidth / this.container.clientHeight;
+                this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+                this.camera.position.set(0, 1.6, 4);
+                this.camera.lookAt(0, 1.2, 0);
+
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: false
+                });
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.container.appendChild(this.renderer.domElement);
+
+                // Lighting
+                this.setupLighting();
+
+                // Create character
+                this.createCharacter();
+
+                // Start animation loop
+                this.clock = new THREE.Clock();
+                this.animate();
+
+                // Handle resize
+                window.addEventListener('resize', () => this.onResize());
+            }
+
+            setupLighting() {
+                // Ambient light
+                const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+                this.scene.add(ambient);
+
+                // Main directional light
+                const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                mainLight.position.set(2, 4, 3);
+                mainLight.castShadow = true;
+                mainLight.shadow.camera.near = 0.1;
+                mainLight.shadow.camera.far = 20;
+                mainLight.shadow.camera.left = -5;
+                mainLight.shadow.camera.right = 5;
+                mainLight.shadow.camera.top = 5;
+                mainLight.shadow.camera.bottom = -5;
+                mainLight.shadow.mapSize.width = 2048;
+                mainLight.shadow.mapSize.height = 2048;
+                this.scene.add(mainLight);
+
+                // Fill light
+                const fillLight = new THREE.DirectionalLight(0x8b5cf6, 0.3);
+                fillLight.position.set(-2, 2, -2);
+                this.scene.add(fillLight);
+
+                // Hemisphere light
+                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.4);
+                this.scene.add(hemiLight);
+            }
+
+            createCharacter() {
+                // Container for entire character
+                this.character = new THREE.Group();
+                this.character.position.y = 0;
+                this.scene.add(this.character);
+
+                // Get colors from config
+                const primaryColor = new THREE.Color(this.config.branding.primary_color);
+                const secondaryColor = new THREE.Color(this.config.branding.secondary_color);
+
+                // Materials (procedural - no textures!)
+                const skinMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffdbac,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                const shirtMaterial = new THREE.MeshStandardMaterial({
+                    color: primaryColor,
+                    roughness: 0.7,
+                    metalness: 0.2
+                });
+
+                const pantsMaterial = new THREE.MeshStandardMaterial({
+                    color: secondaryColor,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                const eyeMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x000000,
+                    roughness: 0.3,
+                    metalness: 0.0
+                });
+
+                // HEAD
+                const headGeo = new THREE.SphereGeometry(0.25, 32, 32);
+                this.parts.head = new THREE.Mesh(headGeo, skinMaterial);
+                this.parts.head.position.y = 1.5;
+                this.parts.head.castShadow = true;
+                this.character.add(this.parts.head);
+
+                // EYES
+                const eyeGeo = new THREE.SphereGeometry(0.04, 16, 16);
+
+                this.parts.leftEye = new THREE.Mesh(eyeGeo, eyeMaterial);
+                this.parts.leftEye.position.set(-0.08, 1.55, 0.2);
+                this.parts.head.add(this.parts.leftEye);
+
+                this.parts.rightEye = new THREE.Mesh(eyeGeo, eyeMaterial);
+                this.parts.rightEye.position.set(0.08, 1.55, 0.2);
+                this.parts.head.add(this.parts.rightEye);
+
+                // SMILE (procedural arc)
+                const smileCurve = new THREE.EllipseCurve(
+                    0, 1.38, 0.12, 0.08,
+                    Math.PI, Math.PI * 2,
+                    false, 0
+                );
+                const smilePoints = smileCurve.getPoints(20);
+                const smileGeo = new THREE.BufferGeometry().setFromPoints(smilePoints);
+                const smileMaterial = new THREE.LineBasicMaterial({
+                    color: 0x000000,
+                    linewidth: 2
+                });
+                this.parts.smile = new THREE.Line(smileGeo, smileMaterial);
+                this.parts.smile.position.z = 0.2;
+                this.parts.head.add(this.parts.smile);
+
+                // NECK
+                const neckGeo = new THREE.CylinderGeometry(0.1, 0.12, 0.2, 16);
+                this.parts.neck = new THREE.Mesh(neckGeo, skinMaterial);
+                this.parts.neck.position.y = 1.25;
+                this.parts.neck.castShadow = true;
+                this.character.add(this.parts.neck);
+
+                // TORSO
+                const torsoGeo = new THREE.CylinderGeometry(0.2, 0.25, 0.6, 16);
+                this.parts.torso = new THREE.Mesh(torsoGeo, shirtMaterial);
+                this.parts.torso.position.y = 0.85;
+                this.parts.torso.castShadow = true;
+                this.character.add(this.parts.torso);
+
+                // ARMS
+                const armGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.5, 12);
+
+                // Left arm
+                this.parts.leftArm = new THREE.Group();
+                this.parts.leftArm.position.set(-0.25, 1.0, 0);
+
+                const leftUpperArm = new THREE.Mesh(armGeo, shirtMaterial);
+                leftUpperArm.position.y = -0.25;
+                leftUpperArm.rotation.z = 0.3;
+                leftUpperArm.castShadow = true;
+                this.parts.leftArm.add(leftUpperArm);
+
+                // Left hand
+                const handGeo = new THREE.SphereGeometry(0.08, 16, 16);
+                this.parts.leftHand = new THREE.Mesh(handGeo, skinMaterial);
+                this.parts.leftHand.position.set(0, -0.5, 0);
+                this.parts.leftHand.castShadow = true;
+                this.parts.leftArm.add(this.parts.leftHand);
+
+                this.character.add(this.parts.leftArm);
+
+                // Right arm (mirror)
+                this.parts.rightArm = new THREE.Group();
+                this.parts.rightArm.position.set(0.25, 1.0, 0);
+
+                const rightUpperArm = new THREE.Mesh(armGeo, shirtMaterial);
+                rightUpperArm.position.y = -0.25;
+                rightUpperArm.rotation.z = -0.3;
+                rightUpperArm.castShadow = true;
+                this.parts.rightArm.add(rightUpperArm);
+
+                this.parts.rightHand = new THREE.Mesh(handGeo, skinMaterial);
+                this.parts.rightHand.position.set(0, -0.5, 0);
+                this.parts.rightHand.castShadow = true;
+                this.parts.rightArm.add(this.parts.rightHand);
+
+                this.character.add(this.parts.rightArm);
+
+                // LEGS
+                const legGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.6, 12);
+
+                this.parts.leftLeg = new THREE.Mesh(legGeo, pantsMaterial);
+                this.parts.leftLeg.position.set(-0.12, 0.3, 0);
+                this.parts.leftLeg.castShadow = true;
+                this.character.add(this.parts.leftLeg);
+
+                this.parts.rightLeg = new THREE.Mesh(legGeo, pantsMaterial);
+                this.parts.rightLeg.position.set(0.12, 0.3, 0);
+                this.parts.rightLeg.castShadow = true;
+                this.character.add(this.parts.rightLeg);
+
+                // FEET
+                const footGeo = new THREE.BoxGeometry(0.12, 0.05, 0.18);
+
+                this.parts.leftFoot = new THREE.Mesh(footGeo, pantsMaterial);
+                this.parts.leftFoot.position.set(-0.12, 0.025, 0.05);
+                this.parts.leftFoot.castShadow = true;
+                this.character.add(this.parts.leftFoot);
+
+                this.parts.rightFoot = new THREE.Mesh(footGeo, pantsMaterial);
+                this.parts.rightFoot.position.set(0.12, 0.025, 0.05);
+                this.parts.rightFoot.castShadow = true;
+                this.character.add(this.parts.rightFoot);
+
+                // CREATIVE PROP - Paintbrush! 🎨
+                this.createPaintbrush();
+
+                // Ground plane
+                const groundGeo = new THREE.CircleGeometry(3, 32);
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: 0xe5e7eb,
+                    roughness: 0.9
+                });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+            }
+
+            createPaintbrush() {
+                const brushGroup = new THREE.Group();
+
+                // Handle (wooden)
+                const handleGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.35, 8);
+                const handleMat = new THREE.MeshStandardMaterial({
+                    color: 0x8B4513,
+                    roughness: 0.8
+                });
+                const handle = new THREE.Mesh(handleGeo, handleMat);
+                handle.rotation.z = Math.PI / 2;
+                brushGroup.add(handle);
+
+                // Bristles (purple!)
+                const bristleGeo = new THREE.ConeGeometry(0.03, 0.08, 8);
+                const bristleMat = new THREE.MeshStandardMaterial({
+                    color: 0x8b5cf6,
+                    roughness: 0.9
+                });
+                const bristles = new THREE.Mesh(bristleGeo, bristleMat);
+                bristles.position.x = 0.2;
+                bristles.rotation.z = -Math.PI / 2;
+                brushGroup.add(bristles);
+
+                // Position in right hand
+                brushGroup.position.set(0.05, -0.5, 0.08);
+                brushGroup.rotation.set(0, 0, 0.5);
+                this.parts.rightHand.add(brushGroup);
+                this.parts.paintbrush = brushGroup;
+            }
+
+            // ============================================
+            // ANIMATION SYSTEM
+            // ============================================
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                const delta = this.clock.getDelta();
+                const elapsed = this.clock.getElapsedTime();
+
+                // Idle animations
+                this.updateIdleAnimation(elapsed);
+
+                // Render
+                this.renderer.render(this.scene, this.camera);
+
+                // Update stats
+                this.updateStats();
+            }
+
+            updateIdleAnimation(time) {
+                if (this.currentState !== 'idle') return;
+
+                // Gentle breathing
+                const breathe = Math.sin(time * 1.5) * 0.02;
+                this.parts.torso.scale.y = 1 + breathe;
+                this.parts.torso.position.y = 0.85 + breathe * 0.3;
+
+                // Slight head bob
+                this.parts.head.position.y = 1.5 + Math.sin(time * 0.8) * 0.01;
+
+                // Subtle rotation
+                this.character.rotation.y = Math.sin(time * 0.3) * 0.05;
+
+                // Blink occasionally
+                if (Math.random() < 0.01) {
+                    this.blink();
+                }
+            }
+
+            blink() {
+                const originalScale = this.parts.leftEye.scale.y;
+
+                // Close eyes
+                this.parts.leftEye.scale.y = 0.1;
+                this.parts.rightEye.scale.y = 0.1;
+
+                // Open after 100ms
+                setTimeout(() => {
+                    this.parts.leftEye.scale.y = originalScale;
+                    this.parts.rightEye.scale.y = originalScale;
+                }, 100);
+            }
+
+            // ============================================
+            // EMOTIONS
+            // ============================================
+
+            playEmotion(emotion) {
+                console.log(`Playing emotion: ${emotion}`);
+                this.currentState = emotion;
+
+                // Reset to neutral first
+                this.resetPose();
+
+                switch(emotion) {
+                    case 'happy':
+                        this.animateHappy();
+                        break;
+                    case 'excited':
+                        this.animateExcited();
+                        break;
+                    case 'thinking':
+                        this.animateThinking();
+                        break;
+                    case 'surprised':
+                        this.animateSurprised();
+                        break;
+                }
+
+                // Return to idle after 3 seconds
+                setTimeout(() => {
+                    this.currentState = 'idle';
+                    this.resetPose();
+                }, 3000);
+            }
+
+            animateHappy() {
+                // Bigger smile
+                this.parts.smile.scale.set(1.3, 1.3, 1);
+
+                // Happy bounce
+                this.bounce(0.15, 0.5, 5);
+
+                // Arms slightly up
+                this.animateArmRotation(this.parts.leftArm, { z: 0.5 }, 0.3);
+                this.animateArmRotation(this.parts.rightArm, { z: -0.5 }, 0.3);
+            }
+
+            animateExcited() {
+                // Big smile
+                this.parts.smile.scale.set(1.5, 1.5, 1);
+
+                // Jump!
+                this.jump(0.4, 0.6);
+
+                // Arms up!
+                this.animateArmRotation(this.parts.leftArm, { z: 1.2, x: -0.5 }, 0.2);
+                this.animateArmRotation(this.parts.rightArm, { z: -1.2, x: -0.5 }, 0.2);
+
+                // Head tilt
+                this.parts.head.rotation.z = 0.1;
+            }
+
+            animateThinking() {
+                // Smaller smile (thoughtful)
+                this.parts.smile.scale.set(0.8, 0.8, 1);
+
+                // Hand to chin
+                this.animateArmRotation(this.parts.leftArm, { z: 1.5, x: 0.8 }, 0.5);
+                this.parts.leftHand.position.set(-0.15, -0.3, 0.15);
+
+                // Head tilt
+                this.parts.head.rotation.z = -0.2;
+                this.parts.head.rotation.y = 0.1;
+            }
+
+            animateSurprised() {
+                // Eyes wide
+                this.parts.leftEye.scale.set(1.5, 1.5, 1.5);
+                this.parts.rightEye.scale.set(1.5, 1.5, 1.5);
+
+                // Mouth open
+                this.parts.smile.scale.set(1.2, 0.8, 1);
+                this.parts.smile.position.y = -0.05;
+
+                // Head back
+                this.parts.head.rotation.x = -0.2;
+
+                // Arms out
+                this.animateArmRotation(this.parts.leftArm, { z: 0.8, y: -0.3 }, 0.2);
+                this.animateArmRotation(this.parts.rightArm, { z: -0.8, y: 0.3 }, 0.2);
+            }
+
+            // ============================================
+            // GESTURES
+            // ============================================
+
+            playGesture(gesture) {
+                console.log(`Playing gesture: ${gesture}`);
+                this.currentState = gesture;
+                this.resetPose();
+
+                switch(gesture) {
+                    case 'wave':
+                        this.animateWave();
+                        break;
+                    case 'point':
+                        this.animatePoint();
+                        break;
+                    case 'present':
+                        this.animatePresent();
+                        break;
+                    case 'celebrate':
+                        this.animateCelebrate();
+                        break;
+                }
+
+                setTimeout(() => {
+                    this.currentState = 'idle';
+                    this.resetPose();
+                }, 2500);
+            }
+
+            animateWave() {
+                // Raise right arm
+                this.animateArmRotation(this.parts.rightArm, { z: -1.8, x: -0.3 }, 0.3);
+
+                // Wave hand
+                let waveCount = 0;
+                const waveInterval = setInterval(() => {
+                    this.parts.rightHand.rotation.z = Math.sin(Date.now() * 0.02) * 0.5;
+                    waveCount++;
+                    if (waveCount > 50) clearInterval(waveInterval);
+                }, 50);
+            }
+
+            animatePoint() {
+                // Point right arm forward
+                this.animateArmRotation(this.parts.rightArm, { z: -0.5, y: -1.2 }, 0.4);
+                this.parts.rightHand.position.set(0, -0.6, 0);
+
+                // Lean forward slightly
+                this.parts.torso.rotation.x = 0.1;
+            }
+
+            animatePresent() {
+                // Both arms out to sides
+                this.animateArmRotation(this.parts.leftArm, { z: 1.2, y: -0.5 }, 0.3);
+                this.animateArmRotation(this.parts.rightArm, { z: -1.2, y: 0.5 }, 0.3);
+
+                // Slight bow
+                this.parts.torso.rotation.x = 0.15;
+            }
+
+            animateCelebrate() {
+                // Jump with arms up
+                this.jump(0.5, 0.5);
+                this.animateArmRotation(this.parts.leftArm, { z: 1.5, x: -0.8 }, 0.2);
+                this.animateArmRotation(this.parts.rightArm, { z: -1.5, x: -0.8 }, 0.2);
+
+                // Spin!
+                this.spinCharacter(Math.PI * 2, 1.5);
+            }
+
+            // ============================================
+            // AI RESPONSE SIMULATION
+            // ============================================
+
+            simulateAIResponse(sentiment) {
+                console.log(`Simulating AI response: ${sentiment}`);
+
+                const scenarios = {
+                    'positive': [
+                        { delay: 0, action: () => this.playEmotion('happy') },
+                        { delay: 1500, action: () => this.playGesture('wave') },
+                        { delay: 3000, action: () => this.currentState = 'idle' }
+                    ],
+                    'thinking': [
+                        { delay: 0, action: () => this.playEmotion('thinking') },
+                        { delay: 2000, action: () => this.playGesture('point') },
+                        { delay: 4000, action: () => this.currentState = 'idle' }
+                    ],
+                    'excited': [
+                        { delay: 0, action: () => this.playEmotion('surprised') },
+                        { delay: 1000, action: () => this.playEmotion('excited') },
+                        { delay: 2500, action: () => this.playGesture('celebrate') },
+                        { delay: 4500, action: () => this.currentState = 'idle' }
+                    ]
+                };
+
+                const scenario = scenarios[sentiment] || scenarios['positive'];
+                scenario.forEach(step => {
+                    setTimeout(step.action, step.delay);
+                });
+            }
+
+            // ============================================
+            // HELPER ANIMATIONS
+            // ============================================
+
+            bounce(height, duration, count = 1) {
+                const startY = this.character.position.y;
+                const startTime = Date.now();
+
+                const bounceInterval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const progress = (elapsed % duration) / duration;
+                    const bounceY = Math.sin(progress * Math.PI * 2 * count) * height;
+                    this.character.position.y = startY + Math.abs(bounceY);
+
+                    if (elapsed > duration) {
+                        clearInterval(bounceInterval);
+                        this.character.position.y = startY;
+                    }
+                }, 16);
+            }
+
+            jump(height, duration) {
+                const startY = this.character.position.y;
+                const startTime = Date.now();
+
+                const jumpInterval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const progress = elapsed / duration;
+                    const jumpY = Math.sin(progress * Math.PI) * height;
+                    this.character.position.y = startY + jumpY;
+
+                    if (elapsed > duration) {
+                        clearInterval(jumpInterval);
+                        this.character.position.y = startY;
+                    }
+                }, 16);
+            }
+
+            spinCharacter(radians, duration) {
+                const startRotation = this.character.rotation.y;
+                const startTime = Date.now();
+
+                const spinInterval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const progress = Math.min(elapsed / duration, 1);
+                    this.character.rotation.y = startRotation + (radians * progress);
+
+                    if (progress >= 1) {
+                        clearInterval(spinInterval);
+                    }
+                }, 16);
+            }
+
+            animateArmRotation(arm, targetRotation, duration) {
+                const start = {
+                    x: arm.rotation.x,
+                    y: arm.rotation.y,
+                    z: arm.rotation.z
+                };
+                const startTime = Date.now();
+
+                const interval = setInterval(() => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    arm.rotation.x = start.x + ((targetRotation.x || 0) - start.x) * progress;
+                    arm.rotation.y = start.y + ((targetRotation.y || 0) - start.y) * progress;
+                    arm.rotation.z = start.z + ((targetRotation.z || 0) - start.z) * progress;
+
+                    if (progress >= 1) {
+                        clearInterval(interval);
+                    }
+                }, 16);
+            }
+
+            resetPose() {
+                // Reset all rotations and positions to neutral
+                this.parts.head.rotation.set(0, 0, 0);
+                this.parts.torso.rotation.set(0, 0, 0);
+                this.parts.torso.scale.set(1, 1, 1);
+
+                this.parts.leftArm.rotation.set(0, 0, 0);
+                this.parts.rightArm.rotation.set(0, 0, 0);
+                this.parts.leftHand.position.set(0, -0.5, 0);
+                this.parts.rightHand.position.set(0, -0.5, 0);
+                this.parts.leftHand.rotation.set(0, 0, 0);
+                this.parts.rightHand.rotation.set(0, 0, 0);
+
+                this.parts.leftEye.scale.set(1, 1, 1);
+                this.parts.rightEye.scale.set(1, 1, 1);
+                this.parts.smile.scale.set(1, 1, 1);
+                this.parts.smile.position.set(0, 0, 0.2);
+
+                this.character.position.y = 0;
+                this.character.rotation.y = 0;
+            }
+
+            // ============================================
+            // UTILITIES
+            // ============================================
+
+            onResize() {
+                const width = this.container.clientWidth;
+                const height = this.container.clientHeight;
+
+                this.camera.aspect = width / height;
+                this.camera.updateProjectionMatrix();
+
+                this.renderer.setSize(width, height);
+            }
+
+            updateStats() {
+                // Update FPS
+                const fps = Math.round(1 / this.clock.getDelta());
+                document.getElementById('fps').textContent = fps;
+
+                // Update state
+                document.getElementById('state').textContent = this.currentState;
+
+                // Update triangle count
+                let triangles = 0;
+                this.scene.traverse((object) => {
+                    if (object.geometry) {
+                        const geo = object.geometry;
+                        if (geo.index) {
+                            triangles += geo.index.count / 3;
+                        } else if (geo.attributes.position) {
+                            triangles += geo.attributes.position.count / 3;
+                        }
+                    }
+                });
+                document.getElementById('triangles').textContent = Math.round(triangles);
+            }
+        }
+
+        // ===================================================================
+        // INITIALIZE AVATAR
+        // ===================================================================
+
+        const ambassadorConfig = {
+            id: "creative-001",
+            name: "CreativeBot",
+            branding: {
+                primary_color: "#6366f1",
+                secondary_color: "#8b5cf6"
+            }
+        };
+
+        const container = document.getElementById('avatar-container');
+        window.avatar = new ProceduralAvatar(container, ambassadorConfig);
+
+        console.log('🎨 Procedural 3D Avatar initialized!');
+        console.log('✅ Zero external textures');
+        console.log('✅ All geometry from Three.js primitives');
+        console.log('✅ Colors from ambassador config');
+    </script>
+</body>
+</html>

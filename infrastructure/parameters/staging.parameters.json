@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "staging"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "projectName": {
+      "value": "aiambassador"
+    },
+    "functionPricingTier": {
+      "value": "Premium"
+    },
+    "openAiModelName": {
+      "value": "gpt-4"
+    },
+    "openAiModelVersion": {
+      "value": "0125-Preview"
+    },
+    "openAiCapacity": {
+      "value": 50
+    },
+    "enableZoneRedundancy": {
+      "value": false
+    },
+    "tags": {
+      "value": {
+        "Environment": "Staging",
+        "Project": "AI-Ambassador-Platform",
+        "ManagedBy": "Bicep",
+        "CostCenter": "Engineering",
+        "Owner": "QA Team"
+      }
+    }
+  }
+}

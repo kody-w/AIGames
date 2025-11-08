@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Console</title>
+</head>
+<body>
+    <h1>Open Console (F12) to see test results</h1>
+    <iframe src="http://localhost:8080/avatar-3d-fps-explorer.html" width="100%" height="800px"></iframe>
+    <script>
+        // Wait for iframe to load
+        setTimeout(() => {
+            console.log('=== IFRAME TEST COMPLETE ===');
+            console.log('If you see no errors above, all tests passed!');
+        }, 5000);
+    </script>
+</body>
+</html>
