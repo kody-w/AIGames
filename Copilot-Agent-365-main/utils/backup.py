@@ -24,7 +24,7 @@ from typing import Dict, List, Optional, Any
 from pathlib import Path
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 import asyncio
@@ -48,7 +48,7 @@ class BackupEncryption:
             encryption_key = os.environ.get('BACKUP_ENCRYPTION_KEY', 'default-key-change-me')
 
         # Derive encryption key using PBKDF2
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b'ai-ambassador-platform',  # In production, use random salt stored securely
