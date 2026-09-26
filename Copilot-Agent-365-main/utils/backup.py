@@ -29,7 +29,7 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from azure_file_storage_manager import AzureFileStorageManager
+from utils.azure_file_storage import AzureFileStorageManager
 
 logger = logging.getLogger(__name__)
 
