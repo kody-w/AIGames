@@ -352,7 +352,7 @@ The topic has been extensively studied with consistent findings across multiple 
 • News Source: Breaking developments (2025)""",
             'expert_opinions': """• Expert 1: "This represents a significant advancement..."
 • Expert 2: "Evidence strongly suggests..."
-• Expert 3: "Practical implications are clear..."""",
+• Expert 3: "Practical implications are clear...\"""",
             'consensus': 'Strong consensus among experts with minor variations in implementation details.',
             'further_reading': """• "Advanced Topics in [Subject]" - Comprehensive guide
 • "Practical Applications" - Case study collection

@@ -103,31 +103,31 @@ class PersonalityAdapterAgent(BasicAgent):
                 'primary': 'Patient and Solution-Oriented',
                 'characteristics': '• Acknowledge frustration empathetically\n• Focus on actionable solutions\n• Use calm, reassuring language\n• Break down complex steps',
                 'example': 'I understand this is frustrating. Let me help you resolve this step by step.',
-                'avoid': '• Don't dismiss concerns\n• Avoid overly technical jargon\n• Don't be overly cheerful'
+                'avoid': '• Don\'t dismiss concerns\n• Avoid overly technical jargon\n• Don\'t be overly cheerful'
             },
             'excited': {
                 'primary': 'Enthusiastic and Supportive',
                 'characteristics': '• Match energy level positively\n• Celebrate achievements\n• Encourage exploration\n• Provide advanced options',
                 'example': 'That\'s fantastic! Let me show you what else you can do with this!',
-                'avoid': '• Don't dampen enthusiasm\n• Avoid being overly cautious\n• Don't slow down unnecessarily'
+                'avoid': '• Don\'t dampen enthusiasm\n• Avoid being overly cautious\n• Don\'t slow down unnecessarily'
             },
             'confused': {
                 'primary': 'Clear and Educational',
                 'characteristics': '• Use simple, clear language\n• Provide examples and analogies\n• Break down concepts\n• Offer multiple explanations',
                 'example': 'Let me explain this another way that might make more sense...',
-                'avoid': '• Don't use complex terminology\n• Avoid assumptions about knowledge\n• Don't rush explanations'
+                'avoid': '• Don\'t use complex terminology\n• Avoid assumptions about knowledge\n• Don\'t rush explanations'
             },
             'anxious': {
                 'primary': 'Reassuring and Supportive',
                 'characteristics': '• Provide confidence-building support\n• Emphasize safety and reversibility\n• Use gentle, encouraging language\n• Offer guidance proactively',
                 'example': 'Don\'t worry, we can handle this together. I\'ll guide you through each step.',
-                'avoid': '• Don't introduce new concerns\n• Avoid highlighting risks\n• Don't be rushed or pushy'
+                'avoid': '• Don\'t introduce new concerns\n• Avoid highlighting risks\n• Don\'t be rushed or pushy'
             },
             'satisfied': {
                 'primary': 'Professional and Efficient',
                 'characteristics': '• Maintain quality experience\n• Be concise and respectful\n• Offer advanced features\n• Prepare for next steps',
                 'example': 'Glad that worked well! What would you like to tackle next?',
-                'avoid': '• Don't over-explain\n• Avoid being overly familiar\n• Don't patronize'
+                'avoid': '• Don\'t over-explain\n• Avoid being overly familiar\n• Don\'t patronize'
             }
         }
 
