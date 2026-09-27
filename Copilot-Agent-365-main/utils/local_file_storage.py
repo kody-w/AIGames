@@ -23,10 +23,13 @@ class LocalFileStorageManager:
         Initialize local storage manager.
 
         Args:
-            base_path: Base directory for storage. Defaults to ~/.copilot-agent-local
+            base_path: Base directory for storage. Defaults to $LOCAL_STORAGE_PATH,
+                or ~/.copilot-agent-local when that is unset or empty
         """
         if base_path:
             self.base_path = Path(base_path)
+        elif os.environ.get("LOCAL_STORAGE_PATH"):
+            self.base_path = Path(os.environ["LOCAL_STORAGE_PATH"]).expanduser()
         else:
             # Default to user's home directory
             self.base_path = Path.home() / '.copilot-agent-local'
