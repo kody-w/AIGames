@@ -46,7 +46,7 @@ class MockAgent(BasicAgent):
 class TestAgentLoading:
     """Test cases for agent loading functionality"""
 
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     @patch('os.listdir')
     @patch('importlib.import_module')
     def test_load_agents_from_local_folder(self, mock_import, mock_listdir, mock_storage):
@@ -78,7 +78,7 @@ class TestAgentLoading:
             assert 'MockAgent' in result
             assert isinstance(result['MockAgent'], BasicAgent)
 
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_load_agents_handles_import_error(self, mock_storage):
         """Test that agent loading handles import errors gracefully"""
         from function_app import load_agents_from_folder
@@ -141,7 +141,7 @@ class TestAssistantAgentReload:
 
         # Create a minimal assistant without Azure dependencies
         with patch('function_app.AzureOpenAI'), \
-             patch('function_app.AzureFileStorageManager'):
+             patch('function_app.StorageManager'):
 
             assistant = Assistant({})
             result = assistant.reload_agents(agent_dict)
@@ -163,7 +163,7 @@ class TestAssistantAgentReload:
         agent_list = [mock_agent1, mock_agent2]
 
         with patch('function_app.AzureOpenAI'), \
-             patch('function_app.AzureFileStorageManager'):
+             patch('function_app.StorageManager'):
 
             assistant = Assistant({})
             result = assistant.reload_agents(agent_list)
@@ -179,7 +179,7 @@ class TestAssistantAgentReload:
         mock_agent = MockAgent()
 
         with patch('function_app.AzureOpenAI'), \
-             patch('function_app.AzureFileStorageManager'):
+             patch('function_app.StorageManager'):
 
             assistant = Assistant({'MockAgent': mock_agent})
             metadata = assistant.get_agent_metadata()
@@ -192,7 +192,7 @@ class TestAssistantAgentReload:
 class TestAgentFiltering:
     """Test cases for agent filtering by enabled_agents list"""
 
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     @patch('os.listdir')
     def test_load_agents_with_enabled_filter(self, mock_listdir, mock_storage):
         """Test that only enabled agents are loaded when filter is present"""
@@ -216,7 +216,7 @@ class TestAgentFiltering:
         # Verify storage was called to get enabled agents config
         mock_storage_instance.read_file.assert_called_once()
 
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     @patch('os.listdir')
     def test_load_all_agents_without_filter(self, mock_listdir, mock_storage):
         """Test that all agents are loaded when no filter is present"""

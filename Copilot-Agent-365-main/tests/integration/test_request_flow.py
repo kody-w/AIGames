@@ -66,7 +66,7 @@ class TestFullRequestFlow:
     """Test cases for full request processing"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def setup_assistant_with_agent(self, mock_storage, mock_openai):
         """Helper to create assistant with test agent"""
         mock_storage_instance = MagicMock()
@@ -165,7 +165,7 @@ class TestMemoryOperations:
     """Test cases for memory read/write operations"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_memory_read_operation(self, mock_storage, mock_openai):
         """Test reading from memory storage"""
         mock_storage_instance = MagicMock()
@@ -181,7 +181,7 @@ class TestMemoryOperations:
         assert mock_storage_instance.read_json.called or mock_storage_instance.read_file.called
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_memory_write_operation(self, mock_storage, mock_openai):
         """Test writing to memory storage"""
         mock_storage_instance = MagicMock()
@@ -208,7 +208,7 @@ class TestUserContextSwitching:
     """Test cases for user context switching during requests"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_context_switch_on_guid_input(self, mock_storage, mock_openai):
         """Test that context switches when GUID is provided"""
         mock_storage_instance = MagicMock()
@@ -238,7 +238,7 @@ class TestUserContextSwitching:
         assert mock_storage_instance.set_memory_context.called
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_default_guid_used_without_input(self, mock_storage, mock_openai):
         """Test that default GUID is used when none provided"""
         mock_storage_instance = MagicMock()
@@ -252,7 +252,7 @@ class TestUserContextSwitching:
         assert assistant.user_guid == DEFAULT_USER_GUID
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_guid_from_conversation_history(self, mock_storage, mock_openai):
         """Test GUID extraction from conversation history"""
         mock_storage_instance = MagicMock()
@@ -287,7 +287,7 @@ class TestAgentExecution:
     """Test cases for agent execution pipeline"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_agent_parameter_sanitization(self, mock_storage, mock_openai):
         """Test that agent parameters are sanitized"""
         mock_storage_instance = MagicMock()
@@ -315,7 +315,7 @@ class TestAgentExecution:
         assert "TestAgent" in logs
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_nonexistent_agent_handling(self, mock_storage, mock_openai):
         """Test handling of calls to non-existent agents"""
         mock_storage_instance = MagicMock()
@@ -342,7 +342,7 @@ class TestResponseParsing:
     """Test cases for response parsing and formatting"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_parse_response_with_voice_delimiter(self, mock_storage, mock_openai):
         """Test parsing response with voice delimiter"""
         mock_storage_instance = MagicMock()
@@ -360,7 +360,7 @@ class TestResponseParsing:
         assert voice == "This is the voice"
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_parse_response_without_voice_delimiter(self, mock_storage, mock_openai):
         """Test parsing response without voice delimiter"""
         mock_storage_instance = MagicMock()

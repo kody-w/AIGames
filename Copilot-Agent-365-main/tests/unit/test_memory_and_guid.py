@@ -25,7 +25,7 @@ class TestGUIDExtraction:
     """Test cases for GUID extraction functionality"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def setup_assistant(self, mock_storage, mock_openai):
         """Helper to create assistant instance"""
         mock_storage_instance = MagicMock()
@@ -149,7 +149,7 @@ class TestMemoryContextInitialization:
     """Test cases for memory context initialization"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_initialize_with_default_guid(self, mock_storage, mock_openai):
         """Test that assistant initializes with default GUID"""
         mock_storage_instance = MagicMock()
@@ -161,7 +161,7 @@ class TestMemoryContextInitialization:
         assert assistant.user_guid == DEFAULT_USER_GUID
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_initialize_context_memory_called(self, mock_storage, mock_openai):
         """Test that context memory initialization is called"""
         mock_storage_instance = MagicMock()
@@ -175,7 +175,7 @@ class TestMemoryContextInitialization:
         assert mock_storage_instance.set_memory_context.called
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_context_switch_updates_memory(self, mock_storage, mock_openai):
         """Test that switching context updates memory"""
         mock_storage_instance = MagicMock()
@@ -202,7 +202,7 @@ class TestDemoTriggerDetection:
     """Test cases for demo trigger detection"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def setup_assistant_with_demo(self, mock_storage, mock_openai):
         """Helper to create assistant with demo data"""
         mock_storage_instance = MagicMock()
@@ -257,7 +257,7 @@ class TestDemoStateExtraction:
     """Test cases for demo state extraction from history"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def setup_assistant(self, mock_storage, mock_openai):
         """Helper to create assistant instance"""
         mock_storage_instance = MagicMock()
@@ -312,7 +312,7 @@ class TestMemoryContextSwitching:
     """Test cases for user context switching"""
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_context_switches_on_new_guid(self, mock_storage, mock_openai):
         """Test that context switches when new GUID is provided"""
         mock_storage_instance = MagicMock()
@@ -334,7 +334,7 @@ class TestMemoryContextSwitching:
         assert mock_storage_instance.set_memory_context.called
 
     @patch('function_app.AzureOpenAI')
-    @patch('function_app.AzureFileStorageManager')
+    @patch('function_app.StorageManager')
     def test_default_guid_used_when_none_provided(self, mock_storage, mock_openai):
         """Test that default GUID is used when none provided"""
         mock_storage_instance = MagicMock()

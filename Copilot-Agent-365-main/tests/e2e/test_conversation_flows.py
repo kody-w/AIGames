@@ -41,7 +41,7 @@ class MockFunctionCall:
 def mock_assistant():
     """Fixture to create a mock assistant for E2E tests"""
     with patch('function_app.AzureOpenAI'), \
-         patch('function_app.AzureFileStorageManager') as mock_storage:
+         patch('function_app.StorageManager') as mock_storage:
 
         mock_storage_instance = MagicMock()
         mock_storage_instance.read_file.return_value = None
