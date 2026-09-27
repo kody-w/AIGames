@@ -12,6 +12,7 @@ import sys
 import os
 from unittest.mock import Mock, MagicMock, patch, mock_open
 import importlib
+import inspect
 
 # Add the parent directory to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -46,24 +47,25 @@ class MockAgent(BasicAgent):
 class TestAgentLoading:
     """Test cases for agent loading functionality"""
 
-    @patch('function_app.StorageManager')
-    @patch('os.listdir')
+    # import_module is patched last (outermost): patch() resolves the other
+    # targets with importlib.import_module, so they would land on the mock
     @patch('importlib.import_module')
-    def test_load_agents_from_local_folder(self, mock_import, mock_listdir, mock_storage):
+    @patch('os.listdir')
+    @patch('function_app.StorageManager')
+    def test_load_agents_from_local_folder(self, mock_storage, mock_listdir, mock_import):
         """Test loading agents from local folder"""
         from function_app import load_agents_from_folder
 
         # Mock the directory listing
         mock_listdir.return_value = ['mock_agent.py', '__init__.py', 'basic_agent.py']
 
-        # Mock the module import
+        # Mock the module import; inspect.getmembers is patched below to
+        # report MockAgent as the module's only member
         mock_module = MagicMock()
-        mock_agent_instance = MockAgent()
-        mock_module.__dict__ = {'MockAgent': MockAgent}
         mock_import.return_value = mock_module
 
         # Mock inspect.getmembers to return our mock agent
-        with patch('function_app.inspect.getmembers') as mock_getmembers:
+        with patch.object(inspect, 'getmembers') as mock_getmembers:
             mock_getmembers.return_value = [('MockAgent', MockAgent)]
 
             # Mock Azure storage to return empty list
