@@ -231,6 +231,7 @@ class TestDemoActivationAndProgression:
     def test_demo_progression(self, mock_assistant):
         """Test progressing through demo steps"""
         demo_data = {
+            "trigger_phrases": ["start demo"],
             "conversation_flow": [
                 {"user_message": "start demo", "bot_response": "Step 1"},
                 {"user_message": "next", "bot_response": "Step 2"},
@@ -280,7 +281,7 @@ class TestRealWorldScenarios:
 
     def test_new_user_session_initialization(self, mock_assistant):
         """Test new user session with GUID"""
-        new_user_guid = "new-user-1111-2222-3333-444444444444"
+        new_user_guid = "a1b2c3d4-1111-2222-3333-444444444444"
 
         # Mock context memory agent
         mock_context_agent = MagicMock()
@@ -300,7 +301,7 @@ class TestRealWorldScenarios:
 
     def test_returning_user_session(self, mock_assistant):
         """Test returning user with existing memory"""
-        returning_user_guid = "existing-user-5555-6666-7777-888888888888"
+        returning_user_guid = "e5e5e5e5-5555-6666-7777-888888888888"
 
         # Mock existing memory
         mock_assistant.storage_manager.read_json.return_value = {
@@ -351,24 +352,33 @@ class TestRealWorldScenarios:
 
     def test_concurrent_user_sessions(self, mock_assistant):
         """Test that different users maintain separate contexts"""
-        user1_guid = "user1-0000-1111-2222-333333333333"
-        user2_guid = "user2-4444-5555-6666-777777777777"
+        user1_guid = "00000001-0000-1111-2222-333333333333"
+        user2_guid = "00000002-4444-5555-6666-777777777777"
 
-        # Mock context memory
+        # Mock context memory: each load recalls shared, then user memory
         mock_context_agent = MagicMock()
-        mock_context_agent.perform.side_effect = ["User 1 memory", "User 2 memory"]
+        mock_context_agent.perform.side_effect = [
+            "Shared memory",
+            "User 1 memory",
+            "Shared memory",
+            "User 2 memory",
+        ]
         mock_assistant.known_agents = {'ContextMemory': mock_context_agent}
 
         mock_response = MockOpenAIResponse(content="Response|||VOICE|||Voice")
         mock_assistant.client.chat.completions.create.return_value = mock_response
 
-        # User 1 session
-        mock_assistant._initialize_context_memory(user1_guid)
+        # User 1 session (a GUID-only message selects the user)
+        mock_assistant.get_response(user1_guid, [])
         assert mock_assistant.user_guid == user1_guid
+        assert mock_assistant.user_memory == "User 1 memory"
 
         # User 2 session
-        mock_assistant._initialize_context_memory(user2_guid)
+        mock_assistant.get_response(user2_guid, [])
         assert mock_assistant.user_guid == user2_guid
+        assert mock_assistant.user_memory == "User 2 memory"
 
         # Verify context switching occurred
-        assert mock_assistant.storage_manager.set_memory_context.call_count >= 2
+        set_memory_context = mock_assistant.storage_manager.set_memory_context
+        set_memory_context.assert_any_call(user1_guid)
+        set_memory_context.assert_any_call(user2_guid)
