@@ -92,12 +92,20 @@ class TestCompleteConversationFlow:
         """Test storing information and recalling it"""
         from agents.manage_memory_agent import ManageMemoryAgent
 
-        # Add ManageMemory agent
-        memory_agent = ManageMemoryAgent()
+        # Add ManageMemory agent, backed by the assistant's mocked storage
+        with patch(
+            "agents.manage_memory_agent.AzureFileStorageManager",
+            return_value=mock_assistant.storage_manager,
+        ):
+            memory_agent = ManageMemoryAgent()
         mock_assistant.known_agents = {'ManageMemory': memory_agent}
 
         # Turn 1: Store information
-        mock_function_call = MockFunctionCall('ManageMemory', '{"fact": "User likes Python", "user_guid": "test-guid"}')
+        mock_function_call = MockFunctionCall(
+            'ManageMemory',
+            '{"memory_type": "preference", "content": "User likes Python", '
+            '"user_guid": "test-guid"}'
+        )
         mock_agent_response = MockOpenAIResponse(function_call=mock_function_call)
         mock_final_response = MockOpenAIResponse(
             content="I've stored that information.|||VOICE|||Got it, stored."

@@ -175,7 +175,15 @@ class TestMemoryOperations:
         mock_storage_instance.list_files.return_value = []
         mock_storage.return_value = mock_storage_instance
 
-        assistant = Assistant({})
+        # Memory is read by the ContextMemory agent, which builds its own
+        # storage manager, while the assistant loads the default user's context
+        with patch(
+            "agents.context_memory_agent.AzureFileStorageManager",
+            return_value=mock_storage_instance,
+        ):
+            from agents.context_memory_agent import ContextMemoryAgent
+
+            assistant = Assistant({"ContextMemory": ContextMemoryAgent()})
 
         # Verify storage read was called during initialization
         assert mock_storage_instance.read_json.called or mock_storage_instance.read_file.called
@@ -192,16 +200,22 @@ class TestMemoryOperations:
 
         # Create ManageMemory agent
         from agents.manage_memory_agent import ManageMemoryAgent
-        manage_agent = ManageMemoryAgent()
 
-        # Perform memory write
+        # The agent builds its own storage manager
+        with patch(
+            "agents.manage_memory_agent.AzureFileStorageManager",
+            return_value=mock_storage_instance,
+        ):
+            manage_agent = ManageMemoryAgent()
+
+        # Perform memory write (the agent takes memory_type and content)
         result = manage_agent.perform(
-            fact="Test fact",
-            user_guid="test-guid-1234"
+            memory_type="fact", content="Test fact", user_guid="test-guid-1234"
         )
 
         # Should have interacted with storage
         assert "stored" in result.lower() or "saved" in result.lower() or "added" in result.lower()
+        mock_storage_instance.write_json.assert_called_once()
 
 
 class TestUserContextSwitching:

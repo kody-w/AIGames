@@ -169,10 +169,15 @@ class TestMemoryContextInitialization:
         mock_storage_instance.set_memory_context = MagicMock()
         mock_storage.return_value = mock_storage_instance
 
-        assistant = Assistant({})
+        # Context memory is only loaded when a ContextMemory agent is present
+        mock_context_agent = MagicMock()
+        mock_context_agent.name = "ContextMemory"
+        mock_context_agent.perform.return_value = "Context memory loaded"
 
-        # Verify set_memory_context was called
-        assert mock_storage_instance.set_memory_context.called
+        assistant = Assistant({"ContextMemory": mock_context_agent})
+
+        # Verify set_memory_context was called for the default user
+        mock_storage_instance.set_memory_context.assert_called_with(DEFAULT_USER_GUID)
 
     @patch('function_app.AzureOpenAI')
     @patch('function_app.StorageManager')
