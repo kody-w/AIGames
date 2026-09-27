@@ -7,10 +7,33 @@ This file contains fixtures that are shared across all test files.
 import pytest
 import sys
 import os
+import atexit
+import shutil
+import tempfile
 from unittest.mock import MagicMock, patch
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# function_app creates its storage manager at import time, while test modules
+# are collected. Default to the local file backend so the suite needs no Azure
+# credentials, and keep its files in a throwaway directory.
+os.environ.setdefault("USE_LOCAL_STORAGE", "true")
+_TEST_STORAGE_DIR = tempfile.mkdtemp(prefix="copilot-agent-tests-")
+os.environ["LOCAL_STORAGE_PATH"] = _TEST_STORAGE_DIR
+atexit.register(shutil.rmtree, _TEST_STORAGE_DIR, ignore_errors=True)
+
+# Assistant() reads these settings directly; the tests mock AzureOpenAI, so
+# placeholder values are enough.
+for _name, _value in {
+    "AZURE_OPENAI_API_KEY": "test-api-key",
+    "AZURE_OPENAI_ENDPOINT": "https://test.openai.azure.com/",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4-test",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+    "ASSISTANT_NAME": "Test Assistant",
+    "CHARACTERISTIC_DESCRIPTION": "Test assistant for testing",
+}.items():
+    os.environ.setdefault(_name, _value)
 
 
 @pytest.fixture
@@ -20,7 +43,7 @@ def mock_azure_storage():
 
     Returns a MagicMock that simulates AzureFileStorageManager behavior
     """
-    with patch('function_app.AzureFileStorageManager') as mock:
+    with patch('function_app.StorageManager') as mock:
         mock_instance = MagicMock()
         mock_instance.read_file.return_value = None
         mock_instance.read_json.return_value = {}
