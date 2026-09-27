@@ -10,19 +10,20 @@ Comprehensive webhook delivery system with:
 - Performance monitoring
 """
 
-import uuid
-import json
-import hmac
-import hashlib
-import logging
 import asyncio
-import aiohttp
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict, field
-from enum import Enum
+import hashlib
+import hmac
+import json
+import logging
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import aiohttp
 
 from .event_system import Event, EventType, event_system
 
@@ -31,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 class WebhookStatus(str, Enum):
     """Webhook status"""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     DISABLED = "disabled"
@@ -38,6 +40,7 @@ class WebhookStatus(str, Enum):
 
 class DeliveryStatus(str, Enum):
     """Delivery attempt status"""
+
     SUCCESS = "success"
     FAILED = "failed"
     PENDING = "pending"
@@ -47,6 +50,7 @@ class DeliveryStatus(str, Enum):
 @dataclass
 class RetryConfig:
     """Retry configuration"""
+
     max_attempts: int = 4
     initial_delay: int = 0  # seconds
     backoff_multiplier: float = 5.0
@@ -64,6 +68,7 @@ class RetryConfig:
 @dataclass
 class Webhook:
     """Webhook configuration"""
+
     webhook_id: str
     url: str
     event_types: List[str]
@@ -71,8 +76,12 @@ class Webhook:
     status: WebhookStatus = WebhookStatus.ACTIVE
     retry_config: RetryConfig = field(default_factory=RetryConfig)
     filters: Dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+    updated_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -82,28 +91,32 @@ class Webhook:
             "url": self.url,
             "event_types": self.event_types,
             "secret_key": self.secret_key,
-            "status": self.status.value if isinstance(self.status, WebhookStatus) else self.status,
+            "status": (
+                self.status.value
+                if isinstance(self.status, WebhookStatus)
+                else self.status
+            ),
             "retry_config": {
                 "max_attempts": self.retry_config.max_attempts,
                 "initial_delay": self.retry_config.initial_delay,
                 "backoff_multiplier": self.retry_config.backoff_multiplier,
-                "max_delay": self.retry_config.max_delay
+                "max_delay": self.retry_config.max_delay,
             },
             "filters": self.filters,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> 'Webhook':
+    def from_dict(data: Dict[str, Any]) -> "Webhook":
         """Create from dictionary"""
         retry_config_data = data.get("retry_config", {})
         retry_config = RetryConfig(
             max_attempts=retry_config_data.get("max_attempts", 4),
             initial_delay=retry_config_data.get("initial_delay", 0),
             backoff_multiplier=retry_config_data.get("backoff_multiplier", 5.0),
-            max_delay=retry_config_data.get("max_delay", 900)
+            max_delay=retry_config_data.get("max_delay", 900),
         )
 
         return Webhook(
@@ -116,13 +129,14 @@ class Webhook:
             filters=data.get("filters", {}),
             created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
             updated_at=data.get("updated_at", datetime.now(timezone.utc).isoformat()),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
 
 @dataclass
 class DeliveryAttempt:
     """Webhook delivery attempt"""
+
     attempt_id: str
     webhook_id: str
     event: Event
@@ -141,12 +155,16 @@ class DeliveryAttempt:
             "webhook_id": self.webhook_id,
             "event": self.event.to_dict(),
             "attempt_number": self.attempt_number,
-            "status": self.status.value if isinstance(self.status, DeliveryStatus) else self.status,
+            "status": (
+                self.status.value
+                if isinstance(self.status, DeliveryStatus)
+                else self.status
+            ),
             "timestamp": self.timestamp,
             "response_code": self.response_code,
             "response_body": self.response_body,
             "error_message": self.error_message,
-            "duration_ms": self.duration_ms
+            "duration_ms": self.duration_ms,
         }
 
 
@@ -198,9 +216,7 @@ class WebhookValidator:
             Signature in format "sha256=<hex>"
         """
         signature = hmac.new(
-            secret.encode('utf-8'),
-            payload.encode('utf-8'),
-            hashlib.sha256
+            secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256
         ).hexdigest()
         return f"sha256={signature}"
 
@@ -235,7 +251,9 @@ class WebhookDeliveryService:
         self.delivery_history: List[DeliveryAttempt] = []
         self.max_history = 1000
 
-    async def deliver(self, webhook: Webhook, event: Event, attempt_number: int = 0) -> DeliveryAttempt:
+    async def deliver(
+        self, webhook: Webhook, event: Event, attempt_number: int = 0
+    ) -> DeliveryAttempt:
         """
         Deliver event to webhook
 
@@ -251,7 +269,7 @@ class WebhookDeliveryService:
         timestamp = datetime.now(timezone.utc).isoformat()
 
         # Prepare payload
-        payload = json.dumps(event.to_dict(), separators=(',', ':'))
+        payload = json.dumps(event.to_dict(), separators=(",", ":"))
 
         # Generate signature
         signature = WebhookValidator.generate_signature(payload, webhook.secret_key)
@@ -261,10 +279,14 @@ class WebhookDeliveryService:
             "Content-Type": "application/json",
             "X-Webhook-Signature": signature,
             "X-Webhook-ID": webhook.webhook_id,
-            "X-Event-Type": event.event_type.value if isinstance(event.event_type, EventType) else event.event_type,
+            "X-Event-Type": (
+                event.event_type.value
+                if isinstance(event.event_type, EventType)
+                else event.event_type
+            ),
             "X-Event-ID": event.event_id,
             "X-Delivery-Attempt": str(attempt_number + 1),
-            "User-Agent": "AI-Ambassador-Webhooks/1.0"
+            "User-Agent": "AI-Ambassador-Webhooks/1.0",
         }
 
         start_time = time.time()
@@ -276,7 +298,7 @@ class WebhookDeliveryService:
                     data=payload,
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=self.timeout),
-                    ssl=True
+                    ssl=True,
                 ) as response:
                     duration_ms = (time.time() - start_time) * 1000
                     response_body = await response.text()
@@ -291,7 +313,7 @@ class WebhookDeliveryService:
                             timestamp=timestamp,
                             response_code=response.status,
                             response_body=response_body[:1000],  # Limit size
-                            duration_ms=duration_ms
+                            duration_ms=duration_ms,
                         )
                     else:
                         attempt = DeliveryAttempt(
@@ -304,7 +326,7 @@ class WebhookDeliveryService:
                             response_code=response.status,
                             response_body=response_body[:1000],
                             error_message=f"HTTP {response.status}",
-                            duration_ms=duration_ms
+                            duration_ms=duration_ms,
                         )
 
         except asyncio.TimeoutError:
@@ -317,7 +339,7 @@ class WebhookDeliveryService:
                 status=DeliveryStatus.FAILED,
                 timestamp=timestamp,
                 error_message="Request timeout",
-                duration_ms=duration_ms
+                duration_ms=duration_ms,
             )
 
         except Exception as e:
@@ -330,7 +352,7 @@ class WebhookDeliveryService:
                 status=DeliveryStatus.FAILED,
                 timestamp=timestamp,
                 error_message=str(e),
-                duration_ms=duration_ms
+                duration_ms=duration_ms,
             )
 
         # Store in history
@@ -344,7 +366,9 @@ class WebhookDeliveryService:
         if len(self.delivery_history) > self.max_history:
             self.delivery_history.pop(0)
 
-    def get_delivery_history(self, webhook_id: Optional[str] = None, limit: int = 100) -> List[DeliveryAttempt]:
+    def get_delivery_history(
+        self, webhook_id: Optional[str] = None, limit: int = 100
+    ) -> List[DeliveryAttempt]:
         """Get delivery history"""
         history = self.delivery_history
 
@@ -365,7 +389,7 @@ class WebhookDeliveryService:
                 "successful_deliveries": 0,
                 "failed_deliveries": 0,
                 "success_rate": 0.0,
-                "average_duration_ms": 0.0
+                "average_duration_ms": 0.0,
             }
 
         successful = [a for a in history if a.status == DeliveryStatus.SUCCESS]
@@ -379,7 +403,7 @@ class WebhookDeliveryService:
             "successful_deliveries": len(successful),
             "failed_deliveries": len(failed),
             "success_rate": len(successful) / len(history) * 100 if history else 0,
-            "average_duration_ms": avg_duration
+            "average_duration_ms": avg_duration,
         }
 
 
@@ -405,7 +429,7 @@ class WebhookManager:
 
     def __init__(self):
         """Initialize webhook manager"""
-        if hasattr(self, 'initialized'):
+        if hasattr(self, "initialized"):
             return
 
         self.initialized = True
@@ -428,8 +452,7 @@ class WebhookManager:
     def _subscribe_to_events(self):
         """Subscribe to event system"""
         self.event_listener_id = event_system.subscribe(
-            callback=self._handle_event,
-            event_types=None  # Listen to all events
+            callback=self._handle_event, event_types=None  # Listen to all events
         )
 
     def _handle_event(self, event: Event):
@@ -445,7 +468,11 @@ class WebhookManager:
         """Find webhooks that match event"""
         matching = []
 
-        event_type_value = event.event_type.value if isinstance(event.event_type, EventType) else event.event_type
+        event_type_value = (
+            event.event_type.value
+            if isinstance(event.event_type, EventType)
+            else event.event_type
+        )
 
         for webhook in self.webhooks.values():
             # Check status
@@ -478,7 +505,9 @@ class WebhookManager:
 
         while attempt_number < max_attempts:
             # Deliver
-            attempt = await self.delivery_service.deliver(webhook, event, attempt_number)
+            attempt = await self.delivery_service.deliver(
+                webhook, event, attempt_number
+            )
 
             # Save attempt if storage available
             if self.storage_manager:
@@ -491,18 +520,24 @@ class WebhookManager:
 
             # Check if successful
             if attempt.status == DeliveryStatus.SUCCESS:
-                logger.info(f"Webhook delivered successfully: {webhook.webhook_id} -> {event.event_id}")
+                logger.info(
+                    f"Webhook delivered successfully: {webhook.webhook_id} -> {event.event_id}"
+                )
                 return
 
             # Calculate retry delay
             attempt_number += 1
             if attempt_number < max_attempts:
                 delay = webhook.retry_config.get_delay(attempt_number)
-                logger.warning(f"Webhook delivery failed, retrying in {delay}s: {webhook.webhook_id}")
+                logger.warning(
+                    f"Webhook delivery failed, retrying in {delay}s: {webhook.webhook_id}"
+                )
                 await asyncio.sleep(delay)
 
         # All retries exhausted - add to dead letter queue
-        logger.error(f"Webhook delivery failed after {max_attempts} attempts: {webhook.webhook_id}")
+        logger.error(
+            f"Webhook delivery failed after {max_attempts} attempts: {webhook.webhook_id}"
+        )
         self.dead_letter_queue.append((webhook, event, max_attempts))
 
         # Save to dead letter queue storage
@@ -512,7 +547,7 @@ class WebhookManager:
                     "webhook_id": webhook.webhook_id,
                     "event": event.to_dict(),
                     "attempts": max_attempts,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
                 dlq_id = str(uuid.uuid4())
                 path = f"webhooks/failed/{dlq_id}.json"
@@ -520,12 +555,14 @@ class WebhookManager:
             except Exception as e:
                 logger.error(f"Failed to save to dead letter queue: {e}")
 
-    def register_webhook(self,
-                        url: str,
-                        event_types: List[str],
-                        secret_key: Optional[str] = None,
-                        filters: Optional[Dict[str, Any]] = None,
-                        retry_config: Optional[RetryConfig] = None) -> Webhook:
+    def register_webhook(
+        self,
+        url: str,
+        event_types: List[str],
+        secret_key: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        retry_config: Optional[RetryConfig] = None,
+    ) -> Webhook:
         """
         Register new webhook
 
@@ -545,7 +582,7 @@ class WebhookManager:
             event_types=event_types,
             secret_key=secret_key or self._generate_secret(),
             retry_config=retry_config or RetryConfig(),
-            filters=filters or {}
+            filters=filters or {},
         )
 
         self.webhooks[webhook.webhook_id] = webhook
@@ -557,7 +594,9 @@ class WebhookManager:
 
         return webhook
 
-    def update_webhook(self, webhook_id: str, updates: Dict[str, Any]) -> Optional[Webhook]:
+    def update_webhook(
+        self, webhook_id: str, updates: Dict[str, Any]
+    ) -> Optional[Webhook]:
         """Update webhook configuration"""
         webhook = self.webhooks.get(webhook_id)
         if not webhook:
@@ -599,7 +638,12 @@ class WebhookManager:
         """List all webhooks"""
         return list(self.webhooks.values())
 
-    async def test_webhook(self, webhook_id: str, event_type: str, test_data: Optional[Dict[str, Any]] = None) -> DeliveryAttempt:
+    async def test_webhook(
+        self,
+        webhook_id: str,
+        event_type: str,
+        test_data: Optional[Dict[str, Any]] = None,
+    ) -> DeliveryAttempt:
         """Send test event to webhook"""
         webhook = self.webhooks.get(webhook_id)
         if not webhook:
@@ -610,13 +654,15 @@ class WebhookManager:
             event_id=str(uuid.uuid4()),
             event_type=EventType(event_type),
             timestamp=datetime.now(timezone.utc).isoformat(),
-            data=test_data or {"test": True}
+            data=test_data or {"test": True},
         )
 
         # Deliver
         return await self.delivery_service.deliver(webhook, test_event, 0)
 
-    async def retry_failed_delivery(self, webhook_id: str, event: Event) -> DeliveryAttempt:
+    async def retry_failed_delivery(
+        self, webhook_id: str, event: Event
+    ) -> DeliveryAttempt:
         """Manually retry failed delivery"""
         webhook = self.webhooks.get(webhook_id)
         if not webhook:
@@ -624,7 +670,9 @@ class WebhookManager:
 
         return await self.delivery_service.deliver(webhook, event, 0)
 
-    def get_delivery_history(self, webhook_id: Optional[str] = None, limit: int = 100) -> List[DeliveryAttempt]:
+    def get_delivery_history(
+        self, webhook_id: Optional[str] = None, limit: int = 100
+    ) -> List[DeliveryAttempt]:
         """Get delivery history"""
         return self.delivery_service.get_delivery_history(webhook_id, limit)
 
@@ -635,8 +683,10 @@ class WebhookManager:
         return {
             **delivery_stats,
             "total_webhooks": len(self.webhooks),
-            "active_webhooks": len([w for w in self.webhooks.values() if w.status == WebhookStatus.ACTIVE]),
-            "dead_letter_queue_size": len(self.dead_letter_queue)
+            "active_webhooks": len(
+                [w for w in self.webhooks.values() if w.status == WebhookStatus.ACTIVE]
+            ),
+            "dead_letter_queue_size": len(self.dead_letter_queue),
         }
 
     def _generate_secret(self) -> str:
@@ -653,7 +703,9 @@ class WebhookManager:
                 webhook_id: webhook.to_dict()
                 for webhook_id, webhook in self.webhooks.items()
             }
-            self.storage_manager.write_json(webhooks_data, "webhooks/registrations.json")
+            self.storage_manager.write_json(
+                webhooks_data, "webhooks/registrations.json"
+            )
         except Exception as e:
             logger.error(f"Failed to save webhooks: {e}")
 
@@ -663,7 +715,9 @@ class WebhookManager:
             return
 
         try:
-            webhooks_data = self.storage_manager.read_json("webhooks/registrations.json")
+            webhooks_data = self.storage_manager.read_json(
+                "webhooks/registrations.json"
+            )
             if webhooks_data:
                 self.webhooks = {
                     webhook_id: Webhook.from_dict(data)

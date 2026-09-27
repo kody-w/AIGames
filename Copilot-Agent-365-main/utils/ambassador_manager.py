@@ -5,12 +5,13 @@ Provides CRUD operations, validation, versioning, and deployment
 for AI Ambassador configurations.
 """
 
+import copy
 import json
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
-import copy
-from jsonschema import validate, ValidationError
+
+from jsonschema import ValidationError, validate
 
 
 class AmbassadorManager:
@@ -33,16 +34,16 @@ class AmbassadorManager:
                         "required": ["type", "value"],
                         "properties": {
                             "type": {"enum": ["emoji", "image", "3d_model"]},
-                            "value": {"type": "string"}
-                        }
+                            "value": {"type": "string"},
+                        },
                     },
                     "world": {
                         "type": "object",
                         "required": ["type", "environment"],
                         "properties": {
                             "type": {"type": "string"},
-                            "environment": {"type": "object"}
-                        }
+                            "environment": {"type": "object"},
+                        },
                     },
                     "capabilities": {
                         "type": "object",
@@ -50,14 +51,14 @@ class AmbassadorManager:
                             "voice_enabled": {"type": "boolean"},
                             "visual_responses": {"type": "boolean"},
                             "memory_enabled": {"type": "boolean"},
-                            "custom_agents": {"type": "array"}
-                        }
+                            "custom_agents": {"type": "array"},
+                        },
                     },
                     "agent_mapping": {"type": "object"},
-                    "demo_configuration": {"type": "object"}
-                }
+                    "demo_configuration": {"type": "object"},
+                },
             }
-        }
+        },
     }
 
     def __init__(self, storage_path: str = None):
@@ -68,11 +69,7 @@ class AmbassadorManager:
             storage_path: Path to store ambassador configurations
         """
         if storage_path is None:
-            storage_path = os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "ambassadors"
-            )
+            storage_path = os.path.join(os.path.dirname(__file__), "..", "ambassadors")
         self.storage_path = storage_path
         self.versions_path = os.path.join(storage_path, "versions")
         os.makedirs(self.storage_path, exist_ok=True)
@@ -97,7 +94,10 @@ class AmbassadorManager:
             # Validate ID format (no spaces, lowercase, hyphens only)
             ambassador_id = ambassador["id"]
             if not ambassador_id.replace("-", "").replace("_", "").isalnum():
-                return False, "Ambassador ID must contain only alphanumeric characters, hyphens, and underscores"
+                return (
+                    False,
+                    "Ambassador ID must contain only alphanumeric characters, hyphens, and underscores",
+                )
 
             # Validate avatar type
             avatar_type = ambassador["avatar"]["type"]
@@ -110,11 +110,14 @@ class AmbassadorManager:
                 "sales_floor",
                 "tech_lab",
                 "customer_service",
-                "education_center"
+                "education_center",
             ]
             world_type = ambassador["world"]["type"]
             if world_type not in valid_world_types:
-                return False, f"Invalid world type: {world_type}. Must be one of {valid_world_types}"
+                return (
+                    False,
+                    f"Invalid world type: {world_type}. Must be one of {valid_world_types}",
+                )
 
             return True, ""
 
@@ -124,9 +127,7 @@ class AmbassadorManager:
             return False, f"Validation error: {str(e)}"
 
     def create_ambassador(
-        self,
-        config: Dict,
-        created_by: str = "system"
+        self, config: Dict, created_by: str = "system"
     ) -> Tuple[bool, str, Optional[str]]:
         """
         Create a new ambassador configuration
@@ -155,13 +156,13 @@ class AmbassadorManager:
             "created_by": created_by,
             "updated_at": datetime.utcnow().isoformat(),
             "updated_by": created_by,
-            "version": 1
+            "version": 1,
         }
 
         # Save configuration
         config_path = self._get_config_path(ambassador_id)
         try:
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 json.dump(config, f, indent=2)
 
             # Create initial version backup
@@ -188,7 +189,7 @@ class AmbassadorManager:
             return None
 
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading ambassador {ambassador_id}: {e}")
@@ -199,7 +200,7 @@ class AmbassadorManager:
         ambassador_id: str,
         config: Dict,
         updated_by: str = "system",
-        change_notes: str = ""
+        change_notes: str = "",
     ) -> Tuple[bool, str]:
         """
         Update an existing ambassador configuration
@@ -238,13 +239,13 @@ class AmbassadorManager:
             "updated_at": datetime.utcnow().isoformat(),
             "updated_by": updated_by,
             "version": new_version,
-            "change_notes": change_notes
+            "change_notes": change_notes,
         }
 
         # Save updated configuration
         config_path = self._get_config_path(ambassador_id)
         try:
-            with open(config_path, 'w') as f:
+            with open(config_path, "w") as f:
                 json.dump(config, f, indent=2)
 
             # Save version backup
@@ -256,9 +257,7 @@ class AmbassadorManager:
             return False, f"Error updating ambassador: {str(e)}"
 
     def delete_ambassador(
-        self,
-        ambassador_id: str,
-        deleted_by: str = "system"
+        self, ambassador_id: str, deleted_by: str = "system"
     ) -> Tuple[bool, str]:
         """
         Delete an ambassador configuration
@@ -282,14 +281,14 @@ class AmbassadorManager:
                 archive_path = os.path.join(
                     self.storage_path,
                     "archived",
-                    f"{ambassador_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+                    f"{ambassador_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json",
                 )
                 os.makedirs(os.path.dirname(archive_path), exist_ok=True)
 
                 config["_metadata"]["deleted_at"] = datetime.utcnow().isoformat()
                 config["_metadata"]["deleted_by"] = deleted_by
 
-                with open(archive_path, 'w') as f:
+                with open(archive_path, "w") as f:
                     json.dump(config, f, indent=2)
 
             # Delete the active configuration
@@ -301,9 +300,7 @@ class AmbassadorManager:
             return False, f"Error deleting ambassador: {str(e)}"
 
     def list_ambassadors(
-        self,
-        filter_type: str = None,
-        search: str = None
+        self, filter_type: str = None, search: str = None
     ) -> List[Dict]:
         """
         List all ambassadors with optional filtering
@@ -318,8 +315,8 @@ class AmbassadorManager:
         ambassadors = []
 
         for filename in os.listdir(self.storage_path):
-            if filename.endswith('.json') and not filename.startswith('_'):
-                ambassador_id = filename.replace('.json', '')
+            if filename.endswith(".json") and not filename.startswith("_"):
+                ambassador_id = filename.replace(".json", "")
                 config = self.get_ambassador(ambassador_id)
 
                 if config:
@@ -332,29 +329,30 @@ class AmbassadorManager:
                     if search:
                         search_lower = search.lower()
                         name_match = search_lower in ambassador["name"].lower()
-                        desc_match = search_lower in ambassador.get("description", "").lower()
+                        desc_match = (
+                            search_lower in ambassador.get("description", "").lower()
+                        )
                         id_match = search_lower in ambassador["id"].lower()
 
                         if not (name_match or desc_match or id_match):
                             continue
 
                     # Create summary
-                    ambassadors.append({
-                        "id": ambassador["id"],
-                        "name": ambassador["name"],
-                        "description": ambassador.get("description", ""),
-                        "avatar": ambassador["avatar"],
-                        "world_type": ambassador["world"]["type"],
-                        "version": config.get("_metadata", {}).get("version", 1),
-                        "updated_at": config.get("_metadata", {}).get("updated_at"),
-                        "created_at": config.get("_metadata", {}).get("created_at")
-                    })
+                    ambassadors.append(
+                        {
+                            "id": ambassador["id"],
+                            "name": ambassador["name"],
+                            "description": ambassador.get("description", ""),
+                            "avatar": ambassador["avatar"],
+                            "world_type": ambassador["world"]["type"],
+                            "version": config.get("_metadata", {}).get("version", 1),
+                            "updated_at": config.get("_metadata", {}).get("updated_at"),
+                            "created_at": config.get("_metadata", {}).get("created_at"),
+                        }
+                    )
 
         # Sort by updated date (newest first)
-        ambassadors.sort(
-            key=lambda x: x.get("updated_at", ""),
-            reverse=True
-        )
+        ambassadors.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
 
         return ambassadors
 
@@ -375,19 +373,21 @@ class AmbassadorManager:
             return versions
 
         for filename in os.listdir(version_dir):
-            if filename.endswith('.json'):
+            if filename.endswith(".json"):
                 version_path = os.path.join(version_dir, filename)
                 try:
-                    with open(version_path, 'r') as f:
+                    with open(version_path, "r") as f:
                         config = json.load(f)
 
                     metadata = config.get("_metadata", {})
-                    versions.append({
-                        "version": metadata.get("version", 0),
-                        "updated_at": metadata.get("updated_at"),
-                        "updated_by": metadata.get("updated_by"),
-                        "change_notes": metadata.get("change_notes", "")
-                    })
+                    versions.append(
+                        {
+                            "version": metadata.get("version", 0),
+                            "updated_at": metadata.get("updated_at"),
+                            "updated_by": metadata.get("updated_by"),
+                            "change_notes": metadata.get("change_notes", ""),
+                        }
+                    )
                 except Exception as e:
                     print(f"Error loading version {filename}: {e}")
 
@@ -395,10 +395,7 @@ class AmbassadorManager:
         return versions
 
     def restore_version(
-        self,
-        ambassador_id: str,
-        version: int,
-        restored_by: str = "system"
+        self, ambassador_id: str, version: int, restored_by: str = "system"
     ) -> Tuple[bool, str]:
         """
         Restore an ambassador to a previous version
@@ -412,24 +409,19 @@ class AmbassadorManager:
             Tuple of (success, message)
         """
         version_path = os.path.join(
-            self.versions_path,
-            ambassador_id,
-            f"v{version}.json"
+            self.versions_path, ambassador_id, f"v{version}.json"
         )
 
         if not os.path.exists(version_path):
             return False, f"Version {version} not found"
 
         try:
-            with open(version_path, 'r') as f:
+            with open(version_path, "r") as f:
                 config = json.load(f)
 
             # Update with restore info
             success, message = self.update_ambassador(
-                ambassador_id,
-                config,
-                restored_by,
-                f"Restored to version {version}"
+                ambassador_id, config, restored_by, f"Restored to version {version}"
             )
 
             return success, message
@@ -447,17 +439,14 @@ class AmbassadorManager:
         Returns:
             Dict containing all ambassador configurations
         """
-        export_data = {
-            "export_date": datetime.utcnow().isoformat(),
-            "ambassadors": []
-        }
+        export_data = {"export_date": datetime.utcnow().isoformat(), "ambassadors": []}
 
         if ambassador_ids is None:
             # Export all
             ambassador_ids = [
-                f.replace('.json', '')
+                f.replace(".json", "")
                 for f in os.listdir(self.storage_path)
-                if f.endswith('.json') and not f.startswith('_')
+                if f.endswith(".json") and not f.startswith("_")
             ]
 
         for ambassador_id in ambassador_ids:
@@ -468,10 +457,7 @@ class AmbassadorManager:
         return export_data
 
     def import_ambassadors(
-        self,
-        import_data: Dict,
-        imported_by: str = "system",
-        overwrite: bool = False
+        self, import_data: Dict, imported_by: str = "system", overwrite: bool = False
     ) -> Tuple[int, int, List[str]]:
         """
         Import ambassadors from export data
@@ -502,10 +488,7 @@ class AmbassadorManager:
             # Import/Update
             if exists:
                 success, message = self.update_ambassador(
-                    ambassador_id,
-                    config,
-                    imported_by,
-                    "Imported from bulk import"
+                    ambassador_id, config, imported_by, "Imported from bulk import"
                 )
             else:
                 success, message, _ = self.create_ambassador(config, imported_by)
@@ -522,13 +505,7 @@ class AmbassadorManager:
         """Get file path for ambassador configuration"""
         return os.path.join(self.storage_path, f"{ambassador_id}.json")
 
-    def _save_version(
-        self,
-        ambassador_id: str,
-        config: Dict,
-        version: int,
-        notes: str
-    ):
+    def _save_version(self, ambassador_id: str, config: Dict, version: int, notes: str):
         """Save a version backup of ambassador configuration"""
         version_dir = os.path.join(self.versions_path, ambassador_id)
         os.makedirs(version_dir, exist_ok=True)
@@ -536,15 +513,13 @@ class AmbassadorManager:
         version_path = os.path.join(version_dir, f"v{version}.json")
 
         try:
-            with open(version_path, 'w') as f:
+            with open(version_path, "w") as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
             print(f"Error saving version backup: {e}")
 
     def deploy_to_azure(
-        self,
-        ambassador_id: str,
-        storage_manager=None
+        self, ambassador_id: str, storage_manager=None
     ) -> Tuple[bool, str]:
         """
         Deploy ambassador configuration to Azure File Storage
@@ -568,10 +543,7 @@ class AmbassadorManager:
             # Store in ambassadors/ directory
             file_path = f"ambassadors/{ambassador_id}.json"
 
-            storage_manager.write_file(
-                file_path,
-                json.dumps(config, indent=2)
-            )
+            storage_manager.write_file(file_path, json.dumps(config, indent=2))
 
             return True, "Ambassador deployed to Azure successfully"
 

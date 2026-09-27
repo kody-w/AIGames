@@ -9,6 +9,7 @@ Version: 1.0.0
 
 import logging
 from typing import Dict
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ class ImageGenerationAgent(BasicAgent):
     """Generates images, avatars, QR codes, and graphics descriptions."""
 
     def __init__(self):
-        self.name = 'ImageGeneration'
+        self.name = "ImageGeneration"
         self.metadata = {
             "name": self.name,
             "description": "Generates images, ambassador avatars, QR code designs, and simple graphics for the platform.",
@@ -27,59 +28,72 @@ class ImageGenerationAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["generate_image", "create_avatar", "design_qr", "create_graphic", "image_variation"],
-                        "description": "Image generation action"
+                        "enum": [
+                            "generate_image",
+                            "create_avatar",
+                            "design_qr",
+                            "create_graphic",
+                            "image_variation",
+                        ],
+                        "description": "Image generation action",
                     },
                     "prompt": {
                         "type": "string",
-                        "description": "Description of image to generate"
+                        "description": "Description of image to generate",
                     },
                     "style": {
                         "type": "string",
-                        "enum": ["realistic", "cartoon", "abstract", "minimalist", "professional", "playful"],
-                        "description": "Visual style"
+                        "enum": [
+                            "realistic",
+                            "cartoon",
+                            "abstract",
+                            "minimalist",
+                            "professional",
+                            "playful",
+                        ],
+                        "description": "Visual style",
                     },
                     "avatar_type": {
                         "type": "string",
                         "enum": ["emoji", "icon", "abstract", "character"],
-                        "description": "Type of avatar"
+                        "description": "Type of avatar",
                     },
                     "qr_data": {
                         "type": "string",
-                        "description": "Data to encode in QR code"
+                        "description": "Data to encode in QR code",
                     },
                     "color_scheme": {
                         "type": "string",
-                        "description": "Color scheme (e.g., 'blue-purple', 'warm', 'monochrome')"
+                        "description": "Color scheme (e.g., 'blue-purple', 'warm', 'monochrome')",
                     },
                     "size": {
                         "type": "string",
                         "enum": ["small", "medium", "large", "square", "banner"],
-                        "description": "Image dimensions"
+                        "description": "Image dimensions",
                     },
                     "ambassador_id": {
                         "type": "string",
-                        "description": "Ambassador ID for context"
-                    }
+                        "description": "Ambassador ID for context",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
     def perform(self, **kwargs) -> str:
         """Execute image generation operations."""
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
             if not action:
                 return self._error_response("Action parameter is required")
 
             handlers = {
-                'generate_image': self._generate_image,
-                'create_avatar': self._create_avatar,
-                'design_qr': self._design_qr_code,
-                'create_graphic': self._create_graphic,
-                'image_variation': self._create_variation
+                "generate_image": self._generate_image,
+                "create_avatar": self._create_avatar,
+                "design_qr": self._design_qr_code,
+                "create_graphic": self._create_graphic,
+                "image_variation": self._create_variation,
             }
 
             handler = handlers.get(action)
@@ -94,9 +108,9 @@ class ImageGenerationAgent(BasicAgent):
 
     def _generate_image(self, **kwargs) -> str:
         """Generate an image from prompt."""
-        prompt = kwargs.get('prompt')
-        style = kwargs.get('style', 'realistic')
-        size = kwargs.get('size', 'square')
+        prompt = kwargs.get("prompt")
+        style = kwargs.get("style", "realistic")
+        size = kwargs.get("size", "square")
 
         if not prompt:
             return self._error_response("Prompt is required for image generation")
@@ -124,10 +138,10 @@ Note: This is a simulated generation. In production, this would use DALL-E, Stab
 
     def _create_avatar(self, **kwargs) -> str:
         """Create an avatar for ambassador."""
-        avatar_type = kwargs.get('avatar_type', 'emoji')
-        ambassador_id = kwargs.get('ambassador_id', 'default')
-        color_scheme = kwargs.get('color_scheme', 'vibrant')
-        style = kwargs.get('style', 'playful')
+        avatar_type = kwargs.get("avatar_type", "emoji")
+        ambassador_id = kwargs.get("ambassador_id", "default")
+        color_scheme = kwargs.get("color_scheme", "vibrant")
+        style = kwargs.get("style", "playful")
 
         avatar = self._generate_avatar_spec(avatar_type, style, color_scheme)
 
@@ -153,10 +167,10 @@ Note: This is simulated. In production, this would generate actual avatar images
 
     def _design_qr_code(self, **kwargs) -> str:
         """Design a branded QR code."""
-        qr_data = kwargs.get('qr_data')
-        style = kwargs.get('style', 'minimalist')
-        color_scheme = kwargs.get('color_scheme', 'black-white')
-        ambassador_id = kwargs.get('ambassador_id')
+        qr_data = kwargs.get("qr_data")
+        style = kwargs.get("style", "minimalist")
+        color_scheme = kwargs.get("color_scheme", "black-white")
+        ambassador_id = kwargs.get("ambassador_id")
 
         if not qr_data:
             return self._error_response("QR data is required")
@@ -186,9 +200,9 @@ Note: This is simulated. In production, this would generate actual QR code image
 
     def _create_graphic(self, **kwargs) -> str:
         """Create simple graphic element."""
-        prompt = kwargs.get('prompt', 'decorative element')
-        style = kwargs.get('style', 'minimalist')
-        color_scheme = kwargs.get('color_scheme', 'brand-colors')
+        prompt = kwargs.get("prompt", "decorative element")
+        style = kwargs.get("style", "minimalist")
+        color_scheme = kwargs.get("color_scheme", "brand-colors")
 
         graphic = self._generate_graphic_spec(prompt, style, color_scheme)
 
@@ -213,8 +227,8 @@ Note: This is simulated. In production, this would generate actual graphic files
 
     def _create_variation(self, **kwargs) -> str:
         """Create variations of existing image."""
-        prompt = kwargs.get('prompt', 'original image')
-        style = kwargs.get('style')
+        prompt = kwargs.get("prompt", "original image")
+        style = kwargs.get("style")
 
         return f"""🔄 **Image Variations**
 
@@ -237,11 +251,11 @@ Note: This is simulated. In production, this would generate actual image variati
     def _create_image_spec(self, prompt: str, style: str, size: str) -> str:
         """Create image specifications."""
         dimensions = {
-            'small': '512x512px',
-            'medium': '1024x1024px',
-            'large': '2048x2048px',
-            'square': '1024x1024px',
-            'banner': '1920x1080px'
+            "small": "512x512px",
+            "medium": "1024x1024px",
+            "large": "2048x2048px",
+            "square": "1024x1024px",
+            "banner": "1920x1080px",
         }
 
         return f"""• Dimensions: {dimensions.get(size, '1024x1024px')}
@@ -256,19 +270,21 @@ Note: This is simulated. In production, this would generate actual image variati
 • Focus: Sharp, well-defined
 • Style: {style}"""
 
-    def _generate_avatar_spec(self, avatar_type: str, style: str, color_scheme: str) -> str:
+    def _generate_avatar_spec(
+        self, avatar_type: str, style: str, color_scheme: str
+    ) -> str:
         """Generate avatar specifications."""
-        if avatar_type == 'emoji':
+        if avatar_type == "emoji":
             return """• Base: Unicode emoji character
 • Enhancements: Custom rendering
 • Background: Transparent or solid
 • Animation: Optional subtle movement"""
-        elif avatar_type == 'icon':
+        elif avatar_type == "icon":
             return """• Vector-based design
 • Clean, simple lines
 • Recognizable at small sizes
 • Scalable without quality loss"""
-        elif avatar_type == 'character':
+        elif avatar_type == "character":
             return """• Full character illustration
 • Expressive features
 • Consistent with brand
@@ -279,7 +295,9 @@ Note: This is simulated. In production, this would generate actual image variati
 • Unique identifier
 • Brand-aligned colors"""
 
-    def _create_qr_design(self, qr_data: str, style: str, color_scheme: str, ambassador_id: str) -> str:
+    def _create_qr_design(
+        self, qr_data: str, style: str, color_scheme: str, ambassador_id: str
+    ) -> str:
         """Create QR code design specifications."""
         return f"""• QR Code Data: {qr_data[:50]}{'...' if len(qr_data) > 50 else ''}
 • Error Correction: Level H (30% damage tolerance)

@@ -16,6 +16,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class EmailAgent(BasicAgent):
     """
 
     def __init__(self):
-        self.name = 'Email'
+        self.name = "Email"
         self.metadata = {
             "name": self.name,
             "description": "Drafts and manages professional emails with customizable templates, tone adjustment, follow-up reminders, and email summarization capabilities.",
@@ -37,60 +38,80 @@ class EmailAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["draft", "template", "summarize", "set_reminder", "reply", "format"],
-                        "description": "The email action to perform"
+                        "enum": [
+                            "draft",
+                            "template",
+                            "summarize",
+                            "set_reminder",
+                            "reply",
+                            "format",
+                        ],
+                        "description": "The email action to perform",
                     },
                     "recipient": {
                         "type": "string",
-                        "description": "Email recipient address or name"
+                        "description": "Email recipient address or name",
                     },
-                    "subject": {
-                        "type": "string",
-                        "description": "Email subject line"
-                    },
+                    "subject": {"type": "string", "description": "Email subject line"},
                     "body": {
                         "type": "string",
-                        "description": "Email body content or main message"
+                        "description": "Email body content or main message",
                     },
                     "tone": {
                         "type": "string",
-                        "enum": ["professional", "friendly", "formal", "casual", "persuasive", "apologetic"],
-                        "description": "Desired tone for the email (default: professional)"
+                        "enum": [
+                            "professional",
+                            "friendly",
+                            "formal",
+                            "casual",
+                            "persuasive",
+                            "apologetic",
+                        ],
+                        "description": "Desired tone for the email (default: professional)",
                     },
                     "template_type": {
                         "type": "string",
-                        "enum": ["meeting_request", "follow_up", "introduction", "thank_you", "apology", "proposal", "announcement", "reminder"],
-                        "description": "Type of email template to use"
+                        "enum": [
+                            "meeting_request",
+                            "follow_up",
+                            "introduction",
+                            "thank_you",
+                            "apology",
+                            "proposal",
+                            "announcement",
+                            "reminder",
+                        ],
+                        "description": "Type of email template to use",
                     },
                     "context": {
                         "type": "string",
-                        "description": "Additional context or details to include in the email"
+                        "description": "Additional context or details to include in the email",
                     },
                     "cc": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "CC recipients"
+                        "description": "CC recipients",
                     },
                     "bcc": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "BCC recipients"
+                        "description": "BCC recipients",
                     },
                     "original_email": {
                         "type": "string",
-                        "description": "Original email content for reply or summarization"
+                        "description": "Original email content for reply or summarization",
                     },
                     "reminder_days": {
                         "type": "integer",
-                        "description": "Number of days before sending follow-up reminder"
+                        "description": "Number of days before sending follow-up reminder",
                     },
                     "signature": {
                         "type": "string",
-                        "description": "Email signature to append"
-                    }
+                        "description": "Email signature to append",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
@@ -98,36 +119,89 @@ class EmailAgent(BasicAgent):
         self.templates = {
             "meeting_request": {
                 "subject": "Meeting Request: {topic}",
-                "structure": ["greeting", "purpose", "proposed_times", "call_to_action", "closing"]
+                "structure": [
+                    "greeting",
+                    "purpose",
+                    "proposed_times",
+                    "call_to_action",
+                    "closing",
+                ],
             },
             "follow_up": {
                 "subject": "Following Up: {topic}",
-                "structure": ["greeting", "reference", "update", "next_steps", "closing"]
+                "structure": [
+                    "greeting",
+                    "reference",
+                    "update",
+                    "next_steps",
+                    "closing",
+                ],
             },
             "introduction": {
                 "subject": "Introduction: {your_name}",
-                "structure": ["greeting", "introduction", "purpose", "value_proposition", "closing"]
+                "structure": [
+                    "greeting",
+                    "introduction",
+                    "purpose",
+                    "value_proposition",
+                    "closing",
+                ],
             },
             "thank_you": {
                 "subject": "Thank You - {topic}",
-                "structure": ["greeting", "gratitude", "specific_thanks", "future", "closing"]
+                "structure": [
+                    "greeting",
+                    "gratitude",
+                    "specific_thanks",
+                    "future",
+                    "closing",
+                ],
             },
             "apology": {
                 "subject": "Apology Regarding {topic}",
-                "structure": ["greeting", "acknowledgment", "apology", "solution", "reassurance", "closing"]
+                "structure": [
+                    "greeting",
+                    "acknowledgment",
+                    "apology",
+                    "solution",
+                    "reassurance",
+                    "closing",
+                ],
             },
             "proposal": {
                 "subject": "Proposal: {topic}",
-                "structure": ["greeting", "introduction", "problem", "solution", "benefits", "next_steps", "closing"]
+                "structure": [
+                    "greeting",
+                    "introduction",
+                    "problem",
+                    "solution",
+                    "benefits",
+                    "next_steps",
+                    "closing",
+                ],
             },
             "announcement": {
                 "subject": "Announcement: {topic}",
-                "structure": ["greeting", "announcement", "details", "impact", "action_required", "closing"]
+                "structure": [
+                    "greeting",
+                    "announcement",
+                    "details",
+                    "impact",
+                    "action_required",
+                    "closing",
+                ],
             },
             "reminder": {
                 "subject": "Reminder: {topic}",
-                "structure": ["greeting", "reminder", "details", "deadline", "call_to_action", "closing"]
-            }
+                "structure": [
+                    "greeting",
+                    "reminder",
+                    "details",
+                    "deadline",
+                    "call_to_action",
+                    "closing",
+                ],
+            },
         }
 
     def perform(self, **kwargs) -> str:
@@ -145,19 +219,19 @@ class EmailAgent(BasicAgent):
             ValueError: If required parameters are missing
         """
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
 
             if not action:
                 return self._error_response("Action parameter is required")
 
             # Route to appropriate handler
             handlers = {
-                'draft': self._draft_email,
-                'template': self._use_template,
-                'summarize': self._summarize_email,
-                'set_reminder': self._set_reminder,
-                'reply': self._draft_reply,
-                'format': self._format_email
+                "draft": self._draft_email,
+                "template": self._use_template,
+                "summarize": self._summarize_email,
+                "set_reminder": self._set_reminder,
+                "reply": self._draft_reply,
+                "format": self._format_email,
             }
 
             handler = handlers.get(action)
@@ -172,13 +246,13 @@ class EmailAgent(BasicAgent):
 
     def _draft_email(self, **kwargs) -> str:
         """Draft a professional email from scratch."""
-        recipient = kwargs.get('recipient')
-        subject = kwargs.get('subject')
-        body = kwargs.get('body')
-        tone = kwargs.get('tone', 'professional')
-        context = kwargs.get('context', '')
-        cc = kwargs.get('cc', [])
-        signature = kwargs.get('signature', '')
+        recipient = kwargs.get("recipient")
+        subject = kwargs.get("subject")
+        body = kwargs.get("body")
+        tone = kwargs.get("tone", "professional")
+        context = kwargs.get("context", "")
+        cc = kwargs.get("cc", [])
+        signature = kwargs.get("signature", "")
 
         if not recipient:
             return self._error_response("Recipient is required")
@@ -198,7 +272,7 @@ class EmailAgent(BasicAgent):
             subject=subject,
             body=formatted_body,
             cc=cc,
-            signature=signature
+            signature=signature,
         )
 
         return f"""📧 **Email Draft Created**
@@ -212,15 +286,17 @@ class EmailAgent(BasicAgent):
 
     def _use_template(self, **kwargs) -> str:
         """Use a pre-defined email template."""
-        template_type = kwargs.get('template_type')
-        recipient = kwargs.get('recipient')
-        context = kwargs.get('context', '')
-        tone = kwargs.get('tone', 'professional')
-        signature = kwargs.get('signature', '')
+        template_type = kwargs.get("template_type")
+        recipient = kwargs.get("recipient")
+        context = kwargs.get("context", "")
+        tone = kwargs.get("tone", "professional")
+        signature = kwargs.get("signature", "")
 
         if not template_type:
             available = ", ".join(self.templates.keys())
-            return self._error_response(f"Template type is required. Available: {available}")
+            return self._error_response(
+                f"Template type is required. Available: {available}"
+            )
 
         if template_type not in self.templates:
             return self._error_response(f"Unknown template: {template_type}")
@@ -230,14 +306,13 @@ class EmailAgent(BasicAgent):
 
         # Generate email from template
         template = self.templates[template_type]
-        subject = self._fill_template_subject(template['subject'], context)
-        body = self._generate_template_body(template_type, template['structure'], context, tone)
+        subject = self._fill_template_subject(template["subject"], context)
+        body = self._generate_template_body(
+            template_type, template["structure"], context, tone
+        )
 
         email = self._build_email(
-            recipient=recipient,
-            subject=subject,
-            body=body,
-            signature=signature
+            recipient=recipient, subject=subject, body=body, signature=signature
         )
 
         return f"""📧 **Email from Template: {template_type.replace('_', ' ').title()}**
@@ -252,8 +327,8 @@ class EmailAgent(BasicAgent):
 
     def _summarize_email(self, **kwargs) -> str:
         """Summarize an email thread or long email."""
-        original_email = kwargs.get('original_email')
-        body = kwargs.get('body')
+        original_email = kwargs.get("original_email")
+        body = kwargs.get("body")
 
         content = original_email or body
 
@@ -281,9 +356,9 @@ class EmailAgent(BasicAgent):
 
     def _set_reminder(self, **kwargs) -> str:
         """Set a follow-up reminder for an email."""
-        subject = kwargs.get('subject')
-        recipient = kwargs.get('recipient')
-        reminder_days = kwargs.get('reminder_days', 3)
+        subject = kwargs.get("subject")
+        recipient = kwargs.get("recipient")
+        reminder_days = kwargs.get("reminder_days", 3)
 
         if not subject and not recipient:
             return self._error_response("Subject or recipient is required for reminder")
@@ -303,11 +378,11 @@ Note: This is a simulated reminder. In production, this would integrate with a t
 
     def _draft_reply(self, **kwargs) -> str:
         """Draft a reply to an existing email."""
-        original_email = kwargs.get('original_email')
-        body = kwargs.get('body')
-        tone = kwargs.get('tone', 'professional')
-        recipient = kwargs.get('recipient')
-        signature = kwargs.get('signature', '')
+        original_email = kwargs.get("original_email")
+        body = kwargs.get("body")
+        tone = kwargs.get("tone", "professional")
+        recipient = kwargs.get("recipient")
+        signature = kwargs.get("signature", "")
 
         if not original_email:
             return self._error_response("Original email is required for reply")
@@ -317,18 +392,18 @@ Note: This is a simulated reminder. In production, this would integrate with a t
 
         # Extract subject from original (add Re:)
         subject = self._extract_subject(original_email)
-        if not subject.startswith('Re:'):
+        if not subject.startswith("Re:"):
             subject = f"Re: {subject}"
 
         # Format reply
-        formatted_body = self._apply_tone(body, tone, '')
+        formatted_body = self._apply_tone(body, tone, "")
         reply_body = f"{formatted_body}\n\n---\n**Original Message:**\n{self._truncate_original(original_email)}"
 
         email = self._build_email(
             recipient=recipient or "Original Sender",
             subject=subject,
             body=reply_body,
-            signature=signature
+            signature=signature,
         )
 
         return f"""📧 **Reply Draft Created**
@@ -342,8 +417,8 @@ Note: This is a simulated reminder. In production, this would integrate with a t
 
     def _format_email(self, **kwargs) -> str:
         """Format and improve an existing email."""
-        body = kwargs.get('body')
-        tone = kwargs.get('tone', 'professional')
+        body = kwargs.get("body")
+        tone = kwargs.get("tone", "professional")
 
         if not body:
             return self._error_response("Email body is required for formatting")
@@ -369,7 +444,14 @@ Note: This is a simulated reminder. In production, this would integrate with a t
 
     # Helper methods
 
-    def _build_email(self, recipient: str, subject: str, body: str, cc: List[str] = None, signature: str = '') -> str:
+    def _build_email(
+        self,
+        recipient: str,
+        subject: str,
+        body: str,
+        cc: List[str] = None,
+        signature: str = "",
+    ) -> str:
         """Build formatted email with headers."""
         cc = cc or []
         cc_line = f"**CC:** {', '.join(cc)}\n" if cc else ""
@@ -385,18 +467,18 @@ Note: This is a simulated reminder. In production, this would integrate with a t
         """Apply appropriate tone to email body."""
         # Add greeting based on tone
         greetings = {
-            'professional': 'I hope this message finds you well.',
-            'friendly': 'I hope you\'re doing great!',
-            'formal': 'I trust this message finds you in good health.',
-            'casual': 'Hey there!',
-            'persuasive': 'I\'m reaching out with an exciting opportunity.',
-            'apologetic': 'I want to sincerely apologize for...'
+            "professional": "I hope this message finds you well.",
+            "friendly": "I hope you're doing great!",
+            "formal": "I trust this message finds you in good health.",
+            "casual": "Hey there!",
+            "persuasive": "I'm reaching out with an exciting opportunity.",
+            "apologetic": "I want to sincerely apologize for...",
         }
 
-        greeting = greetings.get(tone, greetings['professional'])
+        greeting = greetings.get(tone, greetings["professional"])
 
         # Format body
-        if not body.strip().startswith(('Hi', 'Hello', 'Dear', 'Hey')):
+        if not body.strip().startswith(("Hi", "Hello", "Dear", "Hey")):
             body = f"{greeting}\n\n{body}"
 
         return body
@@ -404,18 +486,20 @@ Note: This is a simulated reminder. In production, this would integrate with a t
     def _generate_subject(self, body: str) -> str:
         """Generate subject line from body content."""
         # Simple subject generation based on first sentence
-        first_sentence = body.split('.')[0][:50]
-        return first_sentence + ('...' if len(body) > 50 else '')
+        first_sentence = body.split(".")[0][:50]
+        return first_sentence + ("..." if len(body) > 50 else "")
 
     def _fill_template_subject(self, subject_template: str, context: str) -> str:
         """Fill in template subject with context."""
         # Extract key information from context
-        topic = context.split('\n')[0][:50] if context else "Discussion"
+        topic = context.split("\n")[0][:50] if context else "Discussion"
         your_name = "Your Name"
 
         return subject_template.format(topic=topic, your_name=your_name)
 
-    def _generate_template_body(self, template_type: str, structure: List[str], context: str, tone: str) -> str:
+    def _generate_template_body(
+        self, template_type: str, structure: List[str], context: str, tone: str
+    ) -> str:
         """Generate email body from template structure."""
         # This is a simplified version - in production, would use more sophisticated generation
         bodies = {
@@ -428,7 +512,6 @@ Would you be available for a 30-minute meeting this week? I'm flexible with timi
 Please let me know what times work best for you.
 
 Looking forward to connecting.""",
-
             "follow_up": f"""I wanted to follow up on my previous email regarding {context if context else 'our discussion'}.
 
 I understand you're likely busy, but I wanted to ensure this didn't get lost in your inbox.
@@ -436,7 +519,6 @@ I understand you're likely busy, but I wanted to ensure this didn't get lost in 
 Could you please provide an update when you have a moment?
 
 Thank you for your time and consideration.""",
-
             "introduction": f"""I'm reaching out to introduce myself and explore potential opportunities for collaboration.
 
 {context if context else 'I believe there could be significant value in connecting our teams/organizations.'}
@@ -444,13 +526,11 @@ Thank you for your time and consideration.""",
 I'd love to schedule a brief call to discuss how we might work together.
 
 Would you be open to a conversation?""",
-
             "thank_you": f"""Thank you so much for {context if context else 'your time and assistance'}.
 
 I truly appreciate your help and the insights you provided.
 
 This has been invaluable, and I look forward to staying in touch.""",
-
             "apology": f"""I want to sincerely apologize for {context if context else 'the recent issue'}.
 
 I take full responsibility and understand this has caused inconvenience.
@@ -458,7 +538,6 @@ I take full responsibility and understand this has caused inconvenience.
 Here's how we're addressing this: [specific actions]
 
 I'm committed to ensuring this doesn't happen again.""",
-
             "proposal": f"""I'm excited to share a proposal regarding {context if context else 'a new initiative'}.
 
 Here's what I'm proposing: [key details]
@@ -469,7 +548,6 @@ Benefits:
 - [Benefit 3]
 
 I'd love to discuss this further and answer any questions you may have.""",
-
             "announcement": f"""I'm pleased to announce {context if context else 'an important update'}.
 
 Key details:
@@ -480,7 +558,6 @@ Key details:
 This will take effect [date/timeline].
 
 Please don't hesitate to reach out if you have questions.""",
-
             "reminder": f"""This is a friendly reminder about {context if context else 'an upcoming deadline'}.
 
 Details:
@@ -488,7 +565,7 @@ Details:
 - When: [date/time]
 - Action needed: [what to do]
 
-Please confirm receipt of this reminder."""
+Please confirm receipt of this reminder.""",
         }
 
         return bodies.get(template_type, "Email content here.")
@@ -500,27 +577,27 @@ Please confirm receipt of this reminder."""
         read_time = max(1, word_count // 200 * 60)  # Rough estimate
 
         return {
-            'key_points': '• Main topic discussed\n• Important decision made\n• Next steps outlined',
-            'action_items': '• Follow up by Friday\n• Review attached document\n• Schedule follow-up meeting',
-            'sentiment': 'Neutral/Positive',
-            'priority': 'Medium',
-            'word_count': word_count,
-            'read_time': read_time
+            "key_points": "• Main topic discussed\n• Important decision made\n• Next steps outlined",
+            "action_items": "• Follow up by Friday\n• Review attached document\n• Schedule follow-up meeting",
+            "sentiment": "Neutral/Positive",
+            "priority": "Medium",
+            "word_count": word_count,
+            "read_time": read_time,
         }
 
     def _extract_subject(self, email: str) -> str:
         """Extract subject from email."""
         # Look for Subject: line
-        for line in email.split('\n'):
-            if line.startswith('Subject:'):
-                return line.replace('Subject:', '').strip()
+        for line in email.split("\n"):
+            if line.startswith("Subject:"):
+                return line.replace("Subject:", "").strip()
         return "Your Email"
 
     def _truncate_original(self, email: str, max_lines: int = 10) -> str:
         """Truncate original email for reply."""
-        lines = email.split('\n')
+        lines = email.split("\n")
         if len(lines) > max_lines:
-            return '\n'.join(lines[:max_lines]) + '\n[...truncated...]'
+            return "\n".join(lines[:max_lines]) + "\n[...truncated...]"
         return email
 
     def _apply_formatting_rules(self, body: str, tone: str) -> str:
@@ -529,10 +606,12 @@ Please confirm receipt of this reminder."""
         formatted = body.strip()
 
         # Ensure paragraphs are separated
-        formatted = '\n\n'.join([p.strip() for p in formatted.split('\n\n') if p.strip()])
+        formatted = "\n\n".join(
+            [p.strip() for p in formatted.split("\n\n") if p.strip()]
+        )
 
         # Apply tone
-        formatted = self._apply_tone(formatted, tone, '')
+        formatted = self._apply_tone(formatted, tone, "")
 
         return formatted
 
@@ -547,30 +626,36 @@ def _test_email_agent():
     agent = EmailAgent()
 
     print("Test 1: Draft Professional Email")
-    print(agent.perform(
-        action="draft",
-        recipient="client@example.com",
-        subject="Project Update",
-        body="I wanted to provide you with an update on our progress. We've completed phase 1 and are moving into phase 2 next week.",
-        tone="professional"
-    ))
-    print("\n" + "="*80 + "\n")
+    print(
+        agent.perform(
+            action="draft",
+            recipient="client@example.com",
+            subject="Project Update",
+            body="I wanted to provide you with an update on our progress. We've completed phase 1 and are moving into phase 2 next week.",
+            tone="professional",
+        )
+    )
+    print("\n" + "=" * 80 + "\n")
 
     print("Test 2: Use Meeting Request Template")
-    print(agent.perform(
-        action="template",
-        template_type="meeting_request",
-        recipient="manager@example.com",
-        context="Q4 Planning Session",
-        tone="professional"
-    ))
-    print("\n" + "="*80 + "\n")
+    print(
+        agent.perform(
+            action="template",
+            template_type="meeting_request",
+            recipient="manager@example.com",
+            context="Q4 Planning Session",
+            tone="professional",
+        )
+    )
+    print("\n" + "=" * 80 + "\n")
 
     print("Test 3: Summarize Email")
-    print(agent.perform(
-        action="summarize",
-        body="This is a long email about multiple topics including project updates, budget concerns, and timeline adjustments. We need to discuss these in our next meeting and make decisions about resource allocation."
-    ))
+    print(
+        agent.perform(
+            action="summarize",
+            body="This is a long email about multiple topics including project updates, budget concerns, and timeline adjustments. We need to discuss these in our next meeting and make decisions about resource allocation.",
+        )
+    )
 
 
 if __name__ == "__main__":

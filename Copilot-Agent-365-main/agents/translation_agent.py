@@ -13,15 +13,17 @@ Features:
 - Conversation tone preservation
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+import json
+import logging
+from typing import Any, Dict, List, Optional
 
 from agents.basic_agent import BasicAgent
 from utils.i18n import get_i18n_manager
-from typing import Dict, Any, Optional, List
-import logging
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ class TranslationAgent(BasicAgent):
     """
 
     def __init__(self):
-        self.name = 'Translation'
+        self.name = "Translation"
 
         self.metadata = {
             "name": self.name,
@@ -47,29 +49,26 @@ class TranslationAgent(BasicAgent):
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "text": {
-                        "type": "string",
-                        "description": "The text to translate"
-                    },
+                    "text": {"type": "string", "description": "The text to translate"},
                     "target_language": {
                         "type": "string",
-                        "description": "Target language code (e.g., 'es-ES', 'fr-FR', 'ja-JP'). Supported: en-US, es-ES, fr-FR, de-DE, zh-CN, ja-JP, ar-SA, pt-BR, hi-IN, ru-RU"
+                        "description": "Target language code (e.g., 'es-ES', 'fr-FR', 'ja-JP'). Supported: en-US, es-ES, fr-FR, de-DE, zh-CN, ja-JP, ar-SA, pt-BR, hi-IN, ru-RU",
                     },
                     "source_language": {
                         "type": "string",
-                        "description": "Optional source language code. If not provided, will auto-detect."
+                        "description": "Optional source language code. If not provided, will auto-detect.",
                     },
                     "context": {
                         "type": "string",
-                        "description": "Optional context for translation (e.g., 'formal', 'informal', 'technical', 'marketing')"
+                        "description": "Optional context for translation (e.g., 'formal', 'informal', 'technical', 'marketing')",
                     },
                     "preserve_tone": {
                         "type": "boolean",
-                        "description": "Whether to preserve the original tone and formality. Default: true"
-                    }
+                        "description": "Whether to preserve the original tone and formality. Default: true",
+                    },
                 },
-                "required": ["text", "target_language"]
-            }
+                "required": ["text", "target_language"],
+            },
         }
 
         super().__init__(self.name, self.metadata)
@@ -79,16 +78,16 @@ class TranslationAgent(BasicAgent):
 
         # Language names for better communication
         self.language_names = {
-            'en-US': 'English (US)',
-            'es-ES': 'Spanish',
-            'fr-FR': 'French',
-            'de-DE': 'German',
-            'zh-CN': 'Chinese (Simplified)',
-            'ja-JP': 'Japanese',
-            'ar-SA': 'Arabic',
-            'pt-BR': 'Portuguese (Brazil)',
-            'hi-IN': 'Hindi',
-            'ru-RU': 'Russian'
+            "en-US": "English (US)",
+            "es-ES": "Spanish",
+            "fr-FR": "French",
+            "de-DE": "German",
+            "zh-CN": "Chinese (Simplified)",
+            "ja-JP": "Japanese",
+            "ar-SA": "Arabic",
+            "pt-BR": "Portuguese (Brazil)",
+            "hi-IN": "Hindi",
+            "ru-RU": "Russian",
         }
 
     def perform(self, **kwargs) -> str:
@@ -106,18 +105,18 @@ class TranslationAgent(BasicAgent):
             Formatted translation result with metadata
         """
         try:
-            text = kwargs.get('text', '')
-            target_lang = kwargs.get('target_language', 'en-US')
-            source_lang = kwargs.get('source_language')
-            context = kwargs.get('context', 'general')
-            preserve_tone = kwargs.get('preserve_tone', True)
+            text = kwargs.get("text", "")
+            target_lang = kwargs.get("target_language", "en-US")
+            source_lang = kwargs.get("source_language")
+            context = kwargs.get("context", "general")
+            preserve_tone = kwargs.get("preserve_tone", True)
 
             if not text:
                 return "Error: No text provided for translation."
 
             # Validate target language
             if target_lang not in self.i18n.SUPPORTED_LANGUAGES:
-                supported = ', '.join(self.language_names.values())
+                supported = ", ".join(self.language_names.values())
                 return f"Error: Unsupported target language '{target_lang}'. Supported languages: {supported}"
 
             # Auto-detect source language if not provided
@@ -136,21 +135,21 @@ class TranslationAgent(BasicAgent):
                 source_lang=source_lang,
                 target_lang=target_lang,
                 context=context,
-                preserve_tone=preserve_tone
+                preserve_tone=preserve_tone,
             )
 
             # Get language info for RTL detection
             target_info = self.i18n.get_language_info(target_lang)
-            is_rtl = target_info['rtl']
+            is_rtl = target_info["rtl"]
 
             # Format response
             result = {
-                'translated_text': translated_text,
-                'source_language': self.language_names.get(source_lang, source_lang),
-                'target_language': self.language_names.get(target_lang, target_lang),
-                'is_rtl': is_rtl,
-                'context': context,
-                'original_text': text
+                "translated_text": translated_text,
+                "source_language": self.language_names.get(source_lang, source_lang),
+                "target_language": self.language_names.get(target_lang, target_lang),
+                "is_rtl": is_rtl,
+                "context": context,
+                "original_text": text,
             }
 
             return self._format_translation_result(result)
@@ -176,49 +175,65 @@ class TranslationAgent(BasicAgent):
         # In production, use Azure Cognitive Services
 
         # Check for Arabic script
-        if any('\u0600' <= char <= '\u06FF' for char in text):
-            return 'ar-SA'
+        if any("\u0600" <= char <= "\u06ff" for char in text):
+            return "ar-SA"
 
         # Check for Chinese characters
-        if any('\u4e00' <= char <= '\u9fff' for char in text):
-            return 'zh-CN'
+        if any("\u4e00" <= char <= "\u9fff" for char in text):
+            return "zh-CN"
 
         # Check for Japanese characters (Hiragana, Katakana, Kanji)
-        if any(('\u3040' <= char <= '\u309f') or
-               ('\u30a0' <= char <= '\u30ff') or
-               ('\u4e00' <= char <= '\u9faf') for char in text):
-            return 'ja-JP'
+        if any(
+            ("\u3040" <= char <= "\u309f")
+            or ("\u30a0" <= char <= "\u30ff")
+            or ("\u4e00" <= char <= "\u9faf")
+            for char in text
+        ):
+            return "ja-JP"
 
         # Check for Devanagari script (Hindi)
-        if any('\u0900' <= char <= '\u097F' for char in text):
-            return 'hi-IN'
+        if any("\u0900" <= char <= "\u097f" for char in text):
+            return "hi-IN"
 
         # Check for Cyrillic script (Russian)
-        if any('\u0400' <= char <= '\u04FF' for char in text):
-            return 'ru-RU'
+        if any("\u0400" <= char <= "\u04ff" for char in text):
+            return "ru-RU"
 
         # Common words detection
         common_words = {
-            'es-ES': ['el', 'la', 'de', 'que', 'es', 'en', 'y', 'a', 'los', 'por'],
-            'fr-FR': ['le', 'de', 'un', 'et', 'à', 'les', 'des', 'en', 'du', 'une'],
-            'de-DE': ['der', 'die', 'das', 'und', 'in', 'den', 'von', 'zu', 'mit', 'ist'],
-            'pt-BR': ['o', 'a', 'de', 'que', 'e', 'do', 'da', 'em', 'um', 'para']
+            "es-ES": ["el", "la", "de", "que", "es", "en", "y", "a", "los", "por"],
+            "fr-FR": ["le", "de", "un", "et", "à", "les", "des", "en", "du", "une"],
+            "de-DE": [
+                "der",
+                "die",
+                "das",
+                "und",
+                "in",
+                "den",
+                "von",
+                "zu",
+                "mit",
+                "ist",
+            ],
+            "pt-BR": ["o", "a", "de", "que", "e", "do", "da", "em", "um", "para"],
         }
 
         text_lower = text.lower()
         for lang, words in common_words.items():
-            if any(f' {word} ' in f' {text_lower} ' for word in words):
+            if any(f" {word} " in f" {text_lower} " for word in words):
                 return lang
 
         # Default to English
-        return 'en-US'
+        return "en-US"
 
-    def _translate_text(self,
-                       text: str,
-                       source_lang: str,
-                       target_lang: str,
-                       context: str,
-                       preserve_tone: bool) -> str:
+    def _translate_text(
+        self,
+        text: str,
+        source_lang: str,
+        target_lang: str,
+        context: str,
+        preserve_tone: bool,
+    ) -> str:
         """
         Translate text using Azure OpenAI or Azure Translator.
 
@@ -281,15 +296,15 @@ Provide a culturally appropriate translation that maintains the original meaning
 
         output.append("Original Text:")
         output.append("-" * 60)
-        output.append(result['original_text'])
+        output.append(result["original_text"])
         output.append("")
 
         output.append("Translated Text:")
         output.append("-" * 60)
-        output.append(result['translated_text'])
+        output.append(result["translated_text"])
         output.append("")
 
-        if result['is_rtl']:
+        if result["is_rtl"]:
             output.append("Note: Target language uses right-to-left text direction.")
             output.append("")
 
@@ -307,18 +322,22 @@ Provide a culturally appropriate translation that maintains the original meaning
         languages = []
         for code, name in self.language_names.items():
             info = self.i18n.get_language_info(code)
-            languages.append({
-                'code': code,
-                'name': name,
-                'native_name': info['native_name'],
-                'rtl': info['rtl']
-            })
+            languages.append(
+                {
+                    "code": code,
+                    "name": name,
+                    "native_name": info["native_name"],
+                    "rtl": info["rtl"],
+                }
+            )
         return languages
 
-    def translate_ambassador_response(self,
-                                     response: str,
-                                     user_language: str,
-                                     ambassador_personality: Optional[Dict] = None) -> str:
+    def translate_ambassador_response(
+        self,
+        response: str,
+        user_language: str,
+        ambassador_personality: Optional[Dict] = None,
+    ) -> str:
         """
         Translate ambassador response with personality preservation.
 
@@ -337,9 +356,9 @@ Provide a culturally appropriate translation that maintains the original meaning
             return response
 
         # Determine context based on personality
-        context = 'friendly'
+        context = "friendly"
         if ambassador_personality:
-            tone = ambassador_personality.get('tone', 'friendly')
+            tone = ambassador_personality.get("tone", "friendly")
             context = tone
 
         # Translate with personality preservation
@@ -348,7 +367,7 @@ Provide a culturally appropriate translation that maintains the original meaning
             source_lang=source_lang,
             target_lang=user_language,
             context=context,
-            preserve_tone=True
+            preserve_tone=True,
         )
 
 

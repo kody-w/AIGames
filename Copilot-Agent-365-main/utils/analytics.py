@@ -21,13 +21,13 @@ Privacy & Compliance:
 - Configurable data retention policies
 """
 
-import json
 import hashlib
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from collections import defaultdict
+import json
 import logging
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class AnalyticsEvent:
         session_id: Optional[str] = None,
         ambassador_id: Optional[str] = None,
         properties: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[datetime] = None
+        timestamp: Optional[datetime] = None,
     ):
         self.event_id = str(uuid.uuid4())
         self.event_type = event_type
@@ -59,13 +59,13 @@ class AnalyticsEvent:
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary"""
         return {
-            'event_id': self.event_id,
-            'event_type': self.event_type,
-            'user_id': self.user_id,
-            'session_id': self.session_id,
-            'ambassador_id': self.ambassador_id,
-            'properties': self.properties,
-            'timestamp': self.timestamp.isoformat()
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "user_id": self.user_id,
+            "session_id": self.session_id,
+            "ambassador_id": self.ambassador_id,
+            "properties": self.properties,
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
@@ -73,31 +73,31 @@ class EventTypes:
     """Standard event types for the platform"""
 
     # User events
-    QR_SCAN = 'qr_scan'
-    PAGE_VIEW = 'page_view'
-    SESSION_START = 'session_start'
-    SESSION_END = 'session_end'
+    QR_SCAN = "qr_scan"
+    PAGE_VIEW = "page_view"
+    SESSION_START = "session_start"
+    SESSION_END = "session_end"
 
     # Ambassador interactions
-    AMBASSADOR_ENTRY = 'ambassador_entry'
-    MESSAGE_SENT = 'message_sent'
-    MESSAGE_RECEIVED = 'message_received'
-    AGENT_CALLED = 'agent_called'
+    AMBASSADOR_ENTRY = "ambassador_entry"
+    MESSAGE_SENT = "message_sent"
+    MESSAGE_RECEIVED = "message_received"
+    AGENT_CALLED = "agent_called"
 
     # Engagement events
-    SHARE_AMBASSADOR = 'share_ambassador'
-    BOOKMARK_AMBASSADOR = 'bookmark_ambassador'
-    GALLERY_VIEW = 'gallery_view'
-    WORLD_EXPLORE = 'world_explore'
+    SHARE_AMBASSADOR = "share_ambassador"
+    BOOKMARK_AMBASSADOR = "bookmark_ambassador"
+    GALLERY_VIEW = "gallery_view"
+    WORLD_EXPLORE = "world_explore"
 
     # Conversion events
-    SIGNUP = 'signup'
-    UPGRADE = 'upgrade'
-    REFERRAL = 'referral'
+    SIGNUP = "signup"
+    UPGRADE = "upgrade"
+    REFERRAL = "referral"
 
     # A/B test events
-    AB_TEST_ASSIGNED = 'ab_test_assigned'
-    AB_TEST_CONVERTED = 'ab_test_converted'
+    AB_TEST_ASSIGNED = "ab_test_assigned"
+    AB_TEST_CONVERTED = "ab_test_converted"
 
 
 class AnalyticsStorage:
@@ -111,7 +111,7 @@ class AnalyticsStorage:
             storage_manager: AzureFileStorageManager instance (optional)
         """
         self.storage_manager = storage_manager
-        self.base_path = 'analytics'
+        self.base_path = "analytics"
 
         # Data retention policies (in days)
         self.RAW_DATA_RETENTION = 90
@@ -128,7 +128,9 @@ class AnalyticsStorage:
     def _get_session_path(self, session_id: str) -> str:
         """Get storage path for session data"""
         date = datetime.utcnow()
-        return f"{self.base_path}/sessions/{date.year}/{date.month:02d}/{session_id}.json"
+        return (
+            f"{self.base_path}/sessions/{date.year}/{date.month:02d}/{session_id}.json"
+        )
 
     def _get_funnel_path(self, funnel_id: str) -> str:
         """Get storage path for funnel data"""
@@ -155,7 +157,7 @@ class AnalyticsStorage:
                 return False
 
             event_path = self._get_event_path(event.timestamp)
-            event_data = json.dumps(event.to_dict()) + '\n'
+            event_data = json.dumps(event.to_dict()) + "\n"
 
             # Append to JSONL file
             self.storage_manager.append_to_file(event_path, event_data)
@@ -172,7 +174,7 @@ class AnalyticsStorage:
                 return False
 
             profile_path = self._get_user_profile_path(user_id)
-            profile['last_updated'] = datetime.utcnow().isoformat()
+            profile["last_updated"] = datetime.utcnow().isoformat()
 
             self.storage_manager.write_json(profile, profile_path)
             return True
@@ -198,7 +200,7 @@ class AnalyticsStorage:
                 return False
 
             session_path = self._get_session_path(session_id)
-            session_data['last_updated'] = datetime.utcnow().isoformat()
+            session_data["last_updated"] = datetime.utcnow().isoformat()
 
             self.storage_manager.write_json(session_data, session_path)
             return True
@@ -211,7 +213,7 @@ class AnalyticsStorage:
         start_date: datetime,
         end_date: datetime,
         event_type: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
         Retrieve events within a date range
@@ -239,14 +241,14 @@ class AnalyticsStorage:
                     # Read JSONL file
                     content = self.storage_manager.read_file(event_path)
                     if content:
-                        for line in content.strip().split('\n'):
+                        for line in content.strip().split("\n"):
                             if line:
                                 event = json.loads(line)
 
                                 # Apply filters
-                                if event_type and event['event_type'] != event_type:
+                                if event_type and event["event_type"] != event_type:
                                     continue
-                                if user_id and event.get('user_id') != user_id:
+                                if user_id and event.get("user_id") != user_id:
                                     continue
 
                                 events.append(event)
@@ -287,7 +289,7 @@ class AnalyticsTracker:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         ambassador_id: Optional[str] = None,
-        properties: Optional[Dict[str, Any]] = None
+        properties: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Track an analytics event
@@ -307,7 +309,7 @@ class AnalyticsTracker:
             user_id=user_id,
             session_id=session_id,
             ambassador_id=ambassador_id,
-            properties=properties
+            properties=properties,
         )
 
         self.storage.store_event(event)
@@ -326,40 +328,40 @@ class AnalyticsTracker:
         """Update session data with new event"""
         if session_id not in self.sessions:
             self.sessions[session_id] = {
-                'session_id': session_id,
-                'start_time': event.timestamp.isoformat(),
-                'last_activity': event.timestamp.isoformat(),
-                'events': [],
-                'user_id': event.user_id,
-                'ambassador_id': event.ambassador_id
+                "session_id": session_id,
+                "start_time": event.timestamp.isoformat(),
+                "last_activity": event.timestamp.isoformat(),
+                "events": [],
+                "user_id": event.user_id,
+                "ambassador_id": event.ambassador_id,
             }
 
         session = self.sessions[session_id]
-        session['last_activity'] = event.timestamp.isoformat()
-        session['events'].append(event.event_id)
+        session["last_activity"] = event.timestamp.isoformat()
+        session["events"].append(event.event_id)
 
         # Persist to storage periodically
-        if len(session['events']) % 10 == 0:
+        if len(session["events"]) % 10 == 0:
             self.storage.store_session(session_id, session)
 
     def _update_user_profile(self, user_id: str, event: AnalyticsEvent):
         """Update user profile with event data"""
         hashed_id = hashlib.sha256(user_id.encode()).hexdigest()[:16]
         profile = self.storage.get_user_profile(hashed_id) or {
-            'user_id': hashed_id,
-            'first_seen': event.timestamp.isoformat(),
-            'total_events': 0,
-            'ambassadors_visited': set(),
-            'last_activity': None
+            "user_id": hashed_id,
+            "first_seen": event.timestamp.isoformat(),
+            "total_events": 0,
+            "ambassadors_visited": set(),
+            "last_activity": None,
         }
 
-        profile['total_events'] = profile.get('total_events', 0) + 1
-        profile['last_activity'] = event.timestamp.isoformat()
+        profile["total_events"] = profile.get("total_events", 0) + 1
+        profile["last_activity"] = event.timestamp.isoformat()
 
         if event.ambassador_id:
-            ambassadors = set(profile.get('ambassadors_visited', []))
+            ambassadors = set(profile.get("ambassadors_visited", []))
             ambassadors.add(event.ambassador_id)
-            profile['ambassadors_visited'] = list(ambassadors)
+            profile["ambassadors_visited"] = list(ambassadors)
 
         self.storage.store_user_profile(hashed_id, profile)
 
@@ -367,7 +369,7 @@ class AnalyticsTracker:
         """Mark session as ended and persist to storage"""
         if session_id in self.sessions:
             session = self.sessions[session_id]
-            session['end_time'] = datetime.utcnow().isoformat()
+            session["end_time"] = datetime.utcnow().isoformat()
             self.storage.store_session(session_id, session)
             del self.sessions[session_id]
 
@@ -383,7 +385,7 @@ class FunnelAnalyzer:
         funnel_id: str,
         name: str,
         steps: List[str],
-        description: Optional[str] = None
+        description: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create a new conversion funnel
@@ -398,11 +400,11 @@ class FunnelAnalyzer:
             Funnel configuration
         """
         funnel = {
-            'funnel_id': funnel_id,
-            'name': name,
-            'steps': steps,
-            'description': description,
-            'created_at': datetime.utcnow().isoformat()
+            "funnel_id": funnel_id,
+            "name": name,
+            "steps": steps,
+            "description": description,
+            "created_at": datetime.utcnow().isoformat(),
         }
 
         # Store funnel configuration
@@ -417,7 +419,7 @@ class FunnelAnalyzer:
         funnel_id: str,
         start_date: datetime,
         end_date: datetime,
-        group_by: Optional[str] = None
+        group_by: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Analyze funnel performance
@@ -438,7 +440,7 @@ class FunnelAnalyzer:
             funnel = self.storage.storage_manager.read_json(funnel_path)
 
         if not funnel:
-            return {'error': 'Funnel not found'}
+            return {"error": "Funnel not found"}
 
         # Get events for analysis
         events = self.storage.get_events_by_date_range(start_date, end_date)
@@ -446,8 +448,8 @@ class FunnelAnalyzer:
         # Group events by user
         user_events = defaultdict(list)
         for event in events:
-            if event.get('user_id'):
-                user_events[event['user_id']].append(event)
+            if event.get("user_id"):
+                user_events[event["user_id"]].append(event)
 
         # Analyze funnel progression
         step_counts = defaultdict(int)
@@ -455,49 +457,55 @@ class FunnelAnalyzer:
 
         for user_id, user_event_list in user_events.items():
             # Sort events by timestamp
-            sorted_events = sorted(user_event_list, key=lambda x: x['timestamp'])
+            sorted_events = sorted(user_event_list, key=lambda x: x["timestamp"])
 
             # Track which steps user completed
             completed_steps = set()
             for event in sorted_events:
-                event_type = event['event_type']
-                if event_type in funnel['steps']:
-                    step_index = funnel['steps'].index(event_type)
+                event_type = event["event_type"]
+                if event_type in funnel["steps"]:
+                    step_index = funnel["steps"].index(event_type)
                     completed_steps.add(step_index)
                     step_counts[step_index] += 1
 
             # Check if user completed the full funnel
-            if len(completed_steps) == len(funnel['steps']):
-                conversions['full_funnel'] += 1
+            if len(completed_steps) == len(funnel["steps"]):
+                conversions["full_funnel"] += 1
 
         # Calculate conversion rates
         total_users = len(user_events)
         results = {
-            'funnel_id': funnel_id,
-            'name': funnel['name'],
-            'date_range': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat()
+            "funnel_id": funnel_id,
+            "name": funnel["name"],
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
             },
-            'total_users': total_users,
-            'steps': []
+            "total_users": total_users,
+            "steps": [],
         }
 
-        for i, step in enumerate(funnel['steps']):
+        for i, step in enumerate(funnel["steps"]):
             step_count = step_counts.get(i, 0)
             conversion_rate = (step_count / total_users * 100) if total_users > 0 else 0
 
-            results['steps'].append({
-                'step': i + 1,
-                'event_type': step,
-                'users': step_count,
-                'conversion_rate': round(conversion_rate, 2)
-            })
+            results["steps"].append(
+                {
+                    "step": i + 1,
+                    "event_type": step,
+                    "users": step_count,
+                    "conversion_rate": round(conversion_rate, 2),
+                }
+            )
 
-        results['full_funnel_conversions'] = conversions.get('full_funnel', 0)
-        results['full_funnel_rate'] = round(
-            (conversions.get('full_funnel', 0) / total_users * 100) if total_users > 0 else 0,
-            2
+        results["full_funnel_conversions"] = conversions.get("full_funnel", 0)
+        results["full_funnel_rate"] = round(
+            (
+                (conversions.get("full_funnel", 0) / total_users * 100)
+                if total_users > 0
+                else 0
+            ),
+            2,
         )
 
         return results
@@ -512,8 +520,8 @@ class CohortAnalyzer:
     def analyze_retention(
         self,
         start_date: datetime,
-        cohort_period: str = 'weekly',  # 'daily', 'weekly', 'monthly'
-        retention_periods: int = 12
+        cohort_period: str = "weekly",  # 'daily', 'weekly', 'monthly'
+        retention_periods: int = 12,
     ) -> Dict[str, Any]:
         """
         Analyze user retention by cohort
@@ -528,9 +536,9 @@ class CohortAnalyzer:
         """
         # Calculate cohort periods
         period_delta = {
-            'daily': timedelta(days=1),
-            'weekly': timedelta(weeks=1),
-            'monthly': timedelta(days=30)
+            "daily": timedelta(days=1),
+            "weekly": timedelta(weeks=1),
+            "monthly": timedelta(days=30),
         }[cohort_period]
 
         cohorts = {}
@@ -541,21 +549,19 @@ class CohortAnalyzer:
 
             # Get users who joined in this cohort
             signup_events = self.storage.get_events_by_date_range(
-                cohort_start,
-                cohort_end,
-                event_type=EventTypes.SESSION_START
+                cohort_start, cohort_end, event_type=EventTypes.SESSION_START
             )
 
-            cohort_users = set(e['user_id'] for e in signup_events if e.get('user_id'))
+            cohort_users = set(e["user_id"] for e in signup_events if e.get("user_id"))
 
             if not cohort_users:
                 continue
 
             # Track retention for each subsequent period
             retention = {
-                'cohort_start': cohort_start.isoformat(),
-                'cohort_size': len(cohort_users),
-                'retention': []
+                "cohort_start": cohort_start.isoformat(),
+                "cohort_size": len(cohort_users),
+                "retention": [],
             }
 
             for retention_period in range(retention_periods):
@@ -564,31 +570,33 @@ class CohortAnalyzer:
 
                 # Get active users in this period
                 active_events = self.storage.get_events_by_date_range(
-                    period_start,
-                    period_end
+                    period_start, period_end
                 )
 
                 active_users = set(
-                    e['user_id'] for e in active_events
-                    if e.get('user_id') in cohort_users
+                    e["user_id"]
+                    for e in active_events
+                    if e.get("user_id") in cohort_users
                 )
 
                 retention_rate = (
-                    len(active_users) / len(cohort_users) * 100
-                ) if cohort_users else 0
+                    (len(active_users) / len(cohort_users) * 100) if cohort_users else 0
+                )
 
-                retention['retention'].append({
-                    'period': retention_period,
-                    'active_users': len(active_users),
-                    'retention_rate': round(retention_rate, 2)
-                })
+                retention["retention"].append(
+                    {
+                        "period": retention_period,
+                        "active_users": len(active_users),
+                        "retention_rate": round(retention_rate, 2),
+                    }
+                )
 
             cohorts[cohort_start.isoformat()] = retention
 
         return {
-            'cohort_period': cohort_period,
-            'retention_periods': retention_periods,
-            'cohorts': cohorts
+            "cohort_period": cohort_period,
+            "retention_periods": retention_periods,
+            "cohorts": cohorts,
         }
 
 
@@ -606,7 +614,7 @@ class ABTestFramework:
         name: str,
         variants: List[Dict[str, Any]],
         traffic_split: Optional[List[float]] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create a new A/B test
@@ -629,13 +637,13 @@ class ABTestFramework:
             raise ValueError("Traffic split must sum to 100")
 
         test = {
-            'test_id': test_id,
-            'name': name,
-            'variants': variants,
-            'traffic_split': traffic_split,
-            'description': description,
-            'created_at': datetime.utcnow().isoformat(),
-            'status': 'active'
+            "test_id": test_id,
+            "name": name,
+            "variants": variants,
+            "traffic_split": traffic_split,
+            "description": description,
+            "created_at": datetime.utcnow().isoformat(),
+            "status": "active",
         }
 
         # Store test configuration
@@ -647,10 +655,7 @@ class ABTestFramework:
         return test
 
     def assign_variant(
-        self,
-        test_id: str,
-        user_id: str,
-        session_id: Optional[str] = None
+        self, test_id: str, user_id: str, session_id: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Assign user to a test variant
@@ -672,7 +677,7 @@ class ABTestFramework:
                     self.tests[test_id] = test
 
         test = self.tests.get(test_id)
-        if not test or test['status'] != 'active':
+        if not test or test["status"] != "active":
             return None
 
         # Use deterministic hash-based assignment
@@ -683,11 +688,11 @@ class ABTestFramework:
         cumulative = 0
         assigned_variant = None
 
-        for i, split in enumerate(test['traffic_split']):
+        for i, split in enumerate(test["traffic_split"]):
             cumulative += split
             if assignment < cumulative:
-                assigned_variant = test['variants'][i]
-                assigned_variant['variant_index'] = i
+                assigned_variant = test["variants"][i]
+                assigned_variant["variant_index"] = i
                 break
 
         # Track assignment
@@ -696,10 +701,12 @@ class ABTestFramework:
             user_id=user_id,
             session_id=session_id,
             properties={
-                'test_id': test_id,
-                'variant_index': assigned_variant['variant_index'],
-                'variant_name': assigned_variant.get('name', f"Variant {assigned_variant['variant_index']}")
-            }
+                "test_id": test_id,
+                "variant_index": assigned_variant["variant_index"],
+                "variant_name": assigned_variant.get(
+                    "name", f"Variant {assigned_variant['variant_index']}"
+                ),
+            },
         )
 
         return assigned_variant
@@ -709,7 +716,7 @@ class ABTestFramework:
         test_id: str,
         user_id: str,
         session_id: Optional[str] = None,
-        conversion_value: Optional[float] = None
+        conversion_value: Optional[float] = None,
     ):
         """
         Track a conversion for an A/B test
@@ -724,17 +731,11 @@ class ABTestFramework:
             EventTypes.AB_TEST_CONVERTED,
             user_id=user_id,
             session_id=session_id,
-            properties={
-                'test_id': test_id,
-                'conversion_value': conversion_value
-            }
+            properties={"test_id": test_id, "conversion_value": conversion_value},
         )
 
     def get_results(
-        self,
-        test_id: str,
-        start_date: datetime,
-        end_date: datetime
+        self, test_id: str, start_date: datetime, end_date: datetime
     ) -> Dict[str, Any]:
         """
         Get A/B test results
@@ -749,7 +750,7 @@ class ABTestFramework:
         """
         test = self.tests.get(test_id)
         if not test:
-            return {'error': 'Test not found'}
+            return {"error": "Test not found"}
 
         # Get all assignment and conversion events
         events = self.storage.get_events_by_date_range(start_date, end_date)
@@ -758,44 +759,46 @@ class ABTestFramework:
         conversions = defaultdict(set)
 
         for event in events:
-            if event['event_type'] == EventTypes.AB_TEST_ASSIGNED:
-                props = event.get('properties', {})
-                if props.get('test_id') == test_id:
-                    variant_idx = props.get('variant_index')
-                    assignments[variant_idx].add(event['user_id'])
+            if event["event_type"] == EventTypes.AB_TEST_ASSIGNED:
+                props = event.get("properties", {})
+                if props.get("test_id") == test_id:
+                    variant_idx = props.get("variant_index")
+                    assignments[variant_idx].add(event["user_id"])
 
-            elif event['event_type'] == EventTypes.AB_TEST_CONVERTED:
-                props = event.get('properties', {})
-                if props.get('test_id') == test_id:
+            elif event["event_type"] == EventTypes.AB_TEST_CONVERTED:
+                props = event.get("properties", {})
+                if props.get("test_id") == test_id:
                     # Find user's variant from assignments
                     for variant_idx, users in assignments.items():
-                        if event['user_id'] in users:
-                            conversions[variant_idx].add(event['user_id'])
+                        if event["user_id"] in users:
+                            conversions[variant_idx].add(event["user_id"])
                             break
 
         # Calculate results for each variant
         results = {
-            'test_id': test_id,
-            'name': test['name'],
-            'date_range': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat()
+            "test_id": test_id,
+            "name": test["name"],
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
             },
-            'variants': []
+            "variants": [],
         }
 
-        for i, variant in enumerate(test['variants']):
+        for i, variant in enumerate(test["variants"]):
             assigned = len(assignments.get(i, set()))
             converted = len(conversions.get(i, set()))
             conversion_rate = (converted / assigned * 100) if assigned > 0 else 0
 
-            results['variants'].append({
-                'variant_index': i,
-                'variant_name': variant.get('name', f"Variant {i}"),
-                'assigned_users': assigned,
-                'conversions': converted,
-                'conversion_rate': round(conversion_rate, 2)
-            })
+            results["variants"].append(
+                {
+                    "variant_index": i,
+                    "variant_name": variant.get("name", f"Variant {i}"),
+                    "assigned_users": assigned,
+                    "conversions": converted,
+                    "conversion_rate": round(conversion_rate, 2),
+                }
+            )
 
         return results
 
@@ -807,10 +810,7 @@ class AmbassadorPerformanceAnalyzer:
         self.storage = storage
 
     def get_ambassador_metrics(
-        self,
-        ambassador_id: str,
-        start_date: datetime,
-        end_date: datetime
+        self, ambassador_id: str, start_date: datetime, end_date: datetime
     ) -> Dict[str, Any]:
         """
         Get performance metrics for a specific ambassador
@@ -826,62 +826,70 @@ class AmbassadorPerformanceAnalyzer:
         # Get all events for this ambassador
         events = self.storage.get_events_by_date_range(start_date, end_date)
         ambassador_events = [
-            e for e in events
-            if e.get('ambassador_id') == ambassador_id
+            e for e in events if e.get("ambassador_id") == ambassador_id
         ]
 
         # Calculate metrics
-        unique_users = len(set(e['user_id'] for e in ambassador_events if e.get('user_id')))
-        total_sessions = len(set(e['session_id'] for e in ambassador_events if e.get('session_id')))
-        total_messages = len([e for e in ambassador_events if e['event_type'] == EventTypes.MESSAGE_SENT])
-        total_qr_scans = len([e for e in ambassador_events if e['event_type'] == EventTypes.QR_SCAN])
+        unique_users = len(
+            set(e["user_id"] for e in ambassador_events if e.get("user_id"))
+        )
+        total_sessions = len(
+            set(e["session_id"] for e in ambassador_events if e.get("session_id"))
+        )
+        total_messages = len(
+            [e for e in ambassador_events if e["event_type"] == EventTypes.MESSAGE_SENT]
+        )
+        total_qr_scans = len(
+            [e for e in ambassador_events if e["event_type"] == EventTypes.QR_SCAN]
+        )
 
         # Calculate engagement rate (messages per session)
         engagement_rate = total_messages / total_sessions if total_sessions > 0 else 0
 
         # Calculate daily metrics
-        daily_metrics = defaultdict(lambda: {'users': set(), 'sessions': set(), 'messages': 0})
+        daily_metrics = defaultdict(
+            lambda: {"users": set(), "sessions": set(), "messages": 0}
+        )
 
         for event in ambassador_events:
-            date = event['timestamp'][:10]  # Get date part
-            if event.get('user_id'):
-                daily_metrics[date]['users'].add(event['user_id'])
-            if event.get('session_id'):
-                daily_metrics[date]['sessions'].add(event['session_id'])
-            if event['event_type'] == EventTypes.MESSAGE_SENT:
-                daily_metrics[date]['messages'] += 1
+            date = event["timestamp"][:10]  # Get date part
+            if event.get("user_id"):
+                daily_metrics[date]["users"].add(event["user_id"])
+            if event.get("session_id"):
+                daily_metrics[date]["sessions"].add(event["session_id"])
+            if event["event_type"] == EventTypes.MESSAGE_SENT:
+                daily_metrics[date]["messages"] += 1
 
         # Convert sets to counts
         daily_data = []
         for date, metrics in sorted(daily_metrics.items()):
-            daily_data.append({
-                'date': date,
-                'users': len(metrics['users']),
-                'sessions': len(metrics['sessions']),
-                'messages': metrics['messages']
-            })
+            daily_data.append(
+                {
+                    "date": date,
+                    "users": len(metrics["users"]),
+                    "sessions": len(metrics["sessions"]),
+                    "messages": metrics["messages"],
+                }
+            )
 
         return {
-            'ambassador_id': ambassador_id,
-            'date_range': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat()
+            "ambassador_id": ambassador_id,
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
             },
-            'summary': {
-                'unique_users': unique_users,
-                'total_sessions': total_sessions,
-                'total_messages': total_messages,
-                'total_qr_scans': total_qr_scans,
-                'engagement_rate': round(engagement_rate, 2)
+            "summary": {
+                "unique_users": unique_users,
+                "total_sessions": total_sessions,
+                "total_messages": total_messages,
+                "total_qr_scans": total_qr_scans,
+                "engagement_rate": round(engagement_rate, 2),
             },
-            'daily_metrics': daily_data
+            "daily_metrics": daily_data,
         }
 
     def compare_ambassadors(
-        self,
-        ambassador_ids: List[str],
-        start_date: datetime,
-        end_date: datetime
+        self, ambassador_ids: List[str], start_date: datetime, end_date: datetime
     ) -> Dict[str, Any]:
         """
         Compare performance across multiple ambassadors
@@ -895,16 +903,16 @@ class AmbassadorPerformanceAnalyzer:
             Comparison results
         """
         comparison = {
-            'date_range': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat()
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
             },
-            'ambassadors': []
+            "ambassadors": [],
         }
 
         for ambassador_id in ambassador_ids:
             metrics = self.get_ambassador_metrics(ambassador_id, start_date, end_date)
-            comparison['ambassadors'].append(metrics)
+            comparison["ambassadors"].append(metrics)
 
         return comparison
 

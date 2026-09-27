@@ -11,26 +11,36 @@ Tests:
 - Performance benchmarks
 """
 
-import unittest
 import asyncio
-import json
-import hmac
 import hashlib
-from datetime import datetime, timezone
-from unittest.mock import Mock, patch, AsyncMock
-import sys
+import hmac
+import json
 import os
+import sys
+import unittest
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, Mock, patch
 
 # Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from utils.event_system import (
-    Event, EventType, EventSystem, EventListener,
-    event_system, publish_conversation_started, publish_message_sent
+    Event,
+    EventListener,
+    EventSystem,
+    EventType,
+    event_system,
+    publish_conversation_started,
+    publish_message_sent,
 )
 from utils.webhook_manager import (
-    Webhook, WebhookManager, WebhookValidator, WebhookDeliveryService,
-    DeliveryStatus, WebhookStatus, webhook_manager
+    DeliveryStatus,
+    Webhook,
+    WebhookDeliveryService,
+    WebhookManager,
+    WebhookStatus,
+    WebhookValidator,
+    webhook_manager,
 )
 
 
@@ -57,11 +67,12 @@ class TestEventSystem(unittest.TestCase):
             EventType.CONVERSATION_STARTED,
             data={"test": True},
             user_guid="test-user",
-            ambassador_id="test-ambassador"
+            ambassador_id="test-ambassador",
         )
 
         # Wait for processing
         import time
+
         time.sleep(0.5)
 
         # Verify event was published
@@ -83,12 +94,11 @@ class TestEventSystem(unittest.TestCase):
 
         # Subscribe with filters
         event_system.subscribe(
-            conversation_listener,
-            event_types=[EventType.CONVERSATION_STARTED]
+            conversation_listener, event_types=[EventType.CONVERSATION_STARTED]
         )
         event_system.subscribe(
             message_listener,
-            event_types=[EventType.MESSAGE_SENT, EventType.MESSAGE_RECEIVED]
+            event_types=[EventType.MESSAGE_SENT, EventType.MESSAGE_RECEIVED],
         )
 
         # Publish different events
@@ -98,6 +108,7 @@ class TestEventSystem(unittest.TestCase):
 
         # Wait for processing
         import time
+
         time.sleep(0.5)
 
         # Verify filtering worked
@@ -113,24 +124,20 @@ class TestEventSystem(unittest.TestCase):
 
         # Subscribe with ambassador filter
         event_system.subscribe(
-            ambassador_listener,
-            filters={"ambassador_id": "ambassador-123"}
+            ambassador_listener, filters={"ambassador_id": "ambassador-123"}
         )
 
         # Publish events with different ambassadors
         event_system.publish(
-            EventType.MESSAGE_SENT,
-            data={},
-            ambassador_id="ambassador-123"
+            EventType.MESSAGE_SENT, data={}, ambassador_id="ambassador-123"
         )
         event_system.publish(
-            EventType.MESSAGE_SENT,
-            data={},
-            ambassador_id="ambassador-456"
+            EventType.MESSAGE_SENT, data={}, ambassador_id="ambassador-456"
         )
 
         # Wait for processing
         import time
+
         time.sleep(0.5)
 
         # Only first event should match
@@ -141,15 +148,12 @@ class TestEventSystem(unittest.TestCase):
         """Test event storage and retrieval"""
         # Publish event
         event = event_system.publish(
-            EventType.CONVERSATION_STARTED,
-            data={"test": True},
-            user_guid="test-user"
+            EventType.CONVERSATION_STARTED, data={"test": True}, user_guid="test-user"
         )
 
         # Retrieve events
         events = event_system.get_events(
-            event_type=EventType.CONVERSATION_STARTED,
-            user_guid="test-user"
+            event_type=EventType.CONVERSATION_STARTED, user_guid="test-user"
         )
 
         # Verify event was stored
@@ -169,13 +173,11 @@ class TestEventSystem(unittest.TestCase):
 
         # Wait for storage
         import time
+
         time.sleep(0.5)
 
         # Replay events
-        event_system.replay_events(
-            replay_processor,
-            event_type=EventType.MESSAGE_SENT
-        )
+        event_system.replay_events(replay_processor, event_type=EventType.MESSAGE_SENT)
 
         # Verify events were replayed
         self.assertGreaterEqual(len(replayed_events), 2)
@@ -187,21 +189,21 @@ class TestWebhookValidator(unittest.TestCase):
     def test_generate_signature(self):
         """Test HMAC signature generation"""
         payload = '{"test": true}'
-        secret = 'test-secret'
+        secret = "test-secret"
 
         signature = WebhookValidator.generate_signature(payload, secret)
 
         # Verify format
-        self.assertTrue(signature.startswith('sha256='))
+        self.assertTrue(signature.startswith("sha256="))
 
         # Verify it's a valid hex string
-        hex_part = signature.replace('sha256=', '')
+        hex_part = signature.replace("sha256=", "")
         self.assertEqual(len(hex_part), 64)  # SHA256 hex is 64 chars
 
     def test_verify_signature(self):
         """Test HMAC signature verification"""
         payload = '{"test": true}'
-        secret = 'test-secret'
+        secret = "test-secret"
 
         # Generate signature
         signature = WebhookValidator.generate_signature(payload, secret)
@@ -210,22 +212,29 @@ class TestWebhookValidator(unittest.TestCase):
         self.assertTrue(WebhookValidator.verify_signature(payload, signature, secret))
 
         # Verify incorrect signature
-        self.assertFalse(WebhookValidator.verify_signature(payload, 'sha256=invalid', secret))
+        self.assertFalse(
+            WebhookValidator.verify_signature(payload, "sha256=invalid", secret)
+        )
 
         # Verify with different secret
-        self.assertFalse(WebhookValidator.verify_signature(payload, signature, 'wrong-secret'))
+        self.assertFalse(
+            WebhookValidator.verify_signature(payload, signature, "wrong-secret")
+        )
 
     @unittest.skip("Requires network connectivity")
     def test_validate_url(self):
         """Test URL validation"""
+
         async def run_test():
             # Test valid HTTPS URL
-            valid, error = await WebhookValidator.validate_url('https://httpbin.org/post')
+            valid, error = await WebhookValidator.validate_url(
+                "https://httpbin.org/post"
+            )
             self.assertTrue(valid)
             self.assertIsNone(error)
 
             # Test HTTP URL (should fail)
-            valid, error = await WebhookValidator.validate_url('http://example.com')
+            valid, error = await WebhookValidator.validate_url("http://example.com")
             self.assertFalse(valid)
             self.assertIsNotNone(error)
 
@@ -238,18 +247,21 @@ class TestWebhookDeliveryService(unittest.TestCase):
     def setUp(self):
         self.service = WebhookDeliveryService()
 
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     def test_successful_delivery(self, mock_session):
         """Test successful webhook delivery"""
+
         async def run_test():
             # Mock successful response
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.text = AsyncMock(return_value='OK')
+            mock_response.text = AsyncMock(return_value="OK")
 
             mock_session_instance = AsyncMock()
             mock_session_instance.post = AsyncMock(return_value=mock_response)
-            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aenter__ = AsyncMock(
+                return_value=mock_session_instance
+            )
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)
@@ -258,17 +270,17 @@ class TestWebhookDeliveryService(unittest.TestCase):
 
             # Create test webhook and event
             webhook = Webhook(
-                webhook_id='test-webhook',
-                url='https://example.com/webhook',
-                event_types=['conversation.started'],
-                secret_key='test-secret'
+                webhook_id="test-webhook",
+                url="https://example.com/webhook",
+                event_types=["conversation.started"],
+                secret_key="test-secret",
             )
 
             event = Event(
-                event_id='test-event',
+                event_id="test-event",
                 event_type=EventType.CONVERSATION_STARTED,
                 timestamp=datetime.now(timezone.utc).isoformat(),
-                data={"test": True}
+                data={"test": True},
             )
 
             # Deliver
@@ -280,18 +292,21 @@ class TestWebhookDeliveryService(unittest.TestCase):
 
         asyncio.run(run_test())
 
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     def test_failed_delivery(self, mock_session):
         """Test failed webhook delivery"""
+
         async def run_test():
             # Mock failed response
             mock_response = AsyncMock()
             mock_response.status = 500
-            mock_response.text = AsyncMock(return_value='Error')
+            mock_response.text = AsyncMock(return_value="Error")
 
             mock_session_instance = AsyncMock()
             mock_session_instance.post = AsyncMock(return_value=mock_response)
-            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aenter__ = AsyncMock(
+                return_value=mock_session_instance
+            )
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)
@@ -299,17 +314,17 @@ class TestWebhookDeliveryService(unittest.TestCase):
             mock_session.return_value = mock_session_instance
 
             webhook = Webhook(
-                webhook_id='test-webhook',
-                url='https://example.com/webhook',
-                event_types=['conversation.started'],
-                secret_key='test-secret'
+                webhook_id="test-webhook",
+                url="https://example.com/webhook",
+                event_types=["conversation.started"],
+                secret_key="test-secret",
             )
 
             event = Event(
-                event_id='test-event',
+                event_id="test-event",
                 event_type=EventType.CONVERSATION_STARTED,
                 timestamp=datetime.now(timezone.utc).isoformat(),
-                data={"test": True}
+                data={"test": True},
             )
 
             # Deliver
@@ -331,10 +346,10 @@ class TestWebhookDeliveryService(unittest.TestCase):
         """Test delivery statistics"""
         stats = self.service.get_stats()
 
-        self.assertIn('total_deliveries', stats)
-        self.assertIn('successful_deliveries', stats)
-        self.assertIn('failed_deliveries', stats)
-        self.assertIn('success_rate', stats)
+        self.assertIn("total_deliveries", stats)
+        self.assertIn("successful_deliveries", stats)
+        self.assertIn("failed_deliveries", stats)
+        self.assertIn("success_rate", stats)
 
 
 class TestWebhookManager(unittest.TestCase):
@@ -347,26 +362,24 @@ class TestWebhookManager(unittest.TestCase):
     def test_register_webhook(self):
         """Test webhook registration"""
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started', 'message.sent']
+            url="https://example.com/webhook",
+            event_types=["conversation.started", "message.sent"],
         )
 
         self.assertIsNotNone(webhook.webhook_id)
-        self.assertEqual(webhook.url, 'https://example.com/webhook')
+        self.assertEqual(webhook.url, "https://example.com/webhook")
         self.assertEqual(len(webhook.event_types), 2)
         self.assertIsNotNone(webhook.secret_key)
-        self.assertTrue(webhook.secret_key.startswith('whsec_'))
+        self.assertTrue(webhook.secret_key.startswith("whsec_"))
 
     def test_list_webhooks(self):
         """Test listing webhooks"""
         # Register webhooks
         webhook_manager.register_webhook(
-            url='https://example.com/webhook1',
-            event_types=['conversation.started']
+            url="https://example.com/webhook1", event_types=["conversation.started"]
         )
         webhook_manager.register_webhook(
-            url='https://example.com/webhook2',
-            event_types=['message.sent']
+            url="https://example.com/webhook2", event_types=["message.sent"]
         )
 
         webhooks = webhook_manager.list_webhooks()
@@ -375,8 +388,7 @@ class TestWebhookManager(unittest.TestCase):
     def test_get_webhook(self):
         """Test getting specific webhook"""
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started']
+            url="https://example.com/webhook", event_types=["conversation.started"]
         )
 
         retrieved = webhook_manager.get_webhook(webhook.webhook_id)
@@ -386,23 +398,21 @@ class TestWebhookManager(unittest.TestCase):
     def test_update_webhook(self):
         """Test updating webhook"""
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started']
+            url="https://example.com/webhook", event_types=["conversation.started"]
         )
 
         updated = webhook_manager.update_webhook(
             webhook.webhook_id,
-            {'url': 'https://new-url.com/webhook', 'status': 'inactive'}
+            {"url": "https://new-url.com/webhook", "status": "inactive"},
         )
 
-        self.assertEqual(updated.url, 'https://new-url.com/webhook')
+        self.assertEqual(updated.url, "https://new-url.com/webhook")
         self.assertEqual(updated.status, WebhookStatus.INACTIVE)
 
     def test_delete_webhook(self):
         """Test deleting webhook"""
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started']
+            url="https://example.com/webhook", event_types=["conversation.started"]
         )
 
         success = webhook_manager.delete_webhook(webhook.webhook_id)
@@ -415,18 +425,17 @@ class TestWebhookManager(unittest.TestCase):
         """Test webhook event filtering"""
         # Create event
         event = Event(
-            event_id='test-event',
+            event_id="test-event",
             event_type=EventType.CONVERSATION_STARTED,
             timestamp=datetime.now(timezone.utc).isoformat(),
             data={},
-            user_guid='test-user',
-            ambassador_id='test-ambassador'
+            user_guid="test-user",
+            ambassador_id="test-ambassador",
         )
 
         # Register matching webhook
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started']
+            url="https://example.com/webhook", event_types=["conversation.started"]
         )
 
         # Find matching webhooks
@@ -438,19 +447,19 @@ class TestWebhookManager(unittest.TestCase):
         """Test webhook event filtering with custom filters"""
         # Create event
         event = Event(
-            event_id='test-event',
+            event_id="test-event",
             event_type=EventType.CONVERSATION_STARTED,
             timestamp=datetime.now(timezone.utc).isoformat(),
             data={},
-            user_guid='test-user',
-            ambassador_id='ambassador-123'
+            user_guid="test-user",
+            ambassador_id="ambassador-123",
         )
 
         # Register webhook with filter
         webhook = webhook_manager.register_webhook(
-            url='https://example.com/webhook',
-            event_types=['conversation.started'],
-            filters={'ambassador_id': 'ambassador-123'}
+            url="https://example.com/webhook",
+            event_types=["conversation.started"],
+            filters={"ambassador_id": "ambassador-123"},
         )
 
         # Find matching webhooks
@@ -459,11 +468,11 @@ class TestWebhookManager(unittest.TestCase):
 
         # Create event with different ambassador
         event2 = Event(
-            event_id='test-event-2',
+            event_id="test-event-2",
             event_type=EventType.CONVERSATION_STARTED,
             timestamp=datetime.now(timezone.utc).isoformat(),
             data={},
-            ambassador_id='ambassador-456'
+            ambassador_id="ambassador-456",
         )
 
         # Should not match
@@ -474,9 +483,9 @@ class TestWebhookManager(unittest.TestCase):
         """Test webhook statistics"""
         stats = webhook_manager.get_stats()
 
-        self.assertIn('total_webhooks', stats)
-        self.assertIn('active_webhooks', stats)
-        self.assertIn('total_deliveries', stats)
+        self.assertIn("total_webhooks", stats)
+        self.assertIn("active_webhooks", stats)
+        self.assertIn("total_deliveries", stats)
 
 
 class TestRetryLogic(unittest.TestCase):
@@ -509,10 +518,7 @@ class TestPerformance(unittest.TestCase):
         count = 1000
 
         for i in range(count):
-            event_system.publish(
-                EventType.MESSAGE_SENT,
-                data={"index": i}
-            )
+            event_system.publish(EventType.MESSAGE_SENT, data={"index": i})
 
         elapsed = time.time() - start
         rate = count / elapsed
@@ -527,7 +533,7 @@ class TestPerformance(unittest.TestCase):
         import time
 
         payload = '{"test": true}' * 100  # ~1KB payload
-        secret = 'test-secret'
+        secret = "test-secret"
         signature = WebhookValidator.generate_signature(payload, secret)
 
         start = time.time()
@@ -553,18 +559,21 @@ class TestIntegration(unittest.TestCase):
         webhook_manager.webhooks = {}
         event_system.listeners = []
 
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     def test_end_to_end_webhook_delivery(self, mock_session):
         """Test complete workflow from event to delivery"""
+
         async def run_test():
             # Mock successful response
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.text = AsyncMock(return_value='OK')
+            mock_response.text = AsyncMock(return_value="OK")
 
             mock_session_instance = AsyncMock()
             mock_session_instance.post = AsyncMock(return_value=mock_response)
-            mock_session_instance.__aenter__ = AsyncMock(return_value=mock_session_instance)
+            mock_session_instance.__aenter__ = AsyncMock(
+                return_value=mock_session_instance
+            )
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)
@@ -573,18 +582,17 @@ class TestIntegration(unittest.TestCase):
 
             # Register webhook
             webhook = webhook_manager.register_webhook(
-                url='https://example.com/webhook',
-                event_types=['conversation.started']
+                url="https://example.com/webhook", event_types=["conversation.started"]
             )
 
             # Publish event (this should trigger delivery)
             event = publish_conversation_started(
-                user_guid='test-user',
-                ambassador_id='test-ambassador'
+                user_guid="test-user", ambassador_id="test-ambassador"
             )
 
             # Wait for delivery
             import time
+
             time.sleep(1)
 
             # Check delivery history
@@ -597,5 +605,5 @@ class TestIntegration(unittest.TestCase):
         asyncio.run(run_test())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main(verbosity=2)

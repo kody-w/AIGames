@@ -15,7 +15,8 @@ Version: 1.0.0
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class CalendarAgent(BasicAgent):
     """
 
     def __init__(self):
-        self.name = 'Calendar'
+        self.name = "Calendar"
         self.metadata = {
             "name": self.name,
             "description": "Manages calendar operations including scheduling meetings, checking availability, sending invites, and managing appointments. Supports Google Calendar and Outlook.",
@@ -37,54 +38,61 @@ class CalendarAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["schedule_meeting", "check_availability", "send_invite", "reschedule", "cancel", "list_events"],
-                        "description": "The calendar action to perform"
+                        "enum": [
+                            "schedule_meeting",
+                            "check_availability",
+                            "send_invite",
+                            "reschedule",
+                            "cancel",
+                            "list_events",
+                        ],
+                        "description": "The calendar action to perform",
                     },
                     "title": {
                         "type": "string",
-                        "description": "Meeting or event title"
+                        "description": "Meeting or event title",
                     },
                     "start_time": {
                         "type": "string",
-                        "description": "Start time in ISO format (YYYY-MM-DDTHH:MM:SS) or natural language"
+                        "description": "Start time in ISO format (YYYY-MM-DDTHH:MM:SS) or natural language",
                     },
                     "end_time": {
                         "type": "string",
-                        "description": "End time in ISO format (YYYY-MM-DDTHH:MM:SS) or natural language"
+                        "description": "End time in ISO format (YYYY-MM-DDTHH:MM:SS) or natural language",
                     },
                     "attendees": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of attendee email addresses"
+                        "description": "List of attendee email addresses",
                     },
                     "description": {
                         "type": "string",
-                        "description": "Meeting description or agenda"
+                        "description": "Meeting description or agenda",
                     },
                     "location": {
                         "type": "string",
-                        "description": "Meeting location (physical address or video conference link)"
+                        "description": "Meeting location (physical address or video conference link)",
                     },
                     "event_id": {
                         "type": "string",
-                        "description": "Event ID for reschedule or cancel operations"
+                        "description": "Event ID for reschedule or cancel operations",
                     },
                     "calendar_type": {
                         "type": "string",
                         "enum": ["google", "outlook"],
-                        "description": "Calendar platform type (default: google)"
+                        "description": "Calendar platform type (default: google)",
                     },
                     "date_range_start": {
                         "type": "string",
-                        "description": "Start date for availability check or event listing"
+                        "description": "Start date for availability check or event listing",
                     },
                     "date_range_end": {
                         "type": "string",
-                        "description": "End date for availability check or event listing"
-                    }
+                        "description": "End date for availability check or event listing",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
@@ -103,19 +111,19 @@ class CalendarAgent(BasicAgent):
             ValueError: If required parameters are missing or invalid
         """
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
 
             if not action:
                 return self._error_response("Action parameter is required")
 
             # Route to appropriate handler
             handlers = {
-                'schedule_meeting': self._schedule_meeting,
-                'check_availability': self._check_availability,
-                'send_invite': self._send_invite,
-                'reschedule': self._reschedule_meeting,
-                'cancel': self._cancel_meeting,
-                'list_events': self._list_events
+                "schedule_meeting": self._schedule_meeting,
+                "check_availability": self._check_availability,
+                "send_invite": self._send_invite,
+                "reschedule": self._reschedule_meeting,
+                "cancel": self._cancel_meeting,
+                "list_events": self._list_events,
             }
 
             handler = handlers.get(action)
@@ -130,13 +138,13 @@ class CalendarAgent(BasicAgent):
 
     def _schedule_meeting(self, **kwargs) -> str:
         """Schedule a new meeting."""
-        title = kwargs.get('title')
-        start_time = kwargs.get('start_time')
-        end_time = kwargs.get('end_time')
-        attendees = kwargs.get('attendees', [])
-        description = kwargs.get('description', '')
-        location = kwargs.get('location', '')
-        calendar_type = kwargs.get('calendar_type', 'google')
+        title = kwargs.get("title")
+        start_time = kwargs.get("start_time")
+        end_time = kwargs.get("end_time")
+        attendees = kwargs.get("attendees", [])
+        description = kwargs.get("description", "")
+        location = kwargs.get("location", "")
+        calendar_type = kwargs.get("calendar_type", "google")
 
         # Validate required fields
         if not title:
@@ -175,8 +183,8 @@ class CalendarAgent(BasicAgent):
                 "attendees": attendees,
                 "description": description,
                 "location": location,
-                "calendar_type": calendar_type
-            }
+                "calendar_type": calendar_type,
+            },
         }
 
         return f"""✅ Meeting scheduled successfully!
@@ -196,9 +204,9 @@ Note: This is a simulated scheduling. In production, this would integrate with {
 
     def _check_availability(self, **kwargs) -> str:
         """Check availability for a time period."""
-        date_range_start = kwargs.get('date_range_start', kwargs.get('start_time'))
-        date_range_end = kwargs.get('date_range_end', kwargs.get('end_time'))
-        attendees = kwargs.get('attendees', [])
+        date_range_start = kwargs.get("date_range_start", kwargs.get("start_time"))
+        date_range_end = kwargs.get("date_range_end", kwargs.get("end_time"))
+        attendees = kwargs.get("attendees", [])
 
         if not date_range_start or not date_range_end:
             return self._error_response("Date range (start and end) is required")
@@ -235,9 +243,9 @@ Note: This is a simulated availability check. In production, this would query al
 
     def _send_invite(self, **kwargs) -> str:
         """Send calendar invitation to attendees."""
-        event_id = kwargs.get('event_id')
-        attendees = kwargs.get('attendees', [])
-        title = kwargs.get('title')
+        event_id = kwargs.get("event_id")
+        attendees = kwargs.get("attendees", [])
+        title = kwargs.get("title")
 
         if not attendees:
             return self._error_response("Attendee list is required")
@@ -264,9 +272,9 @@ Note: This is a simulated invitation. In production, this would send actual cale
 
     def _reschedule_meeting(self, **kwargs) -> str:
         """Reschedule an existing meeting."""
-        event_id = kwargs.get('event_id')
-        new_start = kwargs.get('start_time')
-        new_end = kwargs.get('end_time')
+        event_id = kwargs.get("event_id")
+        new_start = kwargs.get("start_time")
+        new_end = kwargs.get("end_time")
 
         if not event_id:
             return self._error_response("Event ID is required for rescheduling")
@@ -293,11 +301,13 @@ Note: This is a simulated reschedule. In production, this would update the actua
 
     def _cancel_meeting(self, **kwargs) -> str:
         """Cancel an existing meeting."""
-        event_id = kwargs.get('event_id')
-        title = kwargs.get('title')
+        event_id = kwargs.get("event_id")
+        title = kwargs.get("title")
 
         if not event_id and not title:
-            return self._error_response("Event ID or meeting title is required for cancellation")
+            return self._error_response(
+                "Event ID or meeting title is required for cancellation"
+            )
 
         identifier = event_id if event_id else title
 
@@ -314,9 +324,9 @@ Note: This is a simulated cancellation. In production, this would delete the act
 
     def _list_events(self, **kwargs) -> str:
         """List calendar events for a date range."""
-        date_range_start = kwargs.get('date_range_start')
-        date_range_end = kwargs.get('date_range_end')
-        calendar_type = kwargs.get('calendar_type', 'google')
+        date_range_start = kwargs.get("date_range_start")
+        date_range_end = kwargs.get("date_range_end")
+        calendar_type = kwargs.get("calendar_type", "google")
 
         # Default to next 7 days if no range specified
         if not date_range_start:
@@ -338,10 +348,12 @@ Note: This is a simulated cancellation. In production, this would delete the act
         # Generate sample events
         events = self._generate_sample_events(start_dt, end_dt)
 
-        events_list = "\n".join([
-            f"• **{e['title']}** - {e['start'].strftime('%m/%d %I:%M %p')} ({e['duration']} min)"
-            for e in events
-        ])
+        events_list = "\n".join(
+            [
+                f"• **{e['title']}** - {e['start'].strftime('%m/%d %I:%M %p')} ({e['duration']} min)"
+                for e in events
+            ]
+        )
 
         return f"""📅 Calendar Events
 
@@ -358,17 +370,17 @@ Note: This is a simulated event list. In production, this would retrieve actual 
         """Parse time string to datetime object."""
         # Try ISO format first
         try:
-            return datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(time_str.replace("Z", "+00:00"))
         except:
             pass
 
         # Try common formats
         formats = [
-            '%Y-%m-%d %H:%M:%S',
-            '%Y-%m-%d %H:%M',
-            '%Y-%m-%d',
-            '%m/%d/%Y %H:%M',
-            '%m/%d/%Y'
+            "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",
+            "%Y-%m-%d",
+            "%m/%d/%Y %H:%M",
+            "%m/%d/%Y",
         ]
 
         for fmt in formats:
@@ -378,14 +390,19 @@ Note: This is a simulated event list. In production, this would retrieve actual 
                 continue
 
         # If all parsing fails, raise error
-        raise ValueError(f"Unable to parse time: {time_str}. Use ISO format (YYYY-MM-DDTHH:MM:SS) or natural date formats.")
+        raise ValueError(
+            f"Unable to parse time: {time_str}. Use ISO format (YYYY-MM-DDTHH:MM:SS) or natural date formats."
+        )
 
     def _generate_event_id(self) -> str:
         """Generate a unique event ID."""
         import uuid
+
         return f"cal_{uuid.uuid4().hex[:12]}"
 
-    def _generate_available_slots(self, start_dt: datetime, end_dt: datetime) -> List[Dict[str, datetime]]:
+    def _generate_available_slots(
+        self, start_dt: datetime, end_dt: datetime
+    ) -> List[Dict[str, datetime]]:
         """Generate sample available time slots."""
         slots = []
         current = start_dt.replace(hour=9, minute=0, second=0, microsecond=0)
@@ -396,15 +413,19 @@ Note: This is a simulated event list. In production, this would retrieve actual 
             # Skip weekends
             if day_date.weekday() < 5:  # Monday = 0, Friday = 4
                 # Morning slot
-                slots.append({
-                    'start': day_date.replace(hour=9, minute=0),
-                    'end': day_date.replace(hour=10, minute=0)
-                })
+                slots.append(
+                    {
+                        "start": day_date.replace(hour=9, minute=0),
+                        "end": day_date.replace(hour=10, minute=0),
+                    }
+                )
                 # Afternoon slot
-                slots.append({
-                    'start': day_date.replace(hour=14, minute=0),
-                    'end': day_date.replace(hour=15, minute=0)
-                })
+                slots.append(
+                    {
+                        "start": day_date.replace(hour=14, minute=0),
+                        "end": day_date.replace(hour=15, minute=0),
+                    }
+                )
 
         return slots
 
@@ -415,8 +436,8 @@ Note: This is a simulated event list. In production, this would retrieve actual 
 
         formatted = []
         for slot in slots[:10]:  # Show max 10 slots
-            start = slot['start']
-            end = slot['end']
+            start = slot["start"]
+            end = slot["end"]
             formatted.append(
                 f"• {start.strftime('%A, %B %d')} - {start.strftime('%I:%M %p')} to {end.strftime('%I:%M %p')}"
             )
@@ -426,14 +447,16 @@ Note: This is a simulated event list. In production, this would retrieve actual 
 
         return "\n".join(formatted)
 
-    def _generate_sample_events(self, start_dt: datetime, end_dt: datetime) -> List[Dict[str, Any]]:
+    def _generate_sample_events(
+        self, start_dt: datetime, end_dt: datetime
+    ) -> List[Dict[str, Any]]:
         """Generate sample events for demonstration."""
         events = []
         sample_events = [
             ("Team Standup", 30, 9),
             ("Project Review", 60, 14),
             ("Client Meeting", 45, 11),
-            ("Sprint Planning", 90, 13)
+            ("Sprint Planning", 90, 13),
         ]
 
         current = start_dt
@@ -441,15 +464,15 @@ Note: This is a simulated event list. In production, this would retrieve actual 
 
         while current <= end_dt and len(events) < 5:
             if current.weekday() < 5:  # Weekday
-                event_name, duration, hour = sample_events[event_idx % len(sample_events)]
+                event_name, duration, hour = sample_events[
+                    event_idx % len(sample_events)
+                ]
                 event_time = current.replace(hour=hour, minute=0, second=0)
 
                 if event_time >= start_dt and event_time <= end_dt:
-                    events.append({
-                        'title': event_name,
-                        'start': event_time,
-                        'duration': duration
-                    })
+                    events.append(
+                        {"title": event_name, "start": event_time, "duration": duration}
+                    )
                     event_idx += 1
 
             current += timedelta(days=1)
@@ -467,33 +490,39 @@ def _test_calendar_agent():
     agent = CalendarAgent()
 
     print("Test 1: Schedule Meeting")
-    print(agent.perform(
-        action="schedule_meeting",
-        title="Product Demo",
-        start_time="2025-11-10T14:00:00",
-        end_time="2025-11-10T15:00:00",
-        attendees=["john@example.com", "jane@example.com"],
-        location="Conference Room A",
-        description="Q4 product demonstration"
-    ))
-    print("\n" + "="*80 + "\n")
+    print(
+        agent.perform(
+            action="schedule_meeting",
+            title="Product Demo",
+            start_time="2025-11-10T14:00:00",
+            end_time="2025-11-10T15:00:00",
+            attendees=["john@example.com", "jane@example.com"],
+            location="Conference Room A",
+            description="Q4 product demonstration",
+        )
+    )
+    print("\n" + "=" * 80 + "\n")
 
     print("Test 2: Check Availability")
-    print(agent.perform(
-        action="check_availability",
-        date_range_start="2025-11-10",
-        date_range_end="2025-11-15",
-        attendees=["team@example.com"]
-    ))
-    print("\n" + "="*80 + "\n")
+    print(
+        agent.perform(
+            action="check_availability",
+            date_range_start="2025-11-10",
+            date_range_end="2025-11-15",
+            attendees=["team@example.com"],
+        )
+    )
+    print("\n" + "=" * 80 + "\n")
 
     print("Test 3: Send Invite")
-    print(agent.perform(
-        action="send_invite",
-        event_id="cal_abc123",
-        attendees=["newperson@example.com"],
-        title="Product Demo"
-    ))
+    print(
+        agent.perform(
+            action="send_invite",
+            event_id="cal_abc123",
+            attendees=["newperson@example.com"],
+            title="Product Demo",
+        )
+    )
 
 
 if __name__ == "__main__":

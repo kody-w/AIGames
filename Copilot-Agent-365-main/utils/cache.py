@@ -28,19 +28,21 @@ Version: 1.0.0
 import hashlib
 import json
 import logging
+import os
 import threading
 import time
 from collections import OrderedDict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, asdict
-import os
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Optional Redis support for production
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -50,6 +52,7 @@ except ImportError:
 @dataclass
 class CacheEntry:
     """Represents a single cache entry with metadata"""
+
     key: str
     value: Any
     created_at: float
@@ -74,6 +77,7 @@ class CacheEntry:
 @dataclass
 class CacheStats:
     """Cache performance statistics"""
+
     hits: int = 0
     misses: int = 0
     evictions: int = 0
@@ -91,7 +95,7 @@ class CacheStats:
     def to_dict(self) -> dict:
         """Convert to dictionary with computed metrics"""
         data = asdict(self)
-        data['hit_rate_percent'] = self.hit_rate()
+        data["hit_rate_percent"] = self.hit_rate()
         return data
 
 
@@ -164,7 +168,10 @@ class SemanticSimilarityCache:
             for cached_query, cached_embedding in self.embeddings.items():
                 similarity = self._cosine_similarity(query_embedding, cached_embedding)
 
-                if similarity > best_similarity and similarity >= self.similarity_threshold:
+                if (
+                    similarity > best_similarity
+                    and similarity >= self.similarity_threshold
+                ):
                     best_similarity = similarity
                     best_key = self.query_to_key[cached_query]
 
@@ -243,8 +250,14 @@ class LRUCache:
             self.stats.hits += 1
             return entry.value
 
-    def set(self, key: str, value: Any, ttl: int = 3600, tags: List[str] = None,
-            cache_type: str = 'default') -> None:
+    def set(
+        self,
+        key: str,
+        value: Any,
+        ttl: int = 3600,
+        tags: List[str] = None,
+        cache_type: str = "default",
+    ) -> None:
         """
         Set value in cache.
 
@@ -260,7 +273,7 @@ class LRUCache:
 
             # Calculate size
             try:
-                size_bytes = len(json.dumps(value).encode('utf-8'))
+                size_bytes = len(json.dumps(value).encode("utf-8"))
             except:
                 size_bytes = 0
 
@@ -273,7 +286,7 @@ class LRUCache:
                 ttl=ttl,
                 tags=tags or [],
                 size_bytes=size_bytes,
-                cache_type=cache_type
+                cache_type=cache_type,
             )
 
             # Evict if at capacity
@@ -330,8 +343,7 @@ class LRUCache:
         """
         with self.lock:
             keys_to_remove = [
-                key for key, entry in self.cache.items()
-                if tag in entry.tags
+                key for key, entry in self.cache.items() if tag in entry.tags
             ]
 
             for key in keys_to_remove:
@@ -363,7 +375,7 @@ class FilePersistentCache:
     Provides durable caching across function invocations and restarts.
     """
 
-    def __init__(self, cache_dir: str = '/tmp/cache', enabled: bool = True):
+    def __init__(self, cache_dir: str = "/tmp/cache", enabled: bool = True):
         """
         Initialize file cache.
 
@@ -396,10 +408,10 @@ class FilePersistentCache:
                 return None
 
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     data = json.load(f)
 
-                entry = CacheEntry(**data['entry'])
+                entry = CacheEntry(**data["entry"])
 
                 # Check expiration
                 if entry.is_expired():
@@ -412,8 +424,14 @@ class FilePersistentCache:
                 logging.error(f"Error reading cache file {file_path}: {e}")
                 return None
 
-    def set(self, key: str, value: Any, ttl: int = 3600, tags: List[str] = None,
-            cache_type: str = 'default') -> None:
+    def set(
+        self,
+        key: str,
+        value: Any,
+        ttl: int = 3600,
+        tags: List[str] = None,
+        cache_type: str = "default",
+    ) -> None:
         """Set value in file cache"""
         if not self.enabled:
             return
@@ -422,7 +440,7 @@ class FilePersistentCache:
             file_path = self._get_file_path(key)
 
             try:
-                size_bytes = len(json.dumps(value).encode('utf-8'))
+                size_bytes = len(json.dumps(value).encode("utf-8"))
             except:
                 size_bytes = 0
 
@@ -435,12 +453,12 @@ class FilePersistentCache:
                 ttl=ttl,
                 tags=tags or [],
                 size_bytes=size_bytes,
-                cache_type=cache_type
+                cache_type=cache_type,
             )
 
             try:
-                with open(file_path, 'w') as f:
-                    json.dump({'entry': entry.to_dict()}, f)
+                with open(file_path, "w") as f:
+                    json.dump({"entry": entry.to_dict()}, f)
             except Exception as e:
                 logging.error(f"Error writing cache file {file_path}: {e}")
 
@@ -464,7 +482,7 @@ class FilePersistentCache:
             return
 
         with self.lock:
-            for file_path in self.cache_dir.glob('*.json'):
+            for file_path in self.cache_dir.glob("*.json"):
                 try:
                     file_path.unlink()
                 except Exception as e:
@@ -478,8 +496,13 @@ class RedisCache:
     Provides shared caching across multiple function instances.
     """
 
-    def __init__(self, host: str = 'localhost', port: int = 6379,
-                 password: Optional[str] = None, db: int = 0):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 6379,
+        password: Optional[str] = None,
+        db: int = 0,
+    ):
         """
         Initialize Redis cache.
 
@@ -499,7 +522,7 @@ class RedisCache:
                     port=port,
                     password=password,
                     db=db,
-                    decode_responses=True
+                    decode_responses=True,
                 )
                 # Test connection
                 self.client.ping()
@@ -579,25 +602,33 @@ class CacheManager:
         self.config = config or self._default_config()
 
         # Initialize cache layers
-        self.memory_cache = LRUCache(
-            max_size=self.config['memory_cache']['max_size']
-        )
+        self.memory_cache = LRUCache(max_size=self.config["memory_cache"]["max_size"])
 
         self.file_cache = FilePersistentCache(
-            cache_dir=self.config['file_cache']['cache_dir'],
-            enabled=self.config['file_cache']['enabled']
+            cache_dir=self.config["file_cache"]["cache_dir"],
+            enabled=self.config["file_cache"]["enabled"],
         )
 
-        self.redis_cache = RedisCache(
-            host=self.config['redis']['host'],
-            port=self.config['redis']['port'],
-            password=self.config['redis'].get('password'),
-            db=self.config['redis']['db']
-        ) if self.config['redis']['enabled'] else None
+        self.redis_cache = (
+            RedisCache(
+                host=self.config["redis"]["host"],
+                port=self.config["redis"]["port"],
+                password=self.config["redis"].get("password"),
+                db=self.config["redis"]["db"],
+            )
+            if self.config["redis"]["enabled"]
+            else None
+        )
 
-        self.semantic_cache = SemanticSimilarityCache(
-            similarity_threshold=self.config['semantic_cache']['similarity_threshold']
-        ) if self.config['semantic_cache']['enabled'] else None
+        self.semantic_cache = (
+            SemanticSimilarityCache(
+                similarity_threshold=self.config["semantic_cache"][
+                    "similarity_threshold"
+                ]
+            )
+            if self.config["semantic_cache"]["enabled"]
+            else None
+        )
 
         self.stats = CacheStats()
         self.lock = threading.RLock()
@@ -607,32 +638,18 @@ class CacheManager:
     def _default_config(self) -> Dict:
         """Get default cache configuration"""
         return {
-            'memory_cache': {
-                'max_size': 1000,
-                'enabled': True
+            "memory_cache": {"max_size": 1000, "enabled": True},
+            "file_cache": {"cache_dir": "/tmp/ambassador_cache", "enabled": True},
+            "redis": {"enabled": False, "host": "localhost", "port": 6379, "db": 0},
+            "semantic_cache": {"enabled": True, "similarity_threshold": 0.95},
+            "cache_types": {
+                "response": {"ttl": 3600, "enabled": True},
+                "semantic": {"ttl": 7200, "enabled": True},
+                "agent_metadata": {"ttl": 86400, "enabled": True},
+                "ambassador_config": {"ttl": 3600, "enabled": True},
+                "memory_context": {"ttl": 1800, "enabled": True},
+                "analytics": {"ttl": 300, "enabled": True},
             },
-            'file_cache': {
-                'cache_dir': '/tmp/ambassador_cache',
-                'enabled': True
-            },
-            'redis': {
-                'enabled': False,
-                'host': 'localhost',
-                'port': 6379,
-                'db': 0
-            },
-            'semantic_cache': {
-                'enabled': True,
-                'similarity_threshold': 0.95
-            },
-            'cache_types': {
-                'response': {'ttl': 3600, 'enabled': True},
-                'semantic': {'ttl': 7200, 'enabled': True},
-                'agent_metadata': {'ttl': 86400, 'enabled': True},
-                'ambassador_config': {'ttl': 3600, 'enabled': True},
-                'memory_context': {'ttl': 1800, 'enabled': True},
-                'analytics': {'ttl': 300, 'enabled': True}
-            }
         }
 
     def _generate_key(self, prefix: str, *args, **kwargs) -> str:
@@ -652,7 +669,7 @@ class CacheManager:
         key_parts.extend(str(arg) for arg in args)
         key_parts.extend(f"{k}={v}" for k, v in sorted(kwargs.items()))
 
-        key_string = '|'.join(key_parts)
+        key_string = "|".join(key_parts)
 
         # Hash for consistent length
         key_hash = hashlib.sha256(key_string.encode()).hexdigest()
@@ -673,7 +690,7 @@ class CacheManager:
         start_time = time.time()
 
         # Check if this cache type is enabled
-        if not self.config['cache_types'].get(cache_type, {}).get('enabled', False):
+        if not self.config["cache_types"].get(cache_type, {}).get("enabled", False):
             return None
 
         key = self._generate_key(cache_type, *args, **kwargs)
@@ -685,8 +702,8 @@ class CacheManager:
             return value
 
         # Try semantic cache for response types
-        if cache_type == 'response' and self.semantic_cache:
-            query = str(args[0]) if args else ''
+        if cache_type == "response" and self.semantic_cache:
+            query = str(args[0]) if args else ""
             semantic_key = self.semantic_cache.find_similar(query)
 
             if semantic_key:
@@ -699,9 +716,12 @@ class CacheManager:
         value = self.file_cache.get(key)
         if value is not None:
             # Warm memory cache
-            self.memory_cache.set(key, value,
-                ttl=self.config['cache_types'][cache_type]['ttl'],
-                cache_type=cache_type)
+            self.memory_cache.set(
+                key,
+                value,
+                ttl=self.config["cache_types"][cache_type]["ttl"],
+                cache_type=cache_type,
+            )
             self._record_hit(time.time() - start_time)
             return value
 
@@ -710,16 +730,21 @@ class CacheManager:
             value = self.redis_cache.get(key)
             if value is not None:
                 # Warm lower-tier caches
-                self.memory_cache.set(key, value,
-                    ttl=self.config['cache_types'][cache_type]['ttl'],
-                    cache_type=cache_type)
+                self.memory_cache.set(
+                    key,
+                    value,
+                    ttl=self.config["cache_types"][cache_type]["ttl"],
+                    cache_type=cache_type,
+                )
                 self._record_hit(time.time() - start_time)
                 return value
 
         self._record_miss(time.time() - start_time)
         return None
 
-    def set(self, cache_type: str, value: Any, *args, tags: List[str] = None, **kwargs) -> None:
+    def set(
+        self, cache_type: str, value: Any, *args, tags: List[str] = None, **kwargs
+    ) -> None:
         """
         Set value in cache (all tiers).
 
@@ -731,11 +756,11 @@ class CacheManager:
             **kwargs: Keyword arguments for key generation
         """
         # Check if this cache type is enabled
-        if not self.config['cache_types'].get(cache_type, {}).get('enabled', False):
+        if not self.config["cache_types"].get(cache_type, {}).get("enabled", False):
             return
 
         key = self._generate_key(cache_type, *args, **kwargs)
-        ttl = self.config['cache_types'][cache_type]['ttl']
+        ttl = self.config["cache_types"][cache_type]["ttl"]
 
         # Set in all cache tiers
         self.memory_cache.set(key, value, ttl=ttl, tags=tags, cache_type=cache_type)
@@ -745,8 +770,8 @@ class CacheManager:
             self.redis_cache.set(key, value, ttl=ttl)
 
         # Add to semantic cache for response types
-        if cache_type == 'response' and self.semantic_cache:
-            query = str(args[0]) if args else ''
+        if cache_type == "response" and self.semantic_cache:
+            query = str(args[0]) if args else ""
             self.semantic_cache.add(query, key)
 
     def invalidate(self, cache_type: str, *args, **kwargs) -> bool:
@@ -827,12 +852,12 @@ class CacheManager:
             stats = self.memory_cache.get_stats()
 
             # Add global stats
-            stats['timestamp'] = datetime.now().isoformat()
-            stats['cache_layers'] = {
-                'memory': self.memory_cache is not None,
-                'file': self.file_cache.enabled,
-                'redis': self.redis_cache.enabled if self.redis_cache else False,
-                'semantic': self.semantic_cache is not None
+            stats["timestamp"] = datetime.now().isoformat()
+            stats["cache_layers"] = {
+                "memory": self.memory_cache is not None,
+                "file": self.file_cache.enabled,
+                "redis": self.redis_cache.enabled if self.redis_cache else False,
+                "semantic": self.semantic_cache is not None,
             }
 
             return stats
@@ -883,7 +908,7 @@ def load_cache_config(config_path: str) -> Dict:
         Configuration dictionary
     """
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             return json.load(f)
     except Exception as e:
         logging.error(f"Error loading cache config from {config_path}: {e}")

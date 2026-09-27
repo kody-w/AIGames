@@ -8,46 +8,46 @@ Tests cover:
 - User context switching
 """
 
-import pytest
-import sys
-import os
 import json
-from unittest.mock import Mock, MagicMock, patch
+import os
+import sys
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Add the parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from function_app import Assistant, DEFAULT_USER_GUID
 from agents.basic_agent import BasicAgent
+from function_app import DEFAULT_USER_GUID, Assistant
 
 
 class TestAgent(BasicAgent):
     """Test agent for integration tests"""
+
     def __init__(self):
-        self.name = 'TestAgent'
+        self.name = "TestAgent"
         self.metadata = {
             "name": self.name,
             "description": "Test agent for integration testing",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "type": "string",
-                        "description": "Action to perform"
-                    }
+                    "action": {"type": "string", "description": "Action to perform"}
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
     def perform(self, **kwargs):
-        action = kwargs.get('action', '')
+        action = kwargs.get("action", "")
         return f"Performed action: {action}"
 
 
 class MockOpenAIResponse:
     """Mock OpenAI API response"""
+
     def __init__(self, content=None, function_call=None):
         self.choices = [MagicMock()]
         self.choices[0].message = MagicMock()
@@ -57,6 +57,7 @@ class MockOpenAIResponse:
 
 class MockFunctionCall:
     """Mock function call object"""
+
     def __init__(self, name, arguments):
         self.name = name
         self.arguments = arguments
@@ -65,8 +66,8 @@ class MockFunctionCall:
 class TestFullRequestFlow:
     """Test cases for full request processing"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def setup_assistant_with_agent(self, mock_storage, mock_openai):
         """Helper to create assistant with test agent"""
         mock_storage_instance = MagicMock()
@@ -76,7 +77,7 @@ class TestFullRequestFlow:
         mock_storage.return_value = mock_storage_instance
 
         test_agent = TestAgent()
-        agents = {'TestAgent': test_agent}
+        agents = {"TestAgent": test_agent}
 
         assistant = Assistant(agents)
         assistant.storage_manager = mock_storage_instance
@@ -88,7 +89,9 @@ class TestFullRequestFlow:
         assistant, mock_storage, mock_openai = self.setup_assistant_with_agent()
 
         # Mock OpenAI to return simple response
-        mock_response = MockOpenAIResponse(content="Hello! How can I help you?|||VOICE|||Hey there, what can I do for you?")
+        mock_response = MockOpenAIResponse(
+            content="Hello! How can I help you?|||VOICE|||Hey there, what can I do for you?"
+        )
         assistant.client = MagicMock()
         assistant.client.chat.completions.create.return_value = mock_response
 
@@ -103,14 +106,16 @@ class TestFullRequestFlow:
         assistant, mock_storage, mock_openai = self.setup_assistant_with_agent()
 
         # Mock OpenAI to first call agent, then return final response
-        mock_function_call = MockFunctionCall('TestAgent', '{"action": "test_action"}')
+        mock_function_call = MockFunctionCall("TestAgent", '{"action": "test_action"}')
         mock_agent_response = MockOpenAIResponse(function_call=mock_function_call)
-        mock_final_response = MockOpenAIResponse(content="I've performed the action|||VOICE|||Done!")
+        mock_final_response = MockOpenAIResponse(
+            content="I've performed the action|||VOICE|||Done!"
+        )
 
         assistant.client = MagicMock()
         assistant.client.chat.completions.create.side_effect = [
             mock_agent_response,
-            mock_final_response
+            mock_final_response,
         ]
 
         formatted, voice, logs = assistant.get_response("Do something", [])
@@ -131,7 +136,7 @@ class TestFullRequestFlow:
         assistant.client = MagicMock()
         assistant.client.chat.completions.create.side_effect = [
             mock_response1,
-            mock_response2
+            mock_response2,
         ]
 
         # First turn
@@ -141,9 +146,11 @@ class TestFullRequestFlow:
         # Second turn with history
         conversation_history = [
             {"role": "user", "content": "First message"},
-            {"role": "assistant", "content": formatted1}
+            {"role": "assistant", "content": formatted1},
         ]
-        formatted2, voice2, logs2 = assistant.get_response("Second message", conversation_history)
+        formatted2, voice2, logs2 = assistant.get_response(
+            "Second message", conversation_history
+        )
         assert "Second" in formatted2
 
     def test_error_handling_in_request_flow(self):
@@ -164,8 +171,8 @@ class TestFullRequestFlow:
 class TestMemoryOperations:
     """Test cases for memory read/write operations"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_memory_read_operation(self, mock_storage, mock_openai):
         """Test reading from memory storage"""
         mock_storage_instance = MagicMock()
@@ -186,10 +193,13 @@ class TestMemoryOperations:
             assistant = Assistant({"ContextMemory": ContextMemoryAgent()})
 
         # Verify storage read was called during initialization
-        assert mock_storage_instance.read_json.called or mock_storage_instance.read_file.called
+        assert (
+            mock_storage_instance.read_json.called
+            or mock_storage_instance.read_file.called
+        )
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_memory_write_operation(self, mock_storage, mock_openai):
         """Test writing to memory storage"""
         mock_storage_instance = MagicMock()
@@ -214,15 +224,19 @@ class TestMemoryOperations:
         )
 
         # Should have interacted with storage
-        assert "stored" in result.lower() or "saved" in result.lower() or "added" in result.lower()
+        assert (
+            "stored" in result.lower()
+            or "saved" in result.lower()
+            or "added" in result.lower()
+        )
         mock_storage_instance.write_json.assert_called_once()
 
 
 class TestUserContextSwitching:
     """Test cases for user context switching during requests"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_context_switch_on_guid_input(self, mock_storage, mock_openai):
         """Test that context switches when GUID is provided"""
         mock_storage_instance = MagicMock()
@@ -235,7 +249,7 @@ class TestUserContextSwitching:
         # Mock context memory agent
         mock_context_agent = MagicMock()
         mock_context_agent.perform.return_value = "Memory loaded"
-        assistant.known_agents = {'ContextMemory': mock_context_agent}
+        assistant.known_agents = {"ContextMemory": mock_context_agent}
 
         # Mock OpenAI response
         mock_response = MockOpenAIResponse(content="Context loaded|||VOICE|||Loaded")
@@ -251,8 +265,8 @@ class TestUserContextSwitching:
         assert assistant.user_guid == new_guid
         assert mock_storage_instance.set_memory_context.called
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_default_guid_used_without_input(self, mock_storage, mock_openai):
         """Test that default GUID is used when none provided"""
         mock_storage_instance = MagicMock()
@@ -265,8 +279,8 @@ class TestUserContextSwitching:
         # Should have default GUID
         assert assistant.user_guid == DEFAULT_USER_GUID
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_guid_from_conversation_history(self, mock_storage, mock_openai):
         """Test GUID extraction from conversation history"""
         mock_storage_instance = MagicMock()
@@ -279,7 +293,7 @@ class TestUserContextSwitching:
         # Mock context memory agent
         mock_context_agent = MagicMock()
         mock_context_agent.perform.return_value = "Memory loaded"
-        assistant.known_agents = {'ContextMemory': mock_context_agent}
+        assistant.known_agents = {"ContextMemory": mock_context_agent}
 
         # Mock OpenAI
         mock_response = MockOpenAIResponse(content="Response|||VOICE|||Voice")
@@ -287,9 +301,7 @@ class TestUserContextSwitching:
         assistant.client.chat.completions.create.return_value = mock_response
 
         test_guid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-        conversation_history = [
-            {"role": "user", "content": test_guid}
-        ]
+        conversation_history = [{"role": "user", "content": test_guid}]
 
         formatted, voice, logs = assistant.get_response("Hello", conversation_history)
 
@@ -300,8 +312,8 @@ class TestUserContextSwitching:
 class TestAgentExecution:
     """Test cases for agent execution pipeline"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_agent_parameter_sanitization(self, mock_storage, mock_openai):
         """Test that agent parameters are sanitized"""
         mock_storage_instance = MagicMock()
@@ -310,17 +322,17 @@ class TestAgentExecution:
         mock_storage.return_value = mock_storage_instance
 
         test_agent = TestAgent()
-        assistant = Assistant({'TestAgent': test_agent})
+        assistant = Assistant({"TestAgent": test_agent})
 
         # Mock function call with None parameter
-        mock_function_call = MockFunctionCall('TestAgent', '{"action": null}')
+        mock_function_call = MockFunctionCall("TestAgent", '{"action": null}')
         mock_agent_response = MockOpenAIResponse(function_call=mock_function_call)
         mock_final_response = MockOpenAIResponse(content="Done|||VOICE|||Done")
 
         assistant.client = MagicMock()
         assistant.client.chat.completions.create.side_effect = [
             mock_agent_response,
-            mock_final_response
+            mock_final_response,
         ]
 
         formatted, voice, logs = assistant.get_response("Test", [])
@@ -328,8 +340,8 @@ class TestAgentExecution:
         # Should handle None parameter gracefully
         assert "TestAgent" in logs
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_nonexistent_agent_handling(self, mock_storage, mock_openai):
         """Test handling of calls to non-existent agents"""
         mock_storage_instance = MagicMock()
@@ -340,7 +352,7 @@ class TestAgentExecution:
         assistant = Assistant({})  # No agents
 
         # Mock function call to non-existent agent
-        mock_function_call = MockFunctionCall('NonExistentAgent', '{"param": "value"}')
+        mock_function_call = MockFunctionCall("NonExistentAgent", '{"param": "value"}')
         mock_response = MockOpenAIResponse(function_call=mock_function_call)
 
         assistant.client = MagicMock()
@@ -349,14 +361,16 @@ class TestAgentExecution:
         formatted, voice, logs = assistant.get_response("Test", [])
 
         # Should handle gracefully
-        assert "not exist" in formatted.lower() or "nonexistentagent" in formatted.lower()
+        assert (
+            "not exist" in formatted.lower() or "nonexistentagent" in formatted.lower()
+        )
 
 
 class TestResponseParsing:
     """Test cases for response parsing and formatting"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_parse_response_with_voice_delimiter(self, mock_storage, mock_openai):
         """Test parsing response with voice delimiter"""
         mock_storage_instance = MagicMock()
@@ -373,8 +387,8 @@ class TestResponseParsing:
         assert formatted == "This is the formatted response"
         assert voice == "This is the voice"
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_parse_response_without_voice_delimiter(self, mock_storage, mock_openai):
         """Test parsing response without voice delimiter"""
         mock_storage_instance = MagicMock()

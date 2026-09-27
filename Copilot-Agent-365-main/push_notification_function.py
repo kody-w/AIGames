@@ -3,13 +3,14 @@ Azure Function for Push Notifications
 Handles push notification subscriptions and sending notifications to users
 """
 
-import azure.functions as func
 import json
 import logging
-from typing import Dict, List, Optional
 from datetime import datetime
-from pywebpush import webpush, WebPushException
-from azure.storage.fileshare import ShareFileClient, ShareDirectoryClient
+from typing import Dict, List, Optional
+
+import azure.functions as func
+from azure.storage.fileshare import ShareDirectoryClient, ShareFileClient
+from pywebpush import WebPushException, webpush
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -18,9 +19,7 @@ logger = logging.getLogger(__name__)
 # Generate using: npx web-push generate-vapid-keys
 VAPID_PRIVATE_KEY = "your-vapid-private-key"
 VAPID_PUBLIC_KEY = "your-vapid-public-key"
-VAPID_CLAIMS = {
-    "sub": "mailto:support@ai-ambassadors.app"
-}
+VAPID_CLAIMS = {"sub": "mailto:support@ai-ambassadors.app"}
 
 
 def build_cors_response(body: str, status_code: int = 200) -> func.HttpResponse:
@@ -32,8 +31,8 @@ def build_cors_response(body: str, status_code: int = 200) -> func.HttpResponse:
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
-        }
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
     )
 
 
@@ -51,14 +50,13 @@ def push_subscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
     try:
         req_body = req.get_json()
 
-        subscription = req_body.get('subscription')
-        user_id = req_body.get('userId')
-        ambassador_id = req_body.get('ambassadorId')
+        subscription = req_body.get("subscription")
+        user_id = req_body.get("userId")
+        ambassador_id = req_body.get("ambassadorId")
 
         if not subscription or not user_id:
             return build_cors_response(
-                json.dumps({"error": "Missing required fields"}),
-                status_code=400
+                json.dumps({"error": "Missing required fields"}), status_code=400
             )
 
         # Save subscription to Azure File Storage
@@ -66,8 +64,8 @@ def push_subscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
             "userId": user_id,
             "ambassadorId": ambassador_id,
             "subscription": subscription,
-            "timestamp": req_body.get('timestamp', datetime.now().timestamp()),
-            "active": True
+            "timestamp": req_body.get("timestamp", datetime.now().timestamp()),
+            "active": True,
         }
 
         success = save_subscription(user_id, subscription_data)
@@ -75,29 +73,23 @@ def push_subscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
         if success:
             logger.info(f"Subscription saved for user: {user_id}")
             return build_cors_response(
-                json.dumps({
-                    "success": True,
-                    "message": "Subscription saved successfully"
-                })
+                json.dumps(
+                    {"success": True, "message": "Subscription saved successfully"}
+                )
             )
         else:
             return build_cors_response(
-                json.dumps({"error": "Failed to save subscription"}),
-                status_code=500
+                json.dumps({"error": "Failed to save subscription"}), status_code=500
             )
 
     except ValueError as e:
         logger.error(f"Invalid request body: {e}")
         return build_cors_response(
-            json.dumps({"error": "Invalid request body"}),
-            status_code=400
+            json.dumps({"error": "Invalid request body"}), status_code=400
         )
     except Exception as e:
         logger.error(f"Subscribe error: {e}")
-        return build_cors_response(
-            json.dumps({"error": str(e)}),
-            status_code=500
-        )
+        return build_cors_response(json.dumps({"error": str(e)}), status_code=500)
 
 
 def push_unsubscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
@@ -108,12 +100,11 @@ def push_unsubscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
     """
     try:
         req_body = req.get_json()
-        endpoint = req_body.get('endpoint')
+        endpoint = req_body.get("endpoint")
 
         if not endpoint:
             return build_cors_response(
-                json.dumps({"error": "Missing endpoint"}),
-                status_code=400
+                json.dumps({"error": "Missing endpoint"}), status_code=400
             )
 
         # Find and remove subscription
@@ -122,23 +113,18 @@ def push_unsubscribe_handler(req: func.HttpRequest) -> func.HttpResponse:
         if success:
             logger.info(f"Subscription removed: {endpoint}")
             return build_cors_response(
-                json.dumps({
-                    "success": True,
-                    "message": "Subscription removed successfully"
-                })
+                json.dumps(
+                    {"success": True, "message": "Subscription removed successfully"}
+                )
             )
         else:
             return build_cors_response(
-                json.dumps({"error": "Subscription not found"}),
-                status_code=404
+                json.dumps({"error": "Subscription not found"}), status_code=404
             )
 
     except Exception as e:
         logger.error(f"Unsubscribe error: {e}")
-        return build_cors_response(
-            json.dumps({"error": str(e)}),
-            status_code=500
-        )
+        return build_cors_response(json.dumps({"error": str(e)}), status_code=500)
 
 
 def push_send_handler(req: func.HttpRequest) -> func.HttpResponse:
@@ -164,46 +150,43 @@ def push_send_handler(req: func.HttpRequest) -> func.HttpResponse:
         req_body = req.get_json()
 
         # Get target users
-        user_id = req_body.get('userId')
-        user_ids = req_body.get('userIds', [])
+        user_id = req_body.get("userId")
+        user_ids = req_body.get("userIds", [])
 
         if user_id:
             user_ids = [user_id]
 
         if not user_ids:
             return build_cors_response(
-                json.dumps({"error": "No users specified"}),
-                status_code=400
+                json.dumps({"error": "No users specified"}), status_code=400
             )
 
-        notification = req_body.get('notification', {})
+        notification = req_body.get("notification", {})
 
         if not notification:
             return build_cors_response(
-                json.dumps({"error": "No notification data"}),
-                status_code=400
+                json.dumps({"error": "No notification data"}), status_code=400
             )
 
         # Send notifications
         results = send_notifications(user_ids, notification)
 
-        success_count = sum(1 for r in results if r['success'])
+        success_count = sum(1 for r in results if r["success"])
 
         return build_cors_response(
-            json.dumps({
-                "success": True,
-                "sent": success_count,
-                "total": len(user_ids),
-                "results": results
-            })
+            json.dumps(
+                {
+                    "success": True,
+                    "sent": success_count,
+                    "total": len(user_ids),
+                    "results": results,
+                }
+            )
         )
 
     except Exception as e:
         logger.error(f"Send notification error: {e}")
-        return build_cors_response(
-            json.dumps({"error": str(e)}),
-            status_code=500
-        )
+        return build_cors_response(json.dumps({"error": str(e)}), status_code=500)
 
 
 def send_notifications(user_ids: List[str], notification_data: Dict) -> List[Dict]:
@@ -217,29 +200,29 @@ def send_notifications(user_ids: List[str], notification_data: Dict) -> List[Dic
             # Get user subscription
             subscription_data = get_subscription(user_id)
 
-            if not subscription_data or not subscription_data.get('active'):
-                results.append({
-                    "userId": user_id,
-                    "success": False,
-                    "error": "No active subscription"
-                })
+            if not subscription_data or not subscription_data.get("active"):
+                results.append(
+                    {
+                        "userId": user_id,
+                        "success": False,
+                        "error": "No active subscription",
+                    }
+                )
                 continue
 
-            subscription = subscription_data.get('subscription')
+            subscription = subscription_data.get("subscription")
 
             # Send push notification
             response = webpush(
                 subscription_info=subscription,
                 data=json.dumps(notification_data),
                 vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims=VAPID_CLAIMS
+                vapid_claims=VAPID_CLAIMS,
             )
 
-            results.append({
-                "userId": user_id,
-                "success": True,
-                "statusCode": response.status_code
-            })
+            results.append(
+                {"userId": user_id, "success": True, "statusCode": response.status_code}
+            )
 
             logger.info(f"Notification sent to user: {user_id}")
 
@@ -248,22 +231,14 @@ def send_notifications(user_ids: List[str], notification_data: Dict) -> List[Dic
 
             # If subscription is invalid, mark as inactive
             if e.response and e.response.status_code in [404, 410]:
-                subscription_data['active'] = False
+                subscription_data["active"] = False
                 save_subscription(user_id, subscription_data)
 
-            results.append({
-                "userId": user_id,
-                "success": False,
-                "error": str(e)
-            })
+            results.append({"userId": user_id, "success": False, "error": str(e)})
 
         except Exception as e:
             logger.error(f"Send error for user {user_id}: {e}")
-            results.append({
-                "userId": user_id,
-                "success": False,
-                "error": str(e)
-            })
+            results.append({"userId": user_id, "success": False, "error": str(e)})
 
     return results
 
@@ -369,16 +344,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return build_cors_response("", status_code=200)
 
     # Get route path
-    route = req.route_params.get('route', '')
+    route = req.route_params.get("route", "")
 
-    if route == 'subscribe':
+    if route == "subscribe":
         return push_subscribe_handler(req)
-    elif route == 'unsubscribe':
+    elif route == "unsubscribe":
         return push_unsubscribe_handler(req)
-    elif route == 'send':
+    elif route == "send":
         return push_send_handler(req)
     else:
         return build_cors_response(
-            json.dumps({"error": "Invalid route"}),
-            status_code=404
+            json.dumps({"error": "Invalid route"}), status_code=404
         )

@@ -14,8 +14,9 @@ Version: 1.0.0
 
 import json
 import logging
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class DataAnalysisAgent(BasicAgent):
     """
 
     def __init__(self):
-        self.name = 'DataAnalysis'
+        self.name = "DataAnalysis"
         self.metadata = {
             "name": self.name,
             "description": "Analyzes data from CSV/JSON formats, generates statistics, identifies trends, validates data quality, and provides visualization recommendations.",
@@ -37,44 +38,68 @@ class DataAnalysisAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["analyze", "statistics", "trends", "validate", "visualize", "compare", "forecast"],
-                        "description": "The data analysis action to perform"
+                        "enum": [
+                            "analyze",
+                            "statistics",
+                            "trends",
+                            "validate",
+                            "visualize",
+                            "compare",
+                            "forecast",
+                        ],
+                        "description": "The data analysis action to perform",
                     },
                     "data": {
                         "type": "string",
-                        "description": "Data to analyze (CSV, JSON, or structured text)"
+                        "description": "Data to analyze (CSV, JSON, or structured text)",
                     },
                     "data_format": {
                         "type": "string",
                         "enum": ["csv", "json", "table"],
-                        "description": "Format of the input data"
+                        "description": "Format of the input data",
                     },
                     "columns": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Specific columns to analyze"
+                        "description": "Specific columns to analyze",
                     },
                     "metric": {
                         "type": "string",
-                        "enum": ["mean", "median", "mode", "std", "min", "max", "sum", "count"],
-                        "description": "Statistical metric to calculate"
+                        "enum": [
+                            "mean",
+                            "median",
+                            "mode",
+                            "std",
+                            "min",
+                            "max",
+                            "sum",
+                            "count",
+                        ],
+                        "description": "Statistical metric to calculate",
                     },
                     "group_by": {
                         "type": "string",
-                        "description": "Column to group data by for analysis"
+                        "description": "Column to group data by for analysis",
                     },
                     "time_column": {
                         "type": "string",
-                        "description": "Column containing time/date data for trend analysis"
+                        "description": "Column containing time/date data for trend analysis",
                     },
                     "chart_type": {
                         "type": "string",
-                        "enum": ["line", "bar", "pie", "scatter", "histogram", "heatmap"],
-                        "description": "Type of chart for visualization recommendation"
-                    }
+                        "enum": [
+                            "line",
+                            "bar",
+                            "pie",
+                            "scatter",
+                            "histogram",
+                            "heatmap",
+                        ],
+                        "description": "Type of chart for visualization recommendation",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
@@ -93,20 +118,20 @@ class DataAnalysisAgent(BasicAgent):
             ValueError: If required parameters are missing
         """
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
 
             if not action:
                 return self._error_response("Action parameter is required")
 
             # Route to appropriate handler
             handlers = {
-                'analyze': self._analyze_data,
-                'statistics': self._calculate_statistics,
-                'trends': self._analyze_trends,
-                'validate': self._validate_data,
-                'visualize': self._recommend_visualization,
-                'compare': self._compare_datasets,
-                'forecast': self._forecast_trends
+                "analyze": self._analyze_data,
+                "statistics": self._calculate_statistics,
+                "trends": self._analyze_trends,
+                "validate": self._validate_data,
+                "visualize": self._recommend_visualization,
+                "compare": self._compare_datasets,
+                "forecast": self._forecast_trends,
             }
 
             handler = handlers.get(action)
@@ -121,16 +146,16 @@ class DataAnalysisAgent(BasicAgent):
 
     def _analyze_data(self, **kwargs) -> str:
         """Perform comprehensive data analysis."""
-        data = kwargs.get('data')
-        data_format = kwargs.get('data_format', 'json')
-        columns = kwargs.get('columns', [])
+        data = kwargs.get("data")
+        data_format = kwargs.get("data_format", "json")
+        columns = kwargs.get("columns", [])
 
         if not data:
             return self._error_response("Data is required for analysis")
 
         # Parse data
         parsed_data = self._parse_data(data, data_format)
-        if isinstance(parsed_data, str) and parsed_data.startswith('Error'):
+        if isinstance(parsed_data, str) and parsed_data.startswith("Error"):
             return parsed_data
 
         # Perform analysis
@@ -160,17 +185,17 @@ class DataAnalysisAgent(BasicAgent):
 
     def _calculate_statistics(self, **kwargs) -> str:
         """Calculate statistical metrics."""
-        data = kwargs.get('data')
-        data_format = kwargs.get('data_format', 'json')
-        columns = kwargs.get('columns', [])
-        metric = kwargs.get('metric', 'all')
-        group_by = kwargs.get('group_by')
+        data = kwargs.get("data")
+        data_format = kwargs.get("data_format", "json")
+        columns = kwargs.get("columns", [])
+        metric = kwargs.get("metric", "all")
+        group_by = kwargs.get("group_by")
 
         if not data:
             return self._error_response("Data is required for statistics")
 
         parsed_data = self._parse_data(data, data_format)
-        if isinstance(parsed_data, str) and parsed_data.startswith('Error'):
+        if isinstance(parsed_data, str) and parsed_data.startswith("Error"):
             return parsed_data
 
         stats = self._compute_statistics(parsed_data, columns, metric, group_by)
@@ -190,16 +215,16 @@ class DataAnalysisAgent(BasicAgent):
 
     def _analyze_trends(self, **kwargs) -> str:
         """Analyze trends over time."""
-        data = kwargs.get('data')
-        data_format = kwargs.get('data_format', 'json')
-        time_column = kwargs.get('time_column', 'date')
-        columns = kwargs.get('columns', [])
+        data = kwargs.get("data")
+        data_format = kwargs.get("data_format", "json")
+        time_column = kwargs.get("time_column", "date")
+        columns = kwargs.get("columns", [])
 
         if not data:
             return self._error_response("Data is required for trend analysis")
 
         parsed_data = self._parse_data(data, data_format)
-        if isinstance(parsed_data, str) and parsed_data.startswith('Error'):
+        if isinstance(parsed_data, str) and parsed_data.startswith("Error"):
             return parsed_data
 
         trends = self._identify_trends(parsed_data, time_column, columns)
@@ -224,19 +249,19 @@ class DataAnalysisAgent(BasicAgent):
 
     def _validate_data(self, **kwargs) -> str:
         """Validate data quality and integrity."""
-        data = kwargs.get('data')
-        data_format = kwargs.get('data_format', 'json')
+        data = kwargs.get("data")
+        data_format = kwargs.get("data_format", "json")
 
         if not data:
             return self._error_response("Data is required for validation")
 
         parsed_data = self._parse_data(data, data_format)
-        if isinstance(parsed_data, str) and parsed_data.startswith('Error'):
+        if isinstance(parsed_data, str) and parsed_data.startswith("Error"):
             return parsed_data
 
         validation = self._perform_validation(parsed_data)
 
-        status_emoji = "✅" if validation['is_valid'] else "⚠️"
+        status_emoji = "✅" if validation["is_valid"] else "⚠️"
 
         return f"""{status_emoji} **Data Validation Report**
 
@@ -258,19 +283,23 @@ class DataAnalysisAgent(BasicAgent):
 
     def _recommend_visualization(self, **kwargs) -> str:
         """Recommend appropriate visualizations."""
-        data = kwargs.get('data')
-        data_format = kwargs.get('data_format', 'json')
-        chart_type = kwargs.get('chart_type')
-        columns = kwargs.get('columns', [])
+        data = kwargs.get("data")
+        data_format = kwargs.get("data_format", "json")
+        chart_type = kwargs.get("chart_type")
+        columns = kwargs.get("columns", [])
 
         if not data:
-            return self._error_response("Data is required for visualization recommendations")
+            return self._error_response(
+                "Data is required for visualization recommendations"
+            )
 
         parsed_data = self._parse_data(data, data_format)
-        if isinstance(parsed_data, str) and parsed_data.startswith('Error'):
+        if isinstance(parsed_data, str) and parsed_data.startswith("Error"):
             return parsed_data
 
-        viz_rec = self._generate_visualization_recommendations(parsed_data, chart_type, columns)
+        viz_rec = self._generate_visualization_recommendations(
+            parsed_data, chart_type, columns
+        )
 
         return f"""📊 **Visualization Recommendations**
 
@@ -290,7 +319,7 @@ class DataAnalysisAgent(BasicAgent):
 
     def _compare_datasets(self, **kwargs) -> str:
         """Compare two datasets."""
-        data = kwargs.get('data')
+        data = kwargs.get("data")
 
         if not data:
             return self._error_response("Data is required for comparison")
@@ -314,8 +343,8 @@ class DataAnalysisAgent(BasicAgent):
 
     def _forecast_trends(self, **kwargs) -> str:
         """Forecast future trends based on historical data."""
-        data = kwargs.get('data')
-        time_column = kwargs.get('time_column', 'date')
+        data = kwargs.get("data")
+        time_column = kwargs.get("time_column", "date")
 
         if not data:
             return self._error_response("Data is required for forecasting")
@@ -343,11 +372,11 @@ class DataAnalysisAgent(BasicAgent):
     def _parse_data(self, data: str, data_format: str) -> Any:
         """Parse data from various formats."""
         try:
-            if data_format == 'json':
+            if data_format == "json":
                 return json.loads(data)
-            elif data_format == 'csv':
+            elif data_format == "csv":
                 return self._parse_csv(data)
-            elif data_format == 'table':
+            elif data_format == "table":
                 return self._parse_table(data)
             else:
                 return self._error_response(f"Unsupported data format: {data_format}")
@@ -358,15 +387,15 @@ class DataAnalysisAgent(BasicAgent):
 
     def _parse_csv(self, csv_data: str) -> List[Dict]:
         """Parse CSV data into list of dictionaries."""
-        lines = csv_data.strip().split('\n')
+        lines = csv_data.strip().split("\n")
         if not lines:
             return []
 
-        headers = [h.strip() for h in lines[0].split(',')]
+        headers = [h.strip() for h in lines[0].split(",")]
         data = []
 
         for line in lines[1:]:
-            values = [v.strip() for v in line.split(',')]
+            values = [v.strip() for v in line.split(",")]
             if len(values) == len(headers):
                 data.append(dict(zip(headers, values)))
 
@@ -375,7 +404,7 @@ class DataAnalysisAgent(BasicAgent):
     def _parse_table(self, table_data: str) -> List[Dict]:
         """Parse table format data."""
         # Simple table parser
-        lines = [l.strip() for l in table_data.strip().split('\n') if l.strip()]
+        lines = [l.strip() for l in table_data.strip().split("\n") if l.strip()]
         if not lines:
             return []
 
@@ -386,7 +415,7 @@ class DataAnalysisAgent(BasicAgent):
         for line in lines[1:]:
             values = [v.strip() for v in line.split()]
             if len(values) >= len(headers):
-                data.append(dict(zip(headers, values[:len(headers)])))
+                data.append(dict(zip(headers, values[: len(headers)])))
 
         return data
 
@@ -403,34 +432,36 @@ class DataAnalysisAgent(BasicAgent):
                     data_types.add(type(value).__name__)
 
             return {
-                'record_count': record_count,
-                'column_count': column_count,
-                'data_types': list(data_types),
-                'summary_stats': '• Mean: ~45.6\n• Median: 42\n• Std Dev: 12.3',
-                'completeness': 95,
-                'missing_values': int(record_count * 0.05),
-                'duplicates': 2,
-                'insights': '• Data shows consistent growth trend\n• Peak activity on weekdays\n• Seasonal pattern detected',
-                'recommendations': '• Consider removing duplicate entries\n• Fill missing values using median\n• Normalize data for better comparison'
+                "record_count": record_count,
+                "column_count": column_count,
+                "data_types": list(data_types),
+                "summary_stats": "• Mean: ~45.6\n• Median: 42\n• Std Dev: 12.3",
+                "completeness": 95,
+                "missing_values": int(record_count * 0.05),
+                "duplicates": 2,
+                "insights": "• Data shows consistent growth trend\n• Peak activity on weekdays\n• Seasonal pattern detected",
+                "recommendations": "• Consider removing duplicate entries\n• Fill missing values using median\n• Normalize data for better comparison",
             }
 
         return {
-            'record_count': 0,
-            'column_count': 0,
-            'data_types': ['unknown'],
-            'summary_stats': 'No data available',
-            'completeness': 0,
-            'missing_values': 0,
-            'duplicates': 0,
-            'insights': 'Insufficient data for analysis',
-            'recommendations': 'Provide valid dataset'
+            "record_count": 0,
+            "column_count": 0,
+            "data_types": ["unknown"],
+            "summary_stats": "No data available",
+            "completeness": 0,
+            "missing_values": 0,
+            "duplicates": 0,
+            "insights": "Insufficient data for analysis",
+            "recommendations": "Provide valid dataset",
         }
 
-    def _compute_statistics(self, data: Any, columns: List[str], metric: str, group_by: Optional[str]) -> Dict:
+    def _compute_statistics(
+        self, data: Any, columns: List[str], metric: str, group_by: Optional[str]
+    ) -> Dict:
         """Compute statistical metrics."""
         # Simulated statistics
         return {
-            'formatted_results': f"""**{metric.upper() if metric != 'all' else 'ALL'} Statistics:**
+            "formatted_results": f"""**{metric.upper() if metric != 'all' else 'ALL'} Statistics:**
 
 Numeric Columns:
 • Column A: Mean=45.6, Median=42, Std=12.3
@@ -440,74 +471,78 @@ Numeric Columns:
 Categorical Columns:
 • Category: 5 unique values
 • Status: 3 unique values (Active: 65%, Inactive: 35%)""",
-            'count': 100,
-            'numeric_count': 3,
-            'categorical_count': 2,
-            'distribution': '• Normal distribution detected in Column A\n• Right-skewed distribution in Column B\n• Bimodal pattern in Column C'
+            "count": 100,
+            "numeric_count": 3,
+            "categorical_count": 2,
+            "distribution": "• Normal distribution detected in Column A\n• Right-skewed distribution in Column B\n• Bimodal pattern in Column C",
         }
 
     def _identify_trends(self, data: Any, time_column: str, columns: List[str]) -> Dict:
         """Identify trends in time-series data."""
         return {
-            'period': 'Last 30 days',
-            'data_points': 30,
-            'trends': '• Upward trend: +15% overall growth\n• Weekly cyclical pattern detected\n• Strong correlation with external factors',
-            'growth_rates': '• Week 1-2: +5%\n• Week 2-3: +8%\n• Week 3-4: +2%',
-            'patterns': '• Monday peaks consistently\n• Friday dips observed\n• Weekend stability',
-            'forecast': 'Projected growth of 3-5% in next period based on current trajectory'
+            "period": "Last 30 days",
+            "data_points": 30,
+            "trends": "• Upward trend: +15% overall growth\n• Weekly cyclical pattern detected\n• Strong correlation with external factors",
+            "growth_rates": "• Week 1-2: +5%\n• Week 2-3: +8%\n• Week 3-4: +2%",
+            "patterns": "• Monday peaks consistently\n• Friday dips observed\n• Weekend stability",
+            "forecast": "Projected growth of 3-5% in next period based on current trajectory",
         }
 
     def _perform_validation(self, data: Any) -> Dict:
         """Validate data quality."""
         return {
-            'is_valid': True,
-            'checks': '✅ Schema validation\n✅ Data type consistency\n✅ Range validation\n⚠️ Minor formatting issues',
-            'issue_count': 3,
-            'issues': '• 2 records with trailing whitespace\n• 1 date format inconsistency\n• No critical errors',
-            'recommendations': '• Trim whitespace from string fields\n• Standardize date format to ISO 8601\n• Add data validation rules',
-            'quality_score': 92
+            "is_valid": True,
+            "checks": "✅ Schema validation\n✅ Data type consistency\n✅ Range validation\n⚠️ Minor formatting issues",
+            "issue_count": 3,
+            "issues": "• 2 records with trailing whitespace\n• 1 date format inconsistency\n• No critical errors",
+            "recommendations": "• Trim whitespace from string fields\n• Standardize date format to ISO 8601\n• Add data validation rules",
+            "quality_score": 92,
         }
 
-    def _generate_visualization_recommendations(self, data: Any, chart_type: Optional[str], columns: List[str]) -> Dict:
+    def _generate_visualization_recommendations(
+        self, data: Any, chart_type: Optional[str], columns: List[str]
+    ) -> Dict:
         """Generate visualization recommendations."""
         if chart_type:
             recs = {
-                'line': '**Line Chart** - Perfect for time-series trends\n  • X-axis: Time/Date\n  • Y-axis: Numeric values\n  • Multiple series for comparison',
-                'bar': '**Bar Chart** - Best for categorical comparison\n  • X-axis: Categories\n  • Y-axis: Values\n  • Grouped or stacked options',
-                'pie': '**Pie Chart** - Show proportions and percentages\n  • Use for parts of a whole\n  • Limit to 5-7 categories\n  • Consider donut chart variation',
-                'scatter': '**Scatter Plot** - Reveal correlations\n  • X-axis: Independent variable\n  • Y-axis: Dependent variable\n  • Color by category for clustering',
-                'histogram': '**Histogram** - Display distribution\n  • X-axis: Value ranges (bins)\n  • Y-axis: Frequency\n  • Choose appropriate bin size',
-                'heatmap': '**Heatmap** - Show intensity patterns\n  • 2D grid visualization\n  • Color intensity for values\n  • Great for correlation matrices'
+                "line": "**Line Chart** - Perfect for time-series trends\n  • X-axis: Time/Date\n  • Y-axis: Numeric values\n  • Multiple series for comparison",
+                "bar": "**Bar Chart** - Best for categorical comparison\n  • X-axis: Categories\n  • Y-axis: Values\n  • Grouped or stacked options",
+                "pie": "**Pie Chart** - Show proportions and percentages\n  • Use for parts of a whole\n  • Limit to 5-7 categories\n  • Consider donut chart variation",
+                "scatter": "**Scatter Plot** - Reveal correlations\n  • X-axis: Independent variable\n  • Y-axis: Dependent variable\n  • Color by category for clustering",
+                "histogram": "**Histogram** - Display distribution\n  • X-axis: Value ranges (bins)\n  • Y-axis: Frequency\n  • Choose appropriate bin size",
+                "heatmap": "**Heatmap** - Show intensity patterns\n  • 2D grid visualization\n  • Color intensity for values\n  • Great for correlation matrices",
             }
-            rec = recs.get(chart_type, 'Custom visualization based on data characteristics')
+            rec = recs.get(
+                chart_type, "Custom visualization based on data characteristics"
+            )
         else:
-            rec = '1. **Line Chart** for time trends\n2. **Bar Chart** for category comparison\n3. **Scatter Plot** for correlation analysis'
+            rec = "1. **Line Chart** for time trends\n2. **Bar Chart** for category comparison\n3. **Scatter Plot** for correlation analysis"
 
         return {
-            'recommendations': rec,
-            'tips': '• Keep it simple and focused\n• Use consistent color schemes\n• Label axes clearly\n• Add data labels for clarity',
-            'colors': '• Primary: #2E86AB (Blue)\n• Secondary: #A23B72 (Purple)\n• Accent: #F18F01 (Orange)\n• Neutral: #6C757D (Gray)',
-            'accessibility': '• Ensure sufficient color contrast\n• Don\'t rely solely on color\n• Provide alternative text\n• Test with screen readers'
+            "recommendations": rec,
+            "tips": "• Keep it simple and focused\n• Use consistent color schemes\n• Label axes clearly\n• Add data labels for clarity",
+            "colors": "• Primary: #2E86AB (Blue)\n• Secondary: #A23B72 (Purple)\n• Accent: #F18F01 (Orange)\n• Neutral: #6C757D (Gray)",
+            "accessibility": "• Ensure sufficient color contrast\n• Don't rely solely on color\n• Provide alternative text\n• Test with screen readers",
         }
 
     def _perform_comparison(self, data: str) -> Dict:
         """Compare datasets."""
         return {
-            'summary': '• Dataset A: 100 records\n• Dataset B: 95 records\n• Common records: 90\n• Unique to A: 10\n• Unique to B: 5',
-            'differences': '• Average values differ by 12%\n• Distribution shapes are similar\n• Dataset B has fewer outliers',
-            'similarities': '• Same data structure\n• Comparable ranges\n• Similar variance patterns',
-            'significance': 'Differences are statistically significant (p < 0.05)'
+            "summary": "• Dataset A: 100 records\n• Dataset B: 95 records\n• Common records: 90\n• Unique to A: 10\n• Unique to B: 5",
+            "differences": "• Average values differ by 12%\n• Distribution shapes are similar\n• Dataset B has fewer outliers",
+            "similarities": "• Same data structure\n• Comparable ranges\n• Similar variance patterns",
+            "significance": "Differences are statistically significant (p < 0.05)",
         }
 
     def _generate_forecast(self, data: str, time_column: str) -> Dict:
         """Generate trend forecast."""
         return {
-            'period': 'Next 30 days',
-            'confidence': '85%',
-            'projections': '• Day 7: ~125 (±8)\n• Day 14: ~132 (±10)\n• Day 21: ~138 (±12)\n• Day 30: ~145 (±15)',
-            'direction': 'Upward trend expected',
-            'risks': '• Market volatility\n• Seasonal changes\n• External factors\n• Data quality limitations',
-            'method': 'Time series analysis with exponential smoothing'
+            "period": "Next 30 days",
+            "confidence": "85%",
+            "projections": "• Day 7: ~125 (±8)\n• Day 14: ~132 (±10)\n• Day 21: ~138 (±12)\n• Day 30: ~145 (±15)",
+            "direction": "Upward trend expected",
+            "risks": "• Market volatility\n• Seasonal changes\n• External factors\n• Data quality limitations",
+            "method": "Time series analysis with exponential smoothing",
         }
 
     def _error_response(self, message: str) -> str:
@@ -520,18 +555,16 @@ def _test_data_analysis_agent():
     """Test the data analysis agent."""
     agent = DataAnalysisAgent()
 
-    test_data = json.dumps([
-        {"date": "2025-01-01", "sales": 100, "region": "North"},
-        {"date": "2025-01-02", "sales": 120, "region": "South"},
-        {"date": "2025-01-03", "sales": 90, "region": "North"}
-    ])
+    test_data = json.dumps(
+        [
+            {"date": "2025-01-01", "sales": 100, "region": "North"},
+            {"date": "2025-01-02", "sales": 120, "region": "South"},
+            {"date": "2025-01-03", "sales": 90, "region": "North"},
+        ]
+    )
 
     print("Test 1: Analyze Data")
-    print(agent.perform(
-        action="analyze",
-        data=test_data,
-        data_format="json"
-    ))
+    print(agent.perform(action="analyze", data=test_data, data_format="json"))
 
 
 if __name__ == "__main__":

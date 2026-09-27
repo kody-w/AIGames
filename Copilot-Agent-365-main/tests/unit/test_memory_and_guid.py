@@ -9,23 +9,24 @@ Tests cover:
 - Demo state extraction
 """
 
-import pytest
-import sys
 import os
-from unittest.mock import Mock, MagicMock, patch
 import re
+import sys
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Add the parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from function_app import Assistant, DEFAULT_USER_GUID
+from function_app import DEFAULT_USER_GUID, Assistant
 
 
 class TestGUIDExtraction:
     """Test cases for GUID extraction functionality"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def setup_assistant(self, mock_storage, mock_openai):
         """Helper to create assistant instance"""
         mock_storage_instance = MagicMock()
@@ -96,7 +97,7 @@ class TestGUIDExtraction:
             "12345678-1234-1234-1234",  # Too short
             "12345678-1234-1234-1234-123456789abcdef",  # Too long
             "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",  # Invalid characters
-            "12345678_1234_1234_1234_123456789abc"  # Wrong delimiter
+            "12345678_1234_1234_1234_123456789abc",  # Wrong delimiter
         ]
 
         for invalid in invalid_guids:
@@ -116,9 +117,7 @@ class TestGUIDExtraction:
         assistant = self.setup_assistant()
 
         valid_guid = "12345678-1234-1234-1234-123456789abc"
-        conversation_history = [
-            {"role": "user", "content": valid_guid}
-        ]
+        conversation_history = [{"role": "user", "content": valid_guid}]
 
         result = assistant._check_first_message_for_guid(conversation_history)
 
@@ -128,9 +127,7 @@ class TestGUIDExtraction:
         """Test that non-GUID first message returns None"""
         assistant = self.setup_assistant()
 
-        conversation_history = [
-            {"role": "user", "content": "Hello, how are you?"}
-        ]
+        conversation_history = [{"role": "user", "content": "Hello, how are you?"}]
 
         result = assistant._check_first_message_for_guid(conversation_history)
 
@@ -148,8 +145,8 @@ class TestGUIDExtraction:
 class TestMemoryContextInitialization:
     """Test cases for memory context initialization"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_initialize_with_default_guid(self, mock_storage, mock_openai):
         """Test that assistant initializes with default GUID"""
         mock_storage_instance = MagicMock()
@@ -160,8 +157,8 @@ class TestMemoryContextInitialization:
 
         assert assistant.user_guid == DEFAULT_USER_GUID
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_initialize_context_memory_called(self, mock_storage, mock_openai):
         """Test that context memory initialization is called"""
         mock_storage_instance = MagicMock()
@@ -179,8 +176,8 @@ class TestMemoryContextInitialization:
         # Verify set_memory_context was called for the default user
         mock_storage_instance.set_memory_context.assert_called_with(DEFAULT_USER_GUID)
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_context_switch_updates_memory(self, mock_storage, mock_openai):
         """Test that switching context updates memory"""
         mock_storage_instance = MagicMock()
@@ -194,7 +191,7 @@ class TestMemoryContextInitialization:
         # Mock the context memory agent
         mock_context_agent = MagicMock()
         mock_context_agent.perform.return_value = "Context memory loaded"
-        assistant.known_agents = {'ContextMemory': mock_context_agent}
+        assistant.known_agents = {"ContextMemory": mock_context_agent}
 
         # Initialize with new GUID
         assistant._initialize_context_memory(new_guid)
@@ -206,17 +203,20 @@ class TestMemoryContextInitialization:
 class TestDemoTriggerDetection:
     """Test cases for demo trigger detection"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def setup_assistant_with_demo(self, mock_storage, mock_openai):
         """Helper to create assistant with demo data"""
         mock_storage_instance = MagicMock()
         mock_storage_instance.read_file.side_effect = lambda share, filename: {
-            ('demos', 'test_demo.json'): '{"trigger_phrases": ["start demo", "begin demo"], "conversation_flow": [{"step": 1, "response": "Demo started"}]}'
+            (
+                "demos",
+                "test_demo.json",
+            ): '{"trigger_phrases": ["start demo", "begin demo"], "conversation_flow": [{"step": 1, "response": "Demo started"}]}'
         }.get((share, filename))
 
         mock_file = MagicMock()
-        mock_file.name = 'test_demo.json'
+        mock_file.name = "test_demo.json"
         mock_storage_instance.list_files.return_value = [mock_file]
         mock_storage.return_value = mock_storage_instance
 
@@ -229,9 +229,9 @@ class TestDemoTriggerDetection:
 
         result = assistant.check_demo_trigger("start demo")
 
-        assert result['triggered'] is True
-        assert 'demo_name' in result
-        assert 'conversation_flow' in result
+        assert result["triggered"] is True
+        assert "demo_name" in result
+        assert "conversation_flow" in result
 
     def test_no_demo_trigger(self):
         """Test that non-trigger phrase doesn't activate demo"""
@@ -239,7 +239,7 @@ class TestDemoTriggerDetection:
 
         result = assistant.check_demo_trigger("hello there")
 
-        assert result['triggered'] is False
+        assert result["triggered"] is False
 
     def test_case_insensitive_trigger(self):
         """Test that demo trigger is case insensitive"""
@@ -247,7 +247,7 @@ class TestDemoTriggerDetection:
 
         result = assistant.check_demo_trigger("START DEMO")
 
-        assert result['triggered'] is True
+        assert result["triggered"] is True
 
     def test_trigger_with_whitespace(self):
         """Test demo trigger with extra whitespace"""
@@ -255,18 +255,20 @@ class TestDemoTriggerDetection:
 
         result = assistant.check_demo_trigger("  start demo  ")
 
-        assert result['triggered'] is True
+        assert result["triggered"] is True
 
 
 class TestDemoStateExtraction:
     """Test cases for demo state extraction from history"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def setup_assistant(self, mock_storage, mock_openai):
         """Helper to create assistant instance"""
         mock_storage_instance = MagicMock()
-        mock_storage_instance.read_file.side_effect = lambda share, filename: '{"conversation_flow": [{"step": 1}, {"step": 2}, {"step": 3}]}'
+        mock_storage_instance.read_file.side_effect = (
+            lambda share, filename: '{"conversation_flow": [{"step": 1}, {"step": 2}, {"step": 3}]}'
+        )
         mock_storage.return_value = mock_storage_instance
 
         assistant = Assistant({})
@@ -278,10 +280,15 @@ class TestDemoStateExtraction:
 
         conversation_history = [
             {"role": "user", "content": "start demo"},
-            {"role": "system", "content": "Performed TestDemo and got result: Step 1 of 3"}
+            {
+                "role": "system",
+                "content": "Performed TestDemo and got result: Step 1 of 3",
+            },
         ]
 
-        demo_name, current_step, demo_steps = assistant._extract_demo_state_from_history(conversation_history)
+        demo_name, current_step, demo_steps = (
+            assistant._extract_demo_state_from_history(conversation_history)
+        )
 
         assert demo_name == "TestDemo"
         assert current_step == 1
@@ -291,7 +298,9 @@ class TestDemoStateExtraction:
         """Test that empty history returns no demo state"""
         assistant = self.setup_assistant()
 
-        demo_name, current_step, demo_steps = assistant._extract_demo_state_from_history([])
+        demo_name, current_step, demo_steps = (
+            assistant._extract_demo_state_from_history([])
+        )
 
         assert demo_name is None
         assert current_step == 0
@@ -302,11 +311,19 @@ class TestDemoStateExtraction:
         assistant = self.setup_assistant()
 
         conversation_history = [
-            {"role": "system", "content": "Performed TestDemo and got result: Step 3 of 3"},
-            {"role": "system", "content": "Performed DemoCompletion and got result: TestDemo finished"}
+            {
+                "role": "system",
+                "content": "Performed TestDemo and got result: Step 3 of 3",
+            },
+            {
+                "role": "system",
+                "content": "Performed DemoCompletion and got result: TestDemo finished",
+            },
         ]
 
-        demo_name, current_step, demo_steps = assistant._extract_demo_state_from_history(conversation_history)
+        demo_name, current_step, demo_steps = (
+            assistant._extract_demo_state_from_history(conversation_history)
+        )
 
         assert demo_name is None  # Demo completed
         assert current_step == 0
@@ -316,8 +333,8 @@ class TestDemoStateExtraction:
 class TestMemoryContextSwitching:
     """Test cases for user context switching"""
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_context_switches_on_new_guid(self, mock_storage, mock_openai):
         """Test that context switches when new GUID is provided"""
         mock_storage_instance = MagicMock()
@@ -330,7 +347,7 @@ class TestMemoryContextSwitching:
         # Mock context memory agent
         mock_context_agent = MagicMock()
         mock_context_agent.perform.return_value = "Memory loaded"
-        assistant.known_agents = {'ContextMemory': mock_context_agent}
+        assistant.known_agents = {"ContextMemory": mock_context_agent}
 
         new_guid = "new-guid-0000-1111-2222-333333333333"
         assistant._initialize_context_memory(new_guid)
@@ -338,8 +355,8 @@ class TestMemoryContextSwitching:
         # Verify storage context was switched
         assert mock_storage_instance.set_memory_context.called
 
-    @patch('function_app.AzureOpenAI')
-    @patch('function_app.StorageManager')
+    @patch("function_app.AzureOpenAI")
+    @patch("function_app.StorageManager")
     def test_default_guid_used_when_none_provided(self, mock_storage, mock_openai):
         """Test that default GUID is used when none provided"""
         mock_storage_instance = MagicMock()
@@ -351,7 +368,7 @@ class TestMemoryContextSwitching:
         # Mock context memory agent
         mock_context_agent = MagicMock()
         mock_context_agent.perform.return_value = "Memory loaded"
-        assistant.known_agents = {'ContextMemory': mock_context_agent}
+        assistant.known_agents = {"ContextMemory": mock_context_agent}
 
         # Initialize with None (should use default)
         assistant._initialize_context_memory(None)
