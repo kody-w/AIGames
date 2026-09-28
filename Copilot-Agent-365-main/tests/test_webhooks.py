@@ -258,7 +258,7 @@ class TestWebhookDeliveryService(unittest.TestCase):
             mock_response.text = AsyncMock(return_value="OK")
 
             mock_session_instance = AsyncMock()
-            mock_session_instance.post = AsyncMock(return_value=mock_response)
+            mock_session_instance.post = Mock(return_value=mock_response)
             mock_session_instance.__aenter__ = AsyncMock(
                 return_value=mock_session_instance
             )
@@ -303,7 +303,7 @@ class TestWebhookDeliveryService(unittest.TestCase):
             mock_response.text = AsyncMock(return_value="Error")
 
             mock_session_instance = AsyncMock()
-            mock_session_instance.post = AsyncMock(return_value=mock_response)
+            mock_session_instance.post = Mock(return_value=mock_response)
             mock_session_instance.__aenter__ = AsyncMock(
                 return_value=mock_session_instance
             )
@@ -570,7 +570,7 @@ class TestIntegration(unittest.TestCase):
             mock_response.text = AsyncMock(return_value="OK")
 
             mock_session_instance = AsyncMock()
-            mock_session_instance.post = AsyncMock(return_value=mock_response)
+            mock_session_instance.post = Mock(return_value=mock_response)
             mock_session_instance.__aenter__ = AsyncMock(
                 return_value=mock_session_instance
             )
