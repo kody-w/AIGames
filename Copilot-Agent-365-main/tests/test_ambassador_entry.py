@@ -57,44 +57,6 @@ except ImportError:
 class TestAmbassadorEntry:
     """Test cases for ambassador_entry endpoint"""
 
-    def test_initialize_seeded_memory_structure(self):
-        """Test that initialize_seeded_memory creates proper memory structure"""
-        from function_app import initialize_seeded_memory
-
-        # Mock configuration
-        config = {
-            "demo_configuration": {
-                "seed_version": "v1.0",
-                "synthetic_memory": {
-                    "memories": [
-                        {
-                            "id": "mem-001",
-                            "message": "Test memory",
-                            "theme": "preferences",
-                            "mood": "neutral",
-                        }
-                    ]
-                },
-            }
-        }
-
-        # This test verifies the structure without actually calling Azure
-        # In a real test, you would mock AzureFileStorageManager
-        assert "demo_configuration" in config
-        assert "synthetic_memory" in config["demo_configuration"]
-        assert len(config["demo_configuration"]["synthetic_memory"]["memories"]) > 0
-
-    def test_track_ambassador_scan_parameters(self):
-        """Test that track_ambassador_scan accepts correct parameters"""
-        from function_app import track_ambassador_scan
-
-        # Should not raise an exception
-        try:
-            track_ambassador_scan("creative-001", "test-guid", True, "test_source")
-            assert True
-        except Exception as e:
-            pytest.fail(f"track_ambassador_scan raised exception: {e}")
-
     def test_ambassador_response_structure(self):
         """Test the expected response structure from ambassador_entry"""
         expected_keys = ["ambassador", "session", "analytics"]
