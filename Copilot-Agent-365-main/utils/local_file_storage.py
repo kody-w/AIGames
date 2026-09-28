@@ -3,11 +3,12 @@ Local File Storage Manager - Offline/Edge Mode
 Provides local filesystem storage for agents, memories, and data
 No internet or cloud dependencies required
 """
+
 import json
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +24,22 @@ class LocalFileStorageManager:
         Initialize local storage manager.
 
         Args:
-            base_path: Base directory for storage. Defaults to ~/.copilot-agent-local
+            base_path: Base directory for storage. Defaults to $LOCAL_STORAGE_PATH,
+                or ~/.copilot-agent-local when that is unset or empty
         """
         if base_path:
             self.base_path = Path(base_path)
+        elif os.environ.get("LOCAL_STORAGE_PATH"):
+            self.base_path = Path(os.environ["LOCAL_STORAGE_PATH"]).expanduser()
         else:
             # Default to user's home directory
-            self.base_path = Path.home() / '.copilot-agent-local'
+            self.base_path = Path.home() / ".copilot-agent-local"
 
         self.base_path.mkdir(parents=True, exist_ok=True)
 
         # Directory structure
         self.shared_memory_path = "shared_memories"
-        self.default_file_name = 'memory.json'
+        self.default_file_name = "memory.json"
         self.current_guid = None
         self.current_memory_path = self.shared_memory_path
 
@@ -46,13 +50,13 @@ class LocalFileStorageManager:
         """Create default directory structure for offline operation."""
         dirs = [
             self.shared_memory_path,
-            'agents',           # Local agent storage
-            'multi_agents',     # Multi-agent configurations
-            'demos',            # Demo scenarios
-            'agent_config',     # Agent configurations
-            'memory',           # User-specific memories
-            'logs',             # Local logs
-            'cache'             # Local cache for faster operations
+            "agents",  # Local agent storage
+            "multi_agents",  # Multi-agent configurations
+            "demos",  # Demo scenarios
+            "agent_config",  # Agent configurations
+            "memory",  # User-specific memories
+            "logs",  # Local logs
+            "cache",  # Local cache for faster operations
         ]
 
         for dir_name in dirs:
@@ -62,7 +66,7 @@ class LocalFileStorageManager:
         # Create default shared memory file
         memory_file = self.base_path / self.shared_memory_path / self.default_file_name
         if not memory_file.exists():
-            memory_file.write_text('{}')
+            memory_file.write_text("{}")
             logger.info(f"✓ Created default memory file: {memory_file}")
 
     def set_memory_context(self, guid: Optional[str] = None) -> bool:
@@ -83,9 +87,10 @@ class LocalFileStorageManager:
 
         # Validate GUID format
         import re
+
         guid_pattern = re.compile(
-            r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-            re.IGNORECASE
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            re.IGNORECASE,
         )
 
         if not guid_pattern.match(guid):
@@ -95,13 +100,13 @@ class LocalFileStorageManager:
             return False
 
         # Create GUID-specific directory
-        guid_dir = self.base_path / 'memory' / guid
+        guid_dir = self.base_path / "memory" / guid
         guid_dir.mkdir(parents=True, exist_ok=True)
 
         # Create user memory file if it doesn't exist
-        user_memory_file = guid_dir / 'user_memory.json'
+        user_memory_file = guid_dir / "user_memory.json"
         if not user_memory_file.exists():
-            user_memory_file.write_text('{}')
+            user_memory_file.write_text("{}")
             logger.info(f"✓ Created user memory for: {guid}")
 
         self.current_guid = guid
@@ -123,7 +128,7 @@ class LocalFileStorageManager:
         try:
             file_path = self.base_path / directory / filename
             if file_path.exists():
-                content = file_path.read_text(encoding='utf-8')
+                content = file_path.read_text(encoding="utf-8")
                 logger.debug(f"📖 Read: {directory}/{filename}")
                 return content
             else:
@@ -150,7 +155,7 @@ class LocalFileStorageManager:
             dir_path.mkdir(parents=True, exist_ok=True)
 
             file_path = dir_path / filename
-            file_path.write_text(content, encoding='utf-8')
+            file_path.write_text(content, encoding="utf-8")
             logger.debug(f"💾 Wrote: {directory}/{filename}")
             return True
         except Exception as e:
@@ -240,12 +245,14 @@ class LocalFileStorageManager:
 
         try:
             if self.current_guid:
-                file_path = self.base_path / 'memory' / self.current_guid / 'user_memory.json'
+                file_path = (
+                    self.base_path / "memory" / self.current_guid / "user_memory.json"
+                )
             else:
                 file_path = self.base_path / self.shared_memory_path / filename
 
             if file_path.exists():
-                content = file_path.read_text(encoding='utf-8')
+                content = file_path.read_text(encoding="utf-8")
                 data = json.loads(content) if content else {}
                 logger.debug(f"📖 Read JSON: {file_path.name}")
                 return data
@@ -270,12 +277,14 @@ class LocalFileStorageManager:
 
         try:
             if self.current_guid:
-                file_path = self.base_path / 'memory' / self.current_guid / 'user_memory.json'
+                file_path = (
+                    self.base_path / "memory" / self.current_guid / "user_memory.json"
+                )
             else:
                 file_path = self.base_path / self.shared_memory_path / filename
 
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.write_text(json.dumps(data, indent=2), encoding='utf-8')
+            file_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
             logger.debug(f"💾 Wrote JSON: {file_path.name}")
             return True
         except Exception as e:
@@ -300,11 +309,11 @@ class LocalFileStorageManager:
                     file_count += 1
 
             return {
-                'base_path': str(self.base_path),
-                'total_size_bytes': total_size,
-                'total_size_mb': round(total_size / (1024 * 1024), 2),
-                'file_count': file_count,
-                'directories': list(os.listdir(self.base_path))
+                "base_path": str(self.base_path),
+                "total_size_bytes": total_size,
+                "total_size_mb": round(total_size / (1024 * 1024), 2),
+                "file_count": file_count,
+                "directories": list(os.listdir(self.base_path)),
             }
         except Exception as e:
             logger.error(f"❌ Error getting storage stats: {e}")

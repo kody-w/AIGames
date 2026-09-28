@@ -29,6 +29,8 @@ msal>=1.20.0
 
 # Additional dependencies
 python-dateutil>=2.8.2
+jsonschema>=4.0.0
+aiohttp>=3.9.0
 pydantic==1.10.13
 
 # Caching dependencies (optional Redis support)

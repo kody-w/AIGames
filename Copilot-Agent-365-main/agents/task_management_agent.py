@@ -9,8 +9,9 @@ Version: 1.0.0
 
 import json
 import logging
-from typing import Dict, List
 from datetime import datetime, timedelta
+from typing import Dict, List
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class TaskManagementAgent(BasicAgent):
     """Manages tasks, projects, priorities, and deadlines."""
 
     def __init__(self):
-        self.name = 'TaskManagement'
+        self.name = "TaskManagement"
         self.metadata = {
             "name": self.name,
             "description": "Creates and manages tasks, tracks progress, sets priorities, and handles deadline reminders.",
@@ -29,69 +30,80 @@ class TaskManagementAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["create_task", "list_tasks", "update_task", "complete_task", "prioritize", "set_deadline", "track_progress"],
-                        "description": "Task management action"
+                        "enum": [
+                            "create_task",
+                            "list_tasks",
+                            "update_task",
+                            "complete_task",
+                            "prioritize",
+                            "set_deadline",
+                            "track_progress",
+                        ],
+                        "description": "Task management action",
                     },
                     "task_title": {
                         "type": "string",
-                        "description": "Title of the task"
+                        "description": "Title of the task",
                     },
                     "description": {
                         "type": "string",
-                        "description": "Detailed task description"
+                        "description": "Detailed task description",
                     },
                     "priority": {
                         "type": "string",
                         "enum": ["low", "medium", "high", "urgent"],
-                        "description": "Task priority level"
+                        "description": "Task priority level",
                     },
                     "deadline": {
                         "type": "string",
-                        "description": "Task deadline (ISO format or natural language)"
+                        "description": "Task deadline (ISO format or natural language)",
                     },
                     "status": {
                         "type": "string",
-                        "enum": ["todo", "in_progress", "blocked", "completed", "cancelled"],
-                        "description": "Task status"
+                        "enum": [
+                            "todo",
+                            "in_progress",
+                            "blocked",
+                            "completed",
+                            "cancelled",
+                        ],
+                        "description": "Task status",
                     },
                     "assignee": {
                         "type": "string",
-                        "description": "Person assigned to the task"
+                        "description": "Person assigned to the task",
                     },
                     "tags": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Task tags for categorization"
+                        "description": "Task tags for categorization",
                     },
-                    "task_id": {
-                        "type": "string",
-                        "description": "Task ID for updates"
-                    },
+                    "task_id": {"type": "string", "description": "Task ID for updates"},
                     "filter": {
                         "type": "string",
-                        "description": "Filter criteria for listing tasks"
-                    }
+                        "description": "Filter criteria for listing tasks",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
     def perform(self, **kwargs) -> str:
         """Execute task management operations."""
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
             if not action:
                 return self._error_response("Action parameter is required")
 
             handlers = {
-                'create_task': self._create_task,
-                'list_tasks': self._list_tasks,
-                'update_task': self._update_task,
-                'complete_task': self._complete_task,
-                'prioritize': self._prioritize_tasks,
-                'set_deadline': self._set_deadline,
-                'track_progress': self._track_progress
+                "create_task": self._create_task,
+                "list_tasks": self._list_tasks,
+                "update_task": self._update_task,
+                "complete_task": self._complete_task,
+                "prioritize": self._prioritize_tasks,
+                "set_deadline": self._set_deadline,
+                "track_progress": self._track_progress,
             }
 
             handler = handlers.get(action)
@@ -106,23 +118,23 @@ class TaskManagementAgent(BasicAgent):
 
     def _create_task(self, **kwargs) -> str:
         """Create a new task."""
-        task_title = kwargs.get('task_title')
-        description = kwargs.get('description', '')
-        priority = kwargs.get('priority', 'medium')
-        deadline = kwargs.get('deadline')
-        assignee = kwargs.get('assignee', 'Unassigned')
-        tags = kwargs.get('tags', [])
+        task_title = kwargs.get("task_title")
+        description = kwargs.get("description", "")
+        priority = kwargs.get("priority", "medium")
+        deadline = kwargs.get("deadline")
+        assignee = kwargs.get("assignee", "Unassigned")
+        tags = kwargs.get("tags", [])
 
         if not task_title:
             return self._error_response("Task title is required")
 
         task_id = f"TASK-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-        priority_emoji = {'low': '🟢', 'medium': '🟡', 'high': '🟠', 'urgent': '🔴'}
-        emoji = priority_emoji.get(priority, '⚪')
+        priority_emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "urgent": "🔴"}
+        emoji = priority_emoji.get(priority, "⚪")
 
-        deadline_str = deadline if deadline else 'No deadline'
-        tags_str = ', '.join(tags) if tags else 'None'
+        deadline_str = deadline if deadline else "No deadline"
+        tags_str = ", ".join(tags) if tags else "None"
 
         return f"""{emoji} **Task Created**
 
@@ -143,33 +155,39 @@ Task has been added to your task list."""
 
     def _list_tasks(self, **kwargs) -> str:
         """List all tasks with optional filtering."""
-        filter_criteria = kwargs.get('filter', 'all')
-        status = kwargs.get('status')
-        priority = kwargs.get('priority')
+        filter_criteria = kwargs.get("filter", "all")
+        status = kwargs.get("status")
+        priority = kwargs.get("priority")
 
         tasks = self._get_sample_tasks()
 
         # Apply filters
         filtered = []
         for task in tasks:
-            if status and task['status'] != status:
+            if status and task["status"] != status:
                 continue
-            if priority and task['priority'] != priority:
+            if priority and task["priority"] != priority:
                 continue
             filtered.append(task)
 
-        tasks_by_status = {'todo': [], 'in_progress': [], 'completed': []}
+        tasks_by_status = {"todo": [], "in_progress": [], "completed": []}
         for task in filtered:
-            if task['status'] in tasks_by_status:
-                tasks_by_status[task['status']].append(task)
+            if task["status"] in tasks_by_status:
+                tasks_by_status[task["status"]].append(task)
 
         formatted_tasks = []
         for status, task_list in tasks_by_status.items():
             if task_list:
-                formatted_tasks.append(f"\n**{status.upper().replace('_', ' ')}** ({len(task_list)} tasks)")
+                formatted_tasks.append(
+                    f"\n**{status.upper().replace('_', ' ')}** ({len(task_list)} tasks)"
+                )
                 for task in task_list:
-                    emoji = {'low': '🟢', 'medium': '🟡', 'high': '🟠', 'urgent': '🔴'}[task['priority']]
-                    formatted_tasks.append(f"{emoji} {task['title']} - Due: {task['deadline']}")
+                    emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "urgent": "🔴"}[
+                        task["priority"]
+                    ]
+                    formatted_tasks.append(
+                        f"{emoji} {task['title']} - Due: {task['deadline']}"
+                    )
 
         return f"""📋 **Task List**
 
@@ -184,11 +202,11 @@ Task has been added to your task list."""
 
     def _update_task(self, **kwargs) -> str:
         """Update an existing task."""
-        task_id = kwargs.get('task_id')
-        task_title = kwargs.get('task_title')
-        status = kwargs.get('status')
-        priority = kwargs.get('priority')
-        deadline = kwargs.get('deadline')
+        task_id = kwargs.get("task_id")
+        task_title = kwargs.get("task_title")
+        status = kwargs.get("status")
+        priority = kwargs.get("priority")
+        deadline = kwargs.get("deadline")
 
         if not task_id and not task_title:
             return self._error_response("Task ID or title is required")
@@ -213,8 +231,8 @@ Task has been updated successfully."""
 
     def _complete_task(self, **kwargs) -> str:
         """Mark a task as completed."""
-        task_id = kwargs.get('task_id')
-        task_title = kwargs.get('task_title')
+        task_id = kwargs.get("task_id")
+        task_title = kwargs.get("task_title")
 
         if not task_id and not task_title:
             return self._error_response("Task ID or title is required")
@@ -260,9 +278,9 @@ Great job! This task has been marked as complete.
 
     def _set_deadline(self, **kwargs) -> str:
         """Set or update task deadline."""
-        task_id = kwargs.get('task_id')
-        task_title = kwargs.get('task_title')
-        deadline = kwargs.get('deadline')
+        task_id = kwargs.get("task_id")
+        task_title = kwargs.get("task_title")
+        deadline = kwargs.get("deadline")
 
         if not deadline:
             return self._error_response("Deadline is required")
@@ -272,7 +290,7 @@ Great job! This task has been marked as complete.
 
         # Parse deadline
         try:
-            deadline_dt = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+            deadline_dt = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
         except:
             # If parsing fails, use relative time
             deadline_dt = datetime.now() + timedelta(days=7)
@@ -295,13 +313,15 @@ Great job! This task has been marked as complete.
         tasks = self._get_sample_tasks()
 
         total = len(tasks)
-        completed = len([t for t in tasks if t['status'] == 'completed'])
-        in_progress = len([t for t in tasks if t['status'] == 'in_progress'])
-        todo = len([t for t in tasks if t['status'] == 'todo'])
+        completed = len([t for t in tasks if t["status"] == "completed"])
+        in_progress = len([t for t in tasks if t["status"] == "in_progress"])
+        todo = len([t for t in tasks if t["status"] == "todo"])
 
         completion_rate = (completed / total * 100) if total > 0 else 0
 
-        progress_bar = '█' * int(completion_rate / 10) + '░' * (10 - int(completion_rate / 10))
+        progress_bar = "█" * int(completion_rate / 10) + "░" * (
+            10 - int(completion_rate / 10)
+        )
 
         return f"""📊 **Progress Report**
 
@@ -330,20 +350,50 @@ Great job! This task has been marked as complete.
     def _get_sample_tasks(self) -> List[Dict]:
         """Get sample tasks for demonstration."""
         return [
-            {'id': 'TASK-001', 'title': 'Complete project proposal', 'status': 'in_progress', 'priority': 'high', 'deadline': 'Tomorrow'},
-            {'id': 'TASK-002', 'title': 'Review code changes', 'status': 'todo', 'priority': 'medium', 'deadline': 'This week'},
-            {'id': 'TASK-003', 'title': 'Update documentation', 'status': 'todo', 'priority': 'low', 'deadline': 'Next week'},
-            {'id': 'TASK-004', 'title': 'Fix critical bug', 'status': 'in_progress', 'priority': 'urgent', 'deadline': 'Today'},
-            {'id': 'TASK-005', 'title': 'Team meeting prep', 'status': 'completed', 'priority': 'medium', 'deadline': 'Yesterday'}
+            {
+                "id": "TASK-001",
+                "title": "Complete project proposal",
+                "status": "in_progress",
+                "priority": "high",
+                "deadline": "Tomorrow",
+            },
+            {
+                "id": "TASK-002",
+                "title": "Review code changes",
+                "status": "todo",
+                "priority": "medium",
+                "deadline": "This week",
+            },
+            {
+                "id": "TASK-003",
+                "title": "Update documentation",
+                "status": "todo",
+                "priority": "low",
+                "deadline": "Next week",
+            },
+            {
+                "id": "TASK-004",
+                "title": "Fix critical bug",
+                "status": "in_progress",
+                "priority": "urgent",
+                "deadline": "Today",
+            },
+            {
+                "id": "TASK-005",
+                "title": "Team meeting prep",
+                "status": "completed",
+                "priority": "medium",
+                "deadline": "Yesterday",
+            },
         ]
 
     def _calculate_priorities(self, tasks: List[Dict]) -> Dict:
         """Calculate task priorities."""
         return {
-            'urgent': '• Fix critical bug (TASK-004)\n• Response to client inquiry',
-            'high': '• Complete project proposal (TASK-001)\n• Review security updates',
-            'medium': '• Review code changes (TASK-002)\n• Team meeting prep',
-            'low': '• Update documentation (TASK-003)\n• Organize files'
+            "urgent": "• Fix critical bug (TASK-004)\n• Response to client inquiry",
+            "high": "• Complete project proposal (TASK-001)\n• Review security updates",
+            "medium": "• Review code changes (TASK-002)\n• Team meeting prep",
+            "low": "• Update documentation (TASK-003)\n• Organize files",
         }
 
     def _error_response(self, message: str) -> str:

@@ -1,0 +1,11 @@
+# Formatter settings for the CI code-quality job (black --check, isort --check-only).
+
+[tool.black]
+# The Grail kernel files are pinned upstream and must stay byte-for-byte unchanged.
+extend-exclude = '''
+^/agents/(basic_agent|[^/]*_memory_agent)\.py$
+'''
+
+[tool.isort]
+profile = "black"
+extend_skip_glob = ["agents/basic_agent.py", "agents/*_memory_agent.py"]

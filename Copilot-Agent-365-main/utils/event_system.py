@@ -12,23 +12,24 @@ Features:
 - Event filtering and routing
 """
 
-import uuid
+import asyncio
 import json
 import logging
+import threading
+import uuid
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, asdict, field
 from enum import Enum
 from queue import Queue
-import threading
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class EventType(str, Enum):
     """Supported event types in the platform"""
+
     # Ambassador events
     AMBASSADOR_CREATED = "ambassador.created"
     AMBASSADOR_UPDATED = "ambassador.updated"
@@ -73,6 +74,7 @@ class EventType(str, Enum):
 @dataclass
 class Event:
     """Event data structure"""
+
     event_id: str
     event_type: EventType
     timestamp: str
@@ -85,16 +87,20 @@ class Event:
         """Convert event to dictionary"""
         return {
             "event_id": self.event_id,
-            "event_type": self.event_type.value if isinstance(self.event_type, EventType) else self.event_type,
+            "event_type": (
+                self.event_type.value
+                if isinstance(self.event_type, EventType)
+                else self.event_type
+            ),
             "timestamp": self.timestamp,
             "data": self.data,
             "user_guid": self.user_guid,
             "ambassador_id": self.ambassador_id,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> 'Event':
+    def from_dict(data: Dict[str, Any]) -> "Event":
         """Create event from dictionary"""
         return Event(
             event_id=data.get("event_id", str(uuid.uuid4())),
@@ -103,17 +109,19 @@ class Event:
             data=data.get("data", {}),
             user_guid=data.get("user_guid"),
             ambassador_id=data.get("ambassador_id"),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
 
 class EventListener:
     """Event listener for handling events"""
 
-    def __init__(self,
-                 callback: Callable[[Event], None],
-                 event_types: Optional[List[EventType]] = None,
-                 filters: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        callback: Callable[[Event], None],
+        event_types: Optional[List[EventType]] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ):
         """
         Initialize event listener
 
@@ -225,13 +233,15 @@ class EventStore:
             except Exception as e:
                 logger.error(f"Failed to persist event {event.event_id}: {e}")
 
-    def get_events(self,
-                   event_type: Optional[EventType] = None,
-                   user_guid: Optional[str] = None,
-                   ambassador_id: Optional[str] = None,
-                   start_time: Optional[datetime] = None,
-                   end_time: Optional[datetime] = None,
-                   limit: int = 100) -> List[Event]:
+    def get_events(
+        self,
+        event_type: Optional[EventType] = None,
+        user_guid: Optional[str] = None,
+        ambassador_id: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: int = 100,
+    ) -> List[Event]:
         """Retrieve events with filters"""
         filtered_events = self.in_memory_events
 
@@ -243,34 +253,43 @@ class EventStore:
             filtered_events = [e for e in filtered_events if e.user_guid == user_guid]
 
         if ambassador_id:
-            filtered_events = [e for e in filtered_events if e.ambassador_id == ambassador_id]
+            filtered_events = [
+                e for e in filtered_events if e.ambassador_id == ambassador_id
+            ]
 
         if start_time:
-            filtered_events = [e for e in filtered_events
-                             if datetime.fromisoformat(e.timestamp.replace('Z', '+00:00')) >= start_time]
+            filtered_events = [
+                e
+                for e in filtered_events
+                if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00"))
+                >= start_time
+            ]
 
         if end_time:
-            filtered_events = [e for e in filtered_events
-                             if datetime.fromisoformat(e.timestamp.replace('Z', '+00:00')) <= end_time]
+            filtered_events = [
+                e
+                for e in filtered_events
+                if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00"))
+                <= end_time
+            ]
 
         # Return most recent first
-        filtered_events = sorted(filtered_events,
-                                key=lambda e: e.timestamp,
-                                reverse=True)
+        filtered_events = sorted(
+            filtered_events, key=lambda e: e.timestamp, reverse=True
+        )
 
         return filtered_events[:limit]
 
-    def replay_events(self,
-                     processor: Callable[[Event], None],
-                     event_type: Optional[EventType] = None,
-                     start_time: Optional[datetime] = None,
-                     end_time: Optional[datetime] = None):
+    def replay_events(
+        self,
+        processor: Callable[[Event], None],
+        event_type: Optional[EventType] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+    ):
         """Replay events for reprocessing"""
         events = self.get_events(
-            event_type=event_type,
-            start_time=start_time,
-            end_time=end_time,
-            limit=10000
+            event_type=event_type, start_time=start_time, end_time=end_time, limit=10000
         )
 
         logger.info(f"Replaying {len(events)} events")
@@ -307,7 +326,7 @@ class EventSystem:
 
     def __init__(self):
         """Initialize event system"""
-        if hasattr(self, 'initialized'):
+        if hasattr(self, "initialized"):
             return
 
         self.initialized = True
@@ -315,11 +334,7 @@ class EventSystem:
         self.event_queue = EventQueue()
         self.event_store = EventStore()
         self.executor = ThreadPoolExecutor(max_workers=10)
-        self.stats = {
-            "events_published": 0,
-            "events_processed": 0,
-            "events_failed": 0
-        }
+        self.stats = {"events_published": 0, "events_processed": 0, "events_failed": 0}
 
         # Start queue processing
         self.event_queue.start_processing(self._process_event)
@@ -330,12 +345,14 @@ class EventSystem:
         """Set Azure storage manager for persistence"""
         self.event_store.storage_manager = storage_manager
 
-    def publish(self,
-                event_type: EventType,
-                data: Dict[str, Any],
-                user_guid: Optional[str] = None,
-                ambassador_id: Optional[str] = None,
-                metadata: Optional[Dict[str, Any]] = None) -> Event:
+    def publish(
+        self,
+        event_type: EventType,
+        data: Dict[str, Any],
+        user_guid: Optional[str] = None,
+        ambassador_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Event:
         """
         Publish event to the system
 
@@ -356,7 +373,7 @@ class EventSystem:
             data=data,
             user_guid=user_guid,
             ambassador_id=ambassador_id,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Store event
@@ -395,10 +412,12 @@ class EventSystem:
             logger.error(f"Error processing event {event.event_id}: {e}")
             self.stats["events_failed"] += 1
 
-    def subscribe(self,
-                  callback: Callable[[Event], None],
-                  event_types: Optional[List[EventType]] = None,
-                  filters: Optional[Dict[str, Any]] = None) -> str:
+    def subscribe(
+        self,
+        callback: Callable[[Event], None],
+        event_types: Optional[List[EventType]] = None,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """
         Subscribe to events
 
@@ -434,7 +453,7 @@ class EventSystem:
             **self.stats,
             "active_listeners": len([l for l in self.listeners if l.enabled]),
             "queue_size": self.event_queue.queue.qsize(),
-            "stored_events": len(self.event_store.in_memory_events)
+            "stored_events": len(self.event_store.in_memory_events),
         }
 
     def shutdown(self):
@@ -450,12 +469,13 @@ event_system = EventSystem()
 
 # Convenience functions for publishing specific events
 
+
 def publish_ambassador_created(ambassador_id: str, ambassador_data: Dict[str, Any]):
     """Publish ambassador created event"""
     return event_system.publish(
         EventType.AMBASSADOR_CREATED,
         data={"ambassador": ambassador_data},
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
@@ -464,7 +484,7 @@ def publish_ambassador_updated(ambassador_id: str, changes: Dict[str, Any]):
     return event_system.publish(
         EventType.AMBASSADOR_UPDATED,
         data={"changes": changes},
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
@@ -473,27 +493,31 @@ def publish_ambassador_deleted(ambassador_id: str):
     return event_system.publish(
         EventType.AMBASSADOR_DELETED,
         data={"ambassador_id": ambassador_id},
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
-def publish_conversation_started(user_guid: str, ambassador_id: str, metadata: Dict[str, Any] = None):
+def publish_conversation_started(
+    user_guid: str, ambassador_id: str, metadata: Dict[str, Any] = None
+):
     """Publish conversation started event"""
     return event_system.publish(
         EventType.CONVERSATION_STARTED,
         data=metadata or {},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
-def publish_conversation_ended(user_guid: str, ambassador_id: str, summary: Dict[str, Any]):
+def publish_conversation_ended(
+    user_guid: str, ambassador_id: str, summary: Dict[str, Any]
+):
     """Publish conversation ended event"""
     return event_system.publish(
         EventType.CONVERSATION_ENDED,
         data={"summary": summary},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
@@ -503,7 +527,7 @@ def publish_message_sent(user_guid: str, ambassador_id: str, message: str):
         EventType.MESSAGE_SENT,
         data={"message": message},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
@@ -513,51 +537,53 @@ def publish_message_received(user_guid: str, ambassador_id: str, message: str):
         EventType.MESSAGE_RECEIVED,
         data={"message": message},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
-def publish_qr_scanned(ambassador_id: str, location: Optional[str] = None, user_guid: Optional[str] = None):
+def publish_qr_scanned(
+    ambassador_id: str, location: Optional[str] = None, user_guid: Optional[str] = None
+):
     """Publish QR code scanned event"""
     return event_system.publish(
         EventType.QR_SCANNED,
         data={"location": location},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
 def publish_user_created(user_guid: str, user_data: Dict[str, Any]):
     """Publish user created event"""
     return event_system.publish(
-        EventType.USER_CREATED,
-        data={"user": user_data},
-        user_guid=user_guid
+        EventType.USER_CREATED, data={"user": user_data}, user_guid=user_guid
     )
 
 
 def publish_user_banned(user_guid: str, reason: str):
     """Publish user banned event"""
     return event_system.publish(
-        EventType.USER_BANNED,
-        data={"reason": reason},
-        user_guid=user_guid
+        EventType.USER_BANNED, data={"reason": reason}, user_guid=user_guid
     )
 
 
-def publish_moderation_flagged(user_guid: str, content: str, reason: str, ambassador_id: Optional[str] = None):
+def publish_moderation_flagged(
+    user_guid: str, content: str, reason: str, ambassador_id: Optional[str] = None
+):
     """Publish content flagged event"""
     return event_system.publish(
         EventType.MODERATION_FLAGGED,
         data={"content": content, "reason": reason},
         user_guid=user_guid,
-        ambassador_id=ambassador_id
+        ambassador_id=ambassador_id,
     )
 
 
-def publish_analytics_milestone(milestone: str, value: Any, metadata: Dict[str, Any] = None):
+def publish_analytics_milestone(
+    milestone: str, value: Any, metadata: Dict[str, Any] = None
+):
     """Publish analytics milestone event"""
     return event_system.publish(
         EventType.ANALYTICS_MILESTONE,
-        data={"milestone": milestone, "value": value, **(metadata or {})}
+        data={"milestone": milestone, "value": value, **(metadata or {})},
     )

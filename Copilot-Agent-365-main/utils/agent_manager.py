@@ -24,12 +24,12 @@ Usage:
     agents = manager.list_agents()
 """
 
+import importlib.util
 import logging
 import os
 import sys
-import importlib.util
 from threading import Lock
-from typing import Dict, Optional, List, Any
+from typing import Any, Dict, List, Optional
 
 
 class AgentManager:
@@ -68,7 +68,9 @@ class AgentManager:
 
         logging.debug("AgentManager initialized")
 
-    def register_agent(self, name: str, agent_instance: Any, metadata: Optional[Dict] = None) -> None:
+    def register_agent(
+        self, name: str, agent_instance: Any, metadata: Optional[Dict] = None
+    ) -> None:
         """
         Register an agent instance.
 
@@ -193,10 +195,10 @@ class AgentManager:
 
         # Scan directory for agent files
         for filename in os.listdir(agents_directory):
-            if not filename.endswith('_agent.py'):
+            if not filename.endswith("_agent.py"):
                 continue
 
-            if filename == 'basic_agent.py':
+            if filename == "basic_agent.py":
                 continue  # Skip base class
 
             agent_file = os.path.join(agents_directory, filename)
@@ -208,18 +210,18 @@ class AgentManager:
 
                 if agent_instance:
                     # Extract agent name from class or use module name
-                    agent_name = getattr(agent_instance, 'name', module_name)
+                    agent_name = getattr(agent_instance, "name", module_name)
 
                     # Register the agent
                     metadata = {
-                        'source': 'auto_discovery',
-                        'file': agent_file,
-                        'module': module_name
+                        "source": "auto_discovery",
+                        "file": agent_file,
+                        "module": module_name,
                     }
 
                     # Add agent metadata if available
-                    if hasattr(agent_instance, 'metadata'):
-                        metadata['agent_metadata'] = agent_instance.metadata
+                    if hasattr(agent_instance, "metadata"):
+                        metadata["agent_metadata"] = agent_instance.metadata
 
                     self.register_agent(agent_name, agent_instance, metadata)
                     discovered_count += 1
@@ -259,10 +261,12 @@ class AgentManager:
 
             # Find the agent class
             for name, obj in module.__dict__.items():
-                if (isinstance(obj, type) and
-                    name.endswith('Agent') and
-                    name != 'BasicAgent' and
-                    hasattr(obj, 'perform')):
+                if (
+                    isinstance(obj, type)
+                    and name.endswith("Agent")
+                    and name != "BasicAgent"
+                    and hasattr(obj, "perform")
+                ):
 
                     # Instantiate the agent
                     agent_instance = obj()
@@ -296,16 +300,17 @@ class AgentManager:
         """
         with self._registry_lock:
             auto_discovered = sum(
-                1 for meta in self._agent_metadata.values()
-                if meta.get('source') == 'auto_discovery'
+                1
+                for meta in self._agent_metadata.values()
+                if meta.get("source") == "auto_discovery"
             )
             manually_registered = len(self._agents) - auto_discovered
 
             return {
-                'total_agents': len(self._agents),
-                'auto_discovered': auto_discovered,
-                'manually_registered': manually_registered,
-                'agent_names': list(self._agents.keys())
+                "total_agents": len(self._agents),
+                "auto_discovered": auto_discovered,
+                "manually_registered": manually_registered,
+                "agent_names": list(self._agents.keys()),
             }
 
     def __repr__(self) -> str:

@@ -2,6 +2,9 @@
 
 [run]
 source = .
+# Record paths relative to this directory, so the data can still be read after
+# the workspace moves (python-coverage-comment-action reads it in a container).
+relative_files = true
 omit =
     */tests/*
     */test_*.py

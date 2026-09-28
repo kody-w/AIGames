@@ -12,25 +12,30 @@ Examples:
 - "What's the retention rate for users who joined last month?"
 """
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import json
+from datetime import datetime, timedelta
 
 from agents.basic_agent import BasicAgent
 from utils.analytics import (
-    AnalyticsStorage, FunnelAnalyzer, CohortAnalyzer,
-    AmbassadorPerformanceAnalyzer, EventTypes
+    AmbassadorPerformanceAnalyzer,
+    AnalyticsStorage,
+    CohortAnalyzer,
+    EventTypes,
+    FunnelAnalyzer,
 )
 from utils.azure_file_storage import AzureFileStorageManager
-from datetime import datetime, timedelta
-import json
 
 
 class AnalyticsAgent(BasicAgent):
     """Agent for querying and analyzing platform analytics data"""
 
     def __init__(self):
-        self.name = 'Analytics'
+        self.name = "Analytics"
         self.metadata = {
             "name": self.name,
             "description": "Query analytics data and generate insights about user behavior, ambassador performance, and business metrics. Supports natural language queries.",
@@ -39,20 +44,20 @@ class AnalyticsAgent(BasicAgent):
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Natural language query about analytics data (e.g., 'How many users this week?', 'Best performing ambassador', 'Funnel conversion rate')"
+                        "description": "Natural language query about analytics data (e.g., 'How many users this week?', 'Best performing ambassador', 'Funnel conversion rate')",
                     },
                     "time_period": {
                         "type": "string",
                         "description": "Time period for analysis: 'today', 'week', 'month', 'quarter', 'year', or specific number of days (e.g., '7', '30')",
-                        "default": "week"
+                        "default": "week",
                     },
                     "ambassador_id": {
                         "type": "string",
-                        "description": "Optional ambassador ID to filter results"
-                    }
+                        "description": "Optional ambassador ID to filter results",
+                    },
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
@@ -75,15 +80,15 @@ class AnalyticsAgent(BasicAgent):
         """
         end_date = datetime.utcnow()
 
-        if time_period == 'today':
+        if time_period == "today":
             start_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif time_period == 'week':
+        elif time_period == "week":
             start_date = end_date - timedelta(days=7)
-        elif time_period == 'month':
+        elif time_period == "month":
             start_date = end_date - timedelta(days=30)
-        elif time_period == 'quarter':
+        elif time_period == "quarter":
             start_date = end_date - timedelta(days=90)
-        elif time_period == 'year':
+        elif time_period == "year":
             start_date = end_date - timedelta(days=365)
         elif time_period.isdigit():
             days = int(time_period)
@@ -94,30 +99,34 @@ class AnalyticsAgent(BasicAgent):
 
         return start_date, end_date
 
-    def _get_summary_metrics(self, start_date: datetime, end_date: datetime, ambassador_id: str = None) -> dict:
+    def _get_summary_metrics(
+        self, start_date: datetime, end_date: datetime, ambassador_id: str = None
+    ) -> dict:
         """Get summary metrics for a time period"""
         events = self.storage.get_events_by_date_range(start_date, end_date)
 
         if ambassador_id:
-            events = [e for e in events if e.get('ambassador_id') == ambassador_id]
+            events = [e for e in events if e.get("ambassador_id") == ambassador_id]
 
-        unique_users = len(set(e.get('user_id') for e in events if e.get('user_id')))
-        unique_sessions = len(set(e.get('session_id') for e in events if e.get('session_id')))
+        unique_users = len(set(e.get("user_id") for e in events if e.get("user_id")))
+        unique_sessions = len(
+            set(e.get("session_id") for e in events if e.get("session_id"))
+        )
 
         event_counts = {}
         for event in events:
-            event_type = event.get('event_type', 'unknown')
+            event_type = event.get("event_type", "unknown")
             event_counts[event_type] = event_counts.get(event_type, 0) + 1
 
         return {
-            'total_events': len(events),
-            'unique_users': unique_users,
-            'unique_sessions': unique_sessions,
-            'event_counts': event_counts,
-            'date_range': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat()
-            }
+            "total_events": len(events),
+            "unique_users": unique_users,
+            "unique_sessions": unique_sessions,
+            "event_counts": event_counts,
+            "date_range": {
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
+            },
         }
 
     def _analyze_user_query(self, query: str) -> dict:
@@ -133,44 +142,47 @@ class AnalyticsAgent(BasicAgent):
         query_lower = query.lower()
 
         # Determine intent
-        intent = 'summary'  # default
+        intent = "summary"  # default
 
-        if any(word in query_lower for word in ['user', 'users', 'visitor', 'visitors']):
-            if 'how many' in query_lower or 'count' in query_lower:
-                intent = 'user_count'
-            elif 'growth' in query_lower or 'trend' in query_lower:
-                intent = 'user_growth'
+        if any(
+            word in query_lower for word in ["user", "users", "visitor", "visitors"]
+        ):
+            if "how many" in query_lower or "count" in query_lower:
+                intent = "user_count"
+            elif "growth" in query_lower or "trend" in query_lower:
+                intent = "user_growth"
 
-        elif any(word in query_lower for word in ['ambassador', 'ambassadors']):
-            if 'best' in query_lower or 'top' in query_lower or 'perform' in query_lower:
-                intent = 'top_ambassadors'
-            elif 'compare' in query_lower or 'comparison' in query_lower:
-                intent = 'ambassador_comparison'
+        elif any(word in query_lower for word in ["ambassador", "ambassadors"]):
+            if (
+                "best" in query_lower
+                or "top" in query_lower
+                or "perform" in query_lower
+            ):
+                intent = "top_ambassadors"
+            elif "compare" in query_lower or "comparison" in query_lower:
+                intent = "ambassador_comparison"
 
-        elif 'funnel' in query_lower or 'conversion' in query_lower:
-            intent = 'funnel_analysis'
+        elif "funnel" in query_lower or "conversion" in query_lower:
+            intent = "funnel_analysis"
 
-        elif 'retention' in query_lower or 'cohort' in query_lower:
-            intent = 'retention_analysis'
+        elif "retention" in query_lower or "cohort" in query_lower:
+            intent = "retention_analysis"
 
-        elif 'session' in query_lower:
-            intent = 'session_metrics'
+        elif "session" in query_lower:
+            intent = "session_metrics"
 
-        elif 'message' in query_lower or 'chat' in query_lower:
-            intent = 'messaging_metrics'
+        elif "message" in query_lower or "chat" in query_lower:
+            intent = "messaging_metrics"
 
-        elif 'qr' in query_lower or 'scan' in query_lower:
-            intent = 'qr_metrics'
+        elif "qr" in query_lower or "scan" in query_lower:
+            intent = "qr_metrics"
 
-        return {
-            'intent': intent,
-            'query': query
-        }
+        return {"intent": intent, "query": query}
 
     def _format_user_count_response(self, metrics: dict, time_period: str) -> str:
         """Format response for user count queries"""
-        users = metrics['unique_users']
-        sessions = metrics['unique_sessions']
+        users = metrics["unique_users"]
+        sessions = metrics["unique_sessions"]
 
         return f"""**User Activity Analysis**
 
@@ -191,14 +203,16 @@ class AnalyticsAgent(BasicAgent):
             return "- No events recorded"
 
         lines = []
-        for event_type, count in sorted(event_counts.items(), key=lambda x: x[1], reverse=True):
+        for event_type, count in sorted(
+            event_counts.items(), key=lambda x: x[1], reverse=True
+        ):
             lines.append(f"- **{event_type}**: {count:,}")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def _format_ambassador_performance(self, metrics: dict) -> str:
         """Format ambassador performance response"""
-        summary = metrics.get('summary', {})
+        summary = metrics.get("summary", {})
 
         return f"""**Ambassador Performance Report**
 
@@ -222,41 +236,55 @@ class AnalyticsAgent(BasicAgent):
             return "- No daily data available"
 
         # Show top 5 days
-        sorted_days = sorted(daily_metrics, key=lambda x: x.get('users', 0), reverse=True)[:5]
+        sorted_days = sorted(
+            daily_metrics, key=lambda x: x.get("users", 0), reverse=True
+        )[:5]
 
         lines = []
         for day in sorted_days:
-            lines.append(f"- **{day.get('date')}**: {day.get('users', 0)} users, {day.get('messages', 0)} messages")
+            lines.append(
+                f"- **{day.get('date')}**: {day.get('users', 0)} users, {day.get('messages', 0)} messages"
+            )
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
-    def _compare_ambassadors(self, start_date: datetime, end_date: datetime, ambassador_ids: list = None) -> str:
+    def _compare_ambassadors(
+        self, start_date: datetime, end_date: datetime, ambassador_ids: list = None
+    ) -> str:
         """Compare multiple ambassadors"""
         if not ambassador_ids:
             # Get all ambassadors from events
             events = self.storage.get_events_by_date_range(start_date, end_date)
-            ambassador_ids = list(set(e.get('ambassador_id') for e in events if e.get('ambassador_id')))
+            ambassador_ids = list(
+                set(e.get("ambassador_id") for e in events if e.get("ambassador_id"))
+            )
 
         if not ambassador_ids:
             return "No ambassador data available for comparison."
 
-        results = self.ambassador_analyzer.compare_ambassadors(ambassador_ids, start_date, end_date)
+        results = self.ambassador_analyzer.compare_ambassadors(
+            ambassador_ids, start_date, end_date
+        )
 
         output = f"""**Ambassador Comparison Report**
 
 📅 **Period**: {results.get('date_range', {}).get('start', 'N/A')} to {results.get('date_range', {}).get('end', 'N/A')}
 
 """
-        ambassadors = results.get('ambassadors', [])
+        ambassadors = results.get("ambassadors", [])
         if not ambassadors:
             return output + "No data available."
 
         # Sort by unique users
-        ambassadors_sorted = sorted(ambassadors, key=lambda x: x.get('summary', {}).get('unique_users', 0), reverse=True)
+        ambassadors_sorted = sorted(
+            ambassadors,
+            key=lambda x: x.get("summary", {}).get("unique_users", 0),
+            reverse=True,
+        )
 
         output += "**Rankings:**\n\n"
         for i, amb in enumerate(ambassadors_sorted, 1):
-            summary = amb.get('summary', {})
+            summary = amb.get("summary", {})
             output += f"{i}. **{amb.get('ambassador_id')}**\n"
             output += f"   - Users: {summary.get('unique_users', 0):,}\n"
             output += f"   - Sessions: {summary.get('total_sessions', 0):,}\n"
@@ -264,7 +292,9 @@ class AnalyticsAgent(BasicAgent):
 
         return output
 
-    def perform(self, query: str, time_period: str = 'week', ambassador_id: str = None, **kwargs) -> str:
+    def perform(
+        self, query: str, time_period: str = "week", ambassador_id: str = None, **kwargs
+    ) -> str:
         """
         Execute analytics query
 
@@ -282,44 +312,42 @@ class AnalyticsAgent(BasicAgent):
 
             # Analyze query
             analysis = self._analyze_user_query(query)
-            intent = analysis['intent']
+            intent = analysis["intent"]
 
             # Execute based on intent
-            if intent == 'user_count' or intent == 'summary':
+            if intent == "user_count" or intent == "summary":
                 metrics = self._get_summary_metrics(start_date, end_date, ambassador_id)
                 return self._format_user_count_response(metrics, time_period)
 
-            elif intent == 'top_ambassadors' or intent == 'ambassador_comparison':
+            elif intent == "top_ambassadors" or intent == "ambassador_comparison":
                 return self._compare_ambassadors(start_date, end_date)
 
-            elif intent == 'ambassador_performance' and ambassador_id:
+            elif intent == "ambassador_performance" and ambassador_id:
                 metrics = self.ambassador_analyzer.get_ambassador_metrics(
                     ambassador_id, start_date, end_date
                 )
                 return self._format_ambassador_performance(metrics)
 
-            elif intent == 'session_metrics':
+            elif intent == "session_metrics":
                 metrics = self._get_summary_metrics(start_date, end_date, ambassador_id)
                 return f"**Session Metrics**\n\nTotal Active Sessions: {metrics['unique_sessions']:,}\nUnique Users: {metrics['unique_users']:,}\nAverage Sessions per User: {metrics['unique_sessions']/metrics['unique_users'] if metrics['unique_users'] > 0 else 0:.2f}"
 
-            elif intent == 'messaging_metrics':
+            elif intent == "messaging_metrics":
                 metrics = self._get_summary_metrics(start_date, end_date, ambassador_id)
-                message_count = metrics['event_counts'].get(EventTypes.MESSAGE_SENT, 0)
+                message_count = metrics["event_counts"].get(EventTypes.MESSAGE_SENT, 0)
                 return f"**Messaging Activity**\n\nTotal Messages Sent: {message_count:,}\nActive Users: {metrics['unique_users']:,}\nMessages per User: {message_count/metrics['unique_users'] if metrics['unique_users'] > 0 else 0:.2f}"
 
-            elif intent == 'qr_metrics':
+            elif intent == "qr_metrics":
                 metrics = self._get_summary_metrics(start_date, end_date, ambassador_id)
-                qr_count = metrics['event_counts'].get(EventTypes.QR_SCAN, 0)
+                qr_count = metrics["event_counts"].get(EventTypes.QR_SCAN, 0)
                 return f"**QR Code Scans**\n\nTotal Scans: {qr_count:,}\nUnique Users: {metrics['unique_users']:,}\nConversion to Session: {metrics['unique_sessions']/qr_count*100 if qr_count > 0 else 0:.1f}%"
 
-            elif intent == 'funnel_analysis':
+            elif intent == "funnel_analysis":
                 return "Funnel analysis requires a specific funnel ID. Please specify which funnel to analyze."
 
-            elif intent == 'retention_analysis':
+            elif intent == "retention_analysis":
                 cohort_data = self.cohort_analyzer.analyze_retention(
-                    start_date=start_date,
-                    cohort_period='weekly',
-                    retention_periods=12
+                    start_date=start_date, cohort_period="weekly", retention_periods=12
                 )
                 return f"**Retention Analysis**\n\nCohort Period: {cohort_data['cohort_period']}\nNumber of Cohorts: {len(cohort_data.get('cohorts', {}))}\n\n*Use the analytics dashboard for detailed cohort visualization.*"
 
@@ -341,7 +369,7 @@ if __name__ == "__main__":
         "How many users did we have this week?",
         "Which ambassador is performing best?",
         "Show me messaging activity",
-        "How many QR codes were scanned?"
+        "How many QR codes were scanned?",
     ]
 
     print("Testing AnalyticsAgent:")
@@ -350,6 +378,6 @@ if __name__ == "__main__":
     for query in test_queries:
         print(f"\nQuery: {query}")
         print("-" * 60)
-        result = agent.perform(query=query, time_period='week')
+        result = agent.perform(query=query, time_period="week")
         print(result)
         print("=" * 60)

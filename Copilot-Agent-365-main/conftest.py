@@ -4,13 +4,37 @@ Pytest configuration and shared fixtures for AI Ambassador Platform tests
 This file contains fixtures that are shared across all test files.
 """
 
-import pytest
-import sys
+import atexit
 import os
+import shutil
+import sys
+import tempfile
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# function_app creates its storage manager at import time, while test modules
+# are collected. Default to the local file backend so the suite needs no Azure
+# credentials, and keep its files in a throwaway directory.
+os.environ.setdefault("USE_LOCAL_STORAGE", "true")
+_TEST_STORAGE_DIR = tempfile.mkdtemp(prefix="copilot-agent-tests-")
+os.environ["LOCAL_STORAGE_PATH"] = _TEST_STORAGE_DIR
+atexit.register(shutil.rmtree, _TEST_STORAGE_DIR, ignore_errors=True)
+
+# Assistant() reads these settings directly; the tests mock AzureOpenAI, so
+# placeholder values are enough.
+for _name, _value in {
+    "AZURE_OPENAI_API_KEY": "test-api-key",
+    "AZURE_OPENAI_ENDPOINT": "https://test.openai.azure.com/",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4-test",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+    "ASSISTANT_NAME": "Test Assistant",
+    "CHARACTERISTIC_DESCRIPTION": "Test assistant for testing",
+}.items():
+    os.environ.setdefault(_name, _value)
 
 
 @pytest.fixture
@@ -20,7 +44,7 @@ def mock_azure_storage():
 
     Returns a MagicMock that simulates AzureFileStorageManager behavior
     """
-    with patch('function_app.AzureFileStorageManager') as mock:
+    with patch("function_app.StorageManager") as mock:
         mock_instance = MagicMock()
         mock_instance.read_file.return_value = None
         mock_instance.read_json.return_value = {}
@@ -40,7 +64,7 @@ def mock_openai():
 
     Returns a MagicMock that simulates AzureOpenAI client behavior
     """
-    with patch('function_app.AzureOpenAI') as mock:
+    with patch("function_app.AzureOpenAI") as mock:
         mock_instance = MagicMock()
         mock_instance.chat.completions.create.return_value = MagicMock()
         mock.return_value = mock_instance
@@ -55,14 +79,14 @@ def mock_environment():
     Sets up required environment variables for testing
     """
     env_vars = {
-        'AZURE_OPENAI_API_KEY': 'test-api-key',
-        'AZURE_OPENAI_ENDPOINT': 'https://test.openai.azure.com/',
-        'AZURE_OPENAI_DEPLOYMENT_NAME': 'gpt-4-test',
-        'AZURE_OPENAI_API_VERSION': '2025-01-01-preview',
-        'AzureWebJobsStorage': 'DefaultEndpointsProtocol=https;AccountName=testaccount;AccountKey=testkey==;EndpointSuffix=core.windows.net',
-        'AZURE_FILES_SHARE_NAME': 'test-share',
-        'ASSISTANT_NAME': 'Test Assistant',
-        'CHARACTERISTIC_DESCRIPTION': 'Test assistant for testing'
+        "AZURE_OPENAI_API_KEY": "test-api-key",
+        "AZURE_OPENAI_ENDPOINT": "https://test.openai.azure.com/",
+        "AZURE_OPENAI_DEPLOYMENT_NAME": "gpt-4-test",
+        "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=testaccount;AccountKey=testkey==;EndpointSuffix=core.windows.net",
+        "AZURE_FILES_SHARE_NAME": "test-share",
+        "ASSISTANT_NAME": "Test Assistant",
+        "CHARACTERISTIC_DESCRIPTION": "Test assistant for testing",
     }
 
     with patch.dict(os.environ, env_vars, clear=False):
@@ -80,7 +104,7 @@ def sample_conversation_history():
         {"role": "user", "content": "Hello"},
         {"role": "assistant", "content": "Hi there! How can I help you?"},
         {"role": "user", "content": "What can you do?"},
-        {"role": "assistant", "content": "I can help with many tasks!"}
+        {"role": "assistant", "content": "I can help with many tasks!"},
     ]
 
 
@@ -97,17 +121,11 @@ def sample_agent_metadata():
         "parameters": {
             "type": "object",
             "properties": {
-                "action": {
-                    "type": "string",
-                    "description": "The action to perform"
-                },
-                "data": {
-                    "type": "string",
-                    "description": "Data for the action"
-                }
+                "action": {"type": "string", "description": "The action to perform"},
+                "data": {"type": "string", "description": "Data for the action"},
             },
-            "required": ["action"]
-        }
+            "required": ["action"],
+        },
     }
 
 
@@ -125,19 +143,19 @@ def sample_demo_data():
             {
                 "step": 1,
                 "user_message": "start demo",
-                "bot_response": "Welcome to the demo! This is step 1."
+                "bot_response": "Welcome to the demo! This is step 1.",
             },
             {
                 "step": 2,
                 "user_message": "next",
-                "bot_response": "This is step 2 of the demo."
+                "bot_response": "This is step 2 of the demo.",
             },
             {
                 "step": 3,
                 "user_message": "continue",
-                "bot_response": "Final step! Demo complete."
-            }
-        ]
+                "bot_response": "Final step! Demo complete.",
+            },
+        ],
     }
 
 
@@ -152,24 +170,10 @@ def sample_ambassador_config():
         "ambassador": {
             "id": "test-ambassador-001",
             "name": "Test Ambassador",
-            "avatar": {
-                "type": "emoji",
-                "value": "🤖"
-            },
-            "world": {
-                "type": "test_world",
-                "environment": {
-                    "theme": "technology"
-                }
-            },
-            "agent_mapping": {
-                "base_agent": "BasicAgent",
-                "custom_agent": "TestAgent"
-            },
-            "demo_configuration": {
-                "seeded_run": False,
-                "parameters": {}
-            }
+            "avatar": {"type": "emoji", "value": "🤖"},
+            "world": {"type": "test_world", "environment": {"theme": "technology"}},
+            "agent_mapping": {"base_agent": "BasicAgent", "custom_agent": "TestAgent"},
+            "demo_configuration": {"seeded_run": False, "parameters": {}},
         }
     }
 
@@ -186,20 +190,20 @@ def sample_memory_data():
             "id": "memory1",
             "content": "User prefers Python programming",
             "timestamp": "2025-01-01T12:00:00Z",
-            "type": "preference"
+            "type": "preference",
         },
         "memory2": {
             "id": "memory2",
             "content": "User works in software development",
             "timestamp": "2025-01-01T12:05:00Z",
-            "type": "fact"
+            "type": "fact",
         },
         "memory3": {
             "id": "memory3",
             "content": "User asked about Azure Functions",
             "timestamp": "2025-01-01T12:10:00Z",
-            "type": "interaction"
-        }
+            "type": "interaction",
+        },
     }
 
 
@@ -215,7 +219,7 @@ def valid_guids():
         "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
         "00000000-0000-0000-0000-000000000000",
         "ffffffff-ffff-ffff-ffff-ffffffffffff",
-        "c0p110t0-aaaa-bbbb-cccc-123456789abc"  # Default GUID
+        "c0p110t0-aaaa-bbbb-cccc-123456789abc",  # Default GUID
     ]
 
 
@@ -233,11 +237,12 @@ def invalid_guids():
         "12345678_1234_1234_1234_123456789abc",  # Wrong delimiter
         "not-a-guid-at-all",
         "",
-        None
+        None,
     ]
 
 
 # Pytest hooks for custom behavior
+
 
 def pytest_configure(config):
     """
@@ -245,21 +250,11 @@ def pytest_configure(config):
 
     Adds custom markers and configuration
     """
-    config.addinivalue_line(
-        "markers", "unit: Unit tests for individual functions"
-    )
-    config.addinivalue_line(
-        "markers", "integration: Integration tests for components"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: End-to-end tests for complete workflows"
-    )
-    config.addinivalue_line(
-        "markers", "slow: Tests that take a long time to run"
-    )
-    config.addinivalue_line(
-        "markers", "azure: Tests requiring Azure credentials"
-    )
+    config.addinivalue_line("markers", "unit: Unit tests for individual functions")
+    config.addinivalue_line("markers", "integration: Integration tests for components")
+    config.addinivalue_line("markers", "e2e: End-to-end tests for complete workflows")
+    config.addinivalue_line("markers", "slow: Tests that take a long time to run")
+    config.addinivalue_line("markers", "azure: Tests requiring Azure credentials")
 
 
 def pytest_collection_modifyitems(config, items):

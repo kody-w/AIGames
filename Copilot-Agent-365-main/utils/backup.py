@@ -13,23 +13,25 @@ Features:
 - Parallel backup operations
 """
 
-import json
-import os
-import hashlib
-import gzip
-import shutil
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from pathlib import Path
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
-from cryptography.hazmat.backends import default_backend
-import base64
 import asyncio
+import base64
+import gzip
+import hashlib
+import json
+import logging
+import os
+import shutil
 from concurrent.futures import ThreadPoolExecutor
-from azure_file_storage_manager import AzureFileStorageManager
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+from utils.azure_file_storage import AzureFileStorageManager
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +47,17 @@ class BackupEncryption:
             encryption_key: Base encryption key (will be derived)
         """
         if encryption_key is None:
-            encryption_key = os.environ.get('BACKUP_ENCRYPTION_KEY', 'default-key-change-me')
+            encryption_key = os.environ.get(
+                "BACKUP_ENCRYPTION_KEY", "default-key-change-me"
+            )
 
         # Derive encryption key using PBKDF2
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'ai-ambassador-platform',  # In production, use random salt stored securely
+            salt=b"ai-ambassador-platform",  # In production, use random salt stored securely
             iterations=100000,
-            backend=default_backend()
+            backend=default_backend(),
         )
         key = base64.urlsafe_b64encode(kdf.derive(encryption_key.encode()))
         self.fernet = Fernet(key)
@@ -83,10 +87,10 @@ class BackupManager:
 
         # Retention policies (in days)
         self.retention_policies = {
-            'incremental': 7,      # Keep incremental backups for 7 days
-            'daily': 30,           # Keep daily backups for 30 days
-            'weekly': 90,          # Keep weekly backups for 90 days
-            'monthly': 365         # Keep monthly backups for 1 year
+            "incremental": 7,  # Keep incremental backups for 7 days
+            "daily": 30,  # Keep daily backups for 30 days
+            "weekly": 90,  # Keep weekly backups for 90 days
+            "monthly": 365,  # Keep monthly backups for 1 year
         }
 
     def _calculate_checksum(self, data: bytes) -> str:
@@ -103,7 +107,7 @@ class BackupManager:
 
     def _get_timestamp(self) -> str:
         """Get current timestamp for backup naming"""
-        return datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        return datetime.utcnow().strftime("%Y%m%d_%H%M%S")
 
     def _create_backup_metadata(
         self,
@@ -112,20 +116,22 @@ class BackupManager:
         targets: List[str],
         checksum: str,
         compressed_size: int,
-        original_size: int
+        original_size: int,
     ) -> Dict[str, Any]:
         """Create backup metadata"""
         return {
-            'backup_id': backup_id,
-            'backup_type': backup_type,
-            'timestamp': datetime.utcnow().isoformat(),
-            'targets': targets,
-            'checksum': checksum,
-            'compressed_size': compressed_size,
-            'original_size': original_size,
-            'compression_ratio': round(original_size / compressed_size, 2) if compressed_size > 0 else 0,
-            'encrypted': True,
-            'version': '1.0'
+            "backup_id": backup_id,
+            "backup_type": backup_type,
+            "timestamp": datetime.utcnow().isoformat(),
+            "targets": targets,
+            "checksum": checksum,
+            "compressed_size": compressed_size,
+            "original_size": original_size,
+            "compression_ratio": (
+                round(original_size / compressed_size, 2) if compressed_size > 0 else 0
+            ),
+            "encrypted": True,
+            "version": "1.0",
         }
 
     async def _backup_path(self, source_path: str) -> Dict[str, Any]:
@@ -143,7 +149,7 @@ class BackupManager:
             files = {}
 
             # Handle different path types
-            if source_path.endswith('.json'):
+            if source_path.endswith(".json"):
                 # Single file
                 data = self.storage.read_json(source_path)
                 if data:
@@ -159,24 +165,17 @@ class BackupManager:
                     pass
 
             return {
-                'path': source_path,
-                'files': files,
-                'file_count': len(files),
-                'timestamp': datetime.utcnow().isoformat()
+                "path": source_path,
+                "files": files,
+                "file_count": len(files),
+                "timestamp": datetime.utcnow().isoformat(),
             }
         except Exception as e:
             logger.error(f"Error backing up path {source_path}: {str(e)}")
-            return {
-                'path': source_path,
-                'files': {},
-                'file_count': 0,
-                'error': str(e)
-            }
+            return {"path": source_path, "files": {}, "file_count": 0, "error": str(e)}
 
     async def create_full_backup(
-        self,
-        backup_id: Optional[str] = None,
-        targets: Optional[List[str]] = None
+        self, backup_id: Optional[str] = None, targets: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Create a full backup of all data
@@ -194,15 +193,15 @@ class BackupManager:
         # Default backup targets
         if targets is None:
             targets = [
-                'ambassadors',          # Ambassador configurations
-                'user_memories',        # All user memories
-                'demo_configs',         # Demo configurations
-                'agents',               # Agent code
-                'multi_agents',         # Multi-agent configurations
-                'analytics',            # Analytics data
-                'security_logs',        # Security logs
-                'moderation_data',      # Moderation data
-                'shared_memories'       # Shared memories
+                "ambassadors",  # Ambassador configurations
+                "user_memories",  # All user memories
+                "demo_configs",  # Demo configurations
+                "agents",  # Agent code
+                "multi_agents",  # Multi-agent configurations
+                "analytics",  # Analytics data
+                "security_logs",  # Security logs
+                "moderation_data",  # Moderation data
+                "shared_memories",  # Shared memories
             ]
 
         logger.info(f"Starting full backup: {backup_id}")
@@ -221,10 +220,10 @@ class BackupManager:
 
         # Serialize backup data
         backup_json = json.dumps(backup_data, indent=2)
-        original_size = len(backup_json.encode('utf-8'))
+        original_size = len(backup_json.encode("utf-8"))
 
         # Compress
-        compressed_data = self._compress_data(backup_json.encode('utf-8'))
+        compressed_data = self._compress_data(backup_json.encode("utf-8"))
 
         # Calculate checksum before encryption
         checksum = self._calculate_checksum(compressed_data)
@@ -238,12 +237,12 @@ class BackupManager:
 
         # Create and save metadata
         metadata = self._create_backup_metadata(
-            backup_type='full',
+            backup_type="full",
             backup_id=backup_id,
             targets=targets,
             checksum=checksum,
             compressed_size=len(compressed_data),
-            original_size=original_size
+            original_size=original_size,
         )
 
         metadata_path = f"{self.backup_root}/metadata/{backup_id}.json"
@@ -254,9 +253,7 @@ class BackupManager:
         return metadata
 
     async def create_incremental_backup(
-        self,
-        base_backup_id: Optional[str] = None,
-        backup_id: Optional[str] = None
+        self, base_backup_id: Optional[str] = None, backup_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Create an incremental backup (changes since last backup)
@@ -279,12 +276,7 @@ class BackupManager:
 
         # For simplicity, incremental backups will backup modified user memories
         # In production, implement proper change detection
-        targets = [
-            'user_memories',
-            'analytics',
-            'security_logs',
-            'moderation_data'
-        ]
+        targets = ["user_memories", "analytics", "security_logs", "moderation_data"]
 
         # Create backup (same process as full, but fewer targets)
         backup_data = {}
@@ -299,8 +291,8 @@ class BackupManager:
 
         # Serialize and process
         backup_json = json.dumps(backup_data, indent=2)
-        original_size = len(backup_json.encode('utf-8'))
-        compressed_data = self._compress_data(backup_json.encode('utf-8'))
+        original_size = len(backup_json.encode("utf-8"))
+        compressed_data = self._compress_data(backup_json.encode("utf-8"))
         checksum = self._calculate_checksum(compressed_data)
         encrypted_data = self.encryption.encrypt(compressed_data)
 
@@ -310,14 +302,14 @@ class BackupManager:
 
         # Create metadata with base backup reference
         metadata = self._create_backup_metadata(
-            backup_type='incremental',
+            backup_type="incremental",
             backup_id=backup_id,
             targets=targets,
             checksum=checksum,
             compressed_size=len(compressed_data),
-            original_size=original_size
+            original_size=original_size,
         )
-        metadata['base_backup_id'] = base_backup_id
+        metadata["base_backup_id"] = base_backup_id
 
         metadata_path = f"{self.backup_root}/metadata/{backup_id}.json"
         self.storage.write_json(metadata_path, metadata)
@@ -326,7 +318,9 @@ class BackupManager:
 
         return metadata
 
-    async def _get_latest_backup_id(self, backup_type: Optional[str] = None) -> Optional[str]:
+    async def _get_latest_backup_id(
+        self, backup_type: Optional[str] = None
+    ) -> Optional[str]:
         """Get the ID of the most recent backup"""
         try:
             # List all metadata files
@@ -356,83 +350,68 @@ class BackupManager:
             metadata = self.storage.read_json(metadata_path)
 
             if not metadata:
-                return {
-                    'valid': False,
-                    'error': 'Metadata not found'
-                }
+                return {"valid": False, "error": "Metadata not found"}
 
             # Determine backup type and path
-            backup_type = metadata.get('backup_type', 'full')
+            backup_type = metadata.get("backup_type", "full")
             backup_path = f"{self.backup_root}/{backup_type}/{backup_id}/backup.dat"
 
             # Read backup file
             encrypted_data = self.storage.read_file(backup_path)
 
             if not encrypted_data:
-                return {
-                    'valid': False,
-                    'error': 'Backup file not found'
-                }
+                return {"valid": False, "error": "Backup file not found"}
 
             # Decrypt
             try:
                 compressed_data = self.encryption.decrypt(encrypted_data)
             except Exception as e:
-                return {
-                    'valid': False,
-                    'error': f'Decryption failed: {str(e)}'
-                }
+                return {"valid": False, "error": f"Decryption failed: {str(e)}"}
 
             # Verify checksum
             checksum = self._calculate_checksum(compressed_data)
-            expected_checksum = metadata.get('checksum')
+            expected_checksum = metadata.get("checksum")
 
             if checksum != expected_checksum:
                 return {
-                    'valid': False,
-                    'error': 'Checksum mismatch',
-                    'expected': expected_checksum,
-                    'actual': checksum
+                    "valid": False,
+                    "error": "Checksum mismatch",
+                    "expected": expected_checksum,
+                    "actual": checksum,
                 }
 
             # Verify size
-            if len(compressed_data) != metadata.get('compressed_size'):
-                return {
-                    'valid': False,
-                    'error': 'Size mismatch'
-                }
+            if len(compressed_data) != metadata.get("compressed_size"):
+                return {"valid": False, "error": "Size mismatch"}
 
             # Try to decompress
             try:
                 decompressed_data = self._decompress_data(compressed_data)
-                json.loads(decompressed_data.decode('utf-8'))
+                json.loads(decompressed_data.decode("utf-8"))
             except Exception as e:
                 return {
-                    'valid': False,
-                    'error': f'Decompression/parsing failed: {str(e)}'
+                    "valid": False,
+                    "error": f"Decompression/parsing failed: {str(e)}",
                 }
 
             return {
-                'valid': True,
-                'backup_id': backup_id,
-                'backup_type': backup_type,
-                'checksum': checksum,
-                'size': len(encrypted_data),
-                'timestamp': metadata.get('timestamp')
+                "valid": True,
+                "backup_id": backup_id,
+                "backup_type": backup_type,
+                "checksum": checksum,
+                "size": len(encrypted_data),
+                "timestamp": metadata.get("timestamp"),
             }
 
         except Exception as e:
             logger.error(f"Error verifying backup {backup_id}: {str(e)}")
-            return {
-                'valid': False,
-                'error': str(e)
-            }
+            return {"valid": False, "error": str(e)}
 
     def list_backups(
         self,
         backup_type: Optional[str] = None,
         start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
+        end_date: Optional[datetime] = None,
     ) -> List[Dict[str, Any]]:
         """
         List available backups
@@ -469,11 +448,7 @@ class BackupManager:
         """
         logger.info("Enforcing backup retention policies")
 
-        results = {
-            'deleted_backups': [],
-            'kept_backups': [],
-            'errors': []
-        }
+        results = {"deleted_backups": [], "kept_backups": [], "errors": []}
 
         try:
             # Get all backups
@@ -482,15 +457,15 @@ class BackupManager:
             now = datetime.utcnow()
 
             for backup in backups:
-                backup_id = backup.get('backup_id')
-                backup_type = backup.get('backup_type')
-                timestamp_str = backup.get('timestamp')
+                backup_id = backup.get("backup_id")
+                backup_type = backup.get("backup_type")
+                timestamp_str = backup.get("timestamp")
 
                 if not timestamp_str:
                     continue
 
                 # Parse timestamp
-                timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
                 age_days = (now - timestamp).days
 
                 # Check retention policy
@@ -500,21 +475,22 @@ class BackupManager:
                     # Delete backup
                     try:
                         await self._delete_backup(backup_id)
-                        results['deleted_backups'].append(backup_id)
-                        logger.info(f"Deleted expired backup: {backup_id} (age: {age_days} days)")
+                        results["deleted_backups"].append(backup_id)
+                        logger.info(
+                            f"Deleted expired backup: {backup_id} (age: {age_days} days)"
+                        )
                     except Exception as e:
-                        results['errors'].append({
-                            'backup_id': backup_id,
-                            'error': str(e)
-                        })
+                        results["errors"].append(
+                            {"backup_id": backup_id, "error": str(e)}
+                        )
                 else:
-                    results['kept_backups'].append(backup_id)
+                    results["kept_backups"].append(backup_id)
 
             return results
 
         except Exception as e:
             logger.error(f"Error enforcing retention policy: {str(e)}")
-            results['errors'].append({'error': str(e)})
+            results["errors"].append({"error": str(e)})
             return results
 
     async def _delete_backup(self, backup_id: str):
@@ -524,7 +500,7 @@ class BackupManager:
         metadata = self.storage.read_json(metadata_path)
 
         if metadata:
-            backup_type = metadata.get('backup_type', 'full')
+            backup_type = metadata.get("backup_type", "full")
 
             # Delete backup file
             backup_path = f"{self.backup_root}/{backup_type}/{backup_id}/backup.dat"
@@ -569,7 +545,9 @@ class BackupScheduler:
             try:
                 # Calculate time until next midnight UTC
                 now = datetime.utcnow()
-                tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+                tomorrow = now.replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ) + timedelta(days=1)
                 sleep_seconds = (tomorrow - now).total_seconds()
 
                 await asyncio.sleep(sleep_seconds)
@@ -592,7 +570,9 @@ class BackupScheduler:
                 if days_until_sunday == 0:
                     days_until_sunday = 7
 
-                next_sunday = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_until_sunday)
+                next_sunday = now.replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ) + timedelta(days=days_until_sunday)
                 sleep_seconds = (next_sunday - now).total_seconds()
 
                 await asyncio.sleep(sleep_seconds)
@@ -612,9 +592,24 @@ class BackupScheduler:
                 # Calculate time until next month
                 now = datetime.utcnow()
                 if now.month == 12:
-                    next_month = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+                    next_month = now.replace(
+                        year=now.year + 1,
+                        month=1,
+                        day=1,
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0,
+                    )
                 else:
-                    next_month = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+                    next_month = now.replace(
+                        month=now.month + 1,
+                        day=1,
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0,
+                    )
 
                 sleep_seconds = (next_month - now).total_seconds()
 
@@ -660,7 +655,7 @@ class BackupScheduler:
             self.run_daily_full(),
             self.run_weekly_archive(),
             self.run_monthly_archive(),
-            self.run_retention_enforcement()
+            self.run_retention_enforcement(),
         )
 
     def stop(self):

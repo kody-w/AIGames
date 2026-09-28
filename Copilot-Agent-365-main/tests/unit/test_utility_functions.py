@@ -7,14 +7,19 @@ Tests cover:
 - build_cors_response()
 """
 
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 # Add the parent directory to the path so we can import function_app
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from function_app import ensure_string_content, ensure_string_function_args, build_cors_response
+from function_app import (
+    build_cors_response,
+    ensure_string_content,
+    ensure_string_function_args,
+)
 
 
 class TestEnsureStringContent:
@@ -76,6 +81,7 @@ class TestEnsureStringContent:
 
 class MockFunctionCall:
     """Mock class for OpenAI function call objects"""
+
     def __init__(self, arguments):
         self.arguments = arguments
 
@@ -166,7 +172,7 @@ class TestBuildCorsResponse:
             "Access-Control-Allow-Methods",
             "Access-Control-Allow-Headers",
             "Access-Control-Allow-Credentials",
-            "Access-Control-Max-Age"
+            "Access-Control-Max-Age",
         ]
 
         for header in required_headers:

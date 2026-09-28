@@ -35,8 +35,10 @@ import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
+
 from openai import AzureOpenAI
 from openai.types.chat import ChatCompletion
+
 from utils.cache import get_cache_manager
 
 
@@ -57,14 +59,14 @@ class CachedChatCompletions:
 
         for msg in messages:
             normalized_msg = {
-                'role': msg.get('role', 'user'),
-                'content': msg.get('content', '')
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", ""),
             }
             # Include function calls if present
-            if 'function_call' in msg:
-                normalized_msg['function_call'] = msg['function_call']
-            if 'name' in msg:
-                normalized_msg['name'] = msg['name']
+            if "function_call" in msg:
+                normalized_msg["function_call"] = msg["function_call"]
+            if "name" in msg:
+                normalized_msg["name"] = msg["name"]
 
             normalized.append(normalized_msg)
 
@@ -81,20 +83,21 @@ class CachedChatCompletions:
         - Function calling with dynamic data
         """
         # Bypass for streaming
-        if kwargs.get('stream', False):
+        if kwargs.get("stream", False):
             return True
 
         # Bypass for high temperature (creative responses)
-        if kwargs.get('temperature', 0.7) > 0.8:
+        if kwargs.get("temperature", 0.7) > 0.8:
             return True
 
         # Check for user-specific context in messages
-        messages = kwargs.get('messages', [])
+        messages = kwargs.get("messages", [])
         messages_str = json.dumps(messages)
 
         # Look for GUID patterns (user-specific requests)
         import re
-        guid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+        guid_pattern = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
         if re.search(guid_pattern, messages_str, re.IGNORECASE):
             return True
 
@@ -107,11 +110,15 @@ class CachedChatCompletions:
         Includes: model, messages, temperature, max_tokens, functions
         """
         key_parts = {
-            'model': kwargs.get('model', ''),
-            'messages': self._normalize_messages(kwargs.get('messages', [])),
-            'temperature': kwargs.get('temperature', 0.7),
-            'max_tokens': kwargs.get('max_tokens'),
-            'functions': json.dumps(kwargs.get('functions', []), sort_keys=True) if kwargs.get('functions') else None
+            "model": kwargs.get("model", ""),
+            "messages": self._normalize_messages(kwargs.get("messages", [])),
+            "temperature": kwargs.get("temperature", 0.7),
+            "max_tokens": kwargs.get("max_tokens"),
+            "functions": (
+                json.dumps(kwargs.get("functions", []), sort_keys=True)
+                if kwargs.get("functions")
+                else None
+            ),
         }
 
         # Remove None values
@@ -139,28 +146,36 @@ class CachedChatCompletions:
         cache_key = self._generate_cache_key(**kwargs)
 
         # Try exact match cache first
-        cached_response = self.cache_manager.get('response', cache_key)
+        cached_response = self.cache_manager.get("response", cache_key)
 
         if cached_response:
-            logging.info(f"Cache HIT: Returning cached response for key: {cache_key[:16]}...")
+            logging.info(
+                f"Cache HIT: Returning cached response for key: {cache_key[:16]}..."
+            )
             return self._deserialize_response(cached_response)
 
         # Try semantic cache for similar queries
         if self.cache_manager.semantic_cache:
-            messages = kwargs.get('messages', [])
+            messages = kwargs.get("messages", [])
             if messages:
                 # Get last user message for semantic matching
-                user_messages = [m for m in messages if m.get('role') == 'user']
+                user_messages = [m for m in messages if m.get("role") == "user"]
                 if user_messages:
-                    last_user_msg = user_messages[-1].get('content', '')
+                    last_user_msg = user_messages[-1].get("content", "")
 
-                    semantic_key = self.cache_manager.semantic_cache.find_similar(last_user_msg)
+                    semantic_key = self.cache_manager.semantic_cache.find_similar(
+                        last_user_msg
+                    )
 
                     if semantic_key:
-                        cached_response = self.cache_manager.get('semantic', semantic_key)
+                        cached_response = self.cache_manager.get(
+                            "semantic", semantic_key
+                        )
 
                         if cached_response:
-                            logging.info(f"Semantic cache HIT: Returning similar response")
+                            logging.info(
+                                f"Semantic cache HIT: Returning similar response"
+                            )
                             return self._deserialize_response(cached_response)
 
         # Cache miss - call actual API
@@ -171,15 +186,15 @@ class CachedChatCompletions:
 
             # Cache the response
             serialized_response = self._serialize_response(response)
-            self.cache_manager.set('response', serialized_response, cache_key)
+            self.cache_manager.set("response", serialized_response, cache_key)
 
             # Add to semantic cache if applicable
             if self.cache_manager.semantic_cache:
-                messages = kwargs.get('messages', [])
+                messages = kwargs.get("messages", [])
                 if messages:
-                    user_messages = [m for m in messages if m.get('role') == 'user']
+                    user_messages = [m for m in messages if m.get("role") == "user"]
                     if user_messages:
-                        last_user_msg = user_messages[-1].get('content', '')
+                        last_user_msg = user_messages[-1].get("content", "")
                         self.cache_manager.semantic_cache.add(last_user_msg, cache_key)
 
             return response
@@ -191,30 +206,38 @@ class CachedChatCompletions:
     def _serialize_response(self, response: ChatCompletion) -> Dict:
         """Convert ChatCompletion to cacheable dictionary"""
         return {
-            'id': response.id,
-            'object': response.object,
-            'created': response.created,
-            'model': response.model,
-            'choices': [
+            "id": response.id,
+            "object": response.object,
+            "created": response.created,
+            "model": response.model,
+            "choices": [
                 {
-                    'index': choice.index,
-                    'message': {
-                        'role': choice.message.role,
-                        'content': choice.message.content,
-                        'function_call': {
-                            'name': choice.message.function_call.name,
-                            'arguments': choice.message.function_call.arguments
-                        } if choice.message.function_call else None
+                    "index": choice.index,
+                    "message": {
+                        "role": choice.message.role,
+                        "content": choice.message.content,
+                        "function_call": (
+                            {
+                                "name": choice.message.function_call.name,
+                                "arguments": choice.message.function_call.arguments,
+                            }
+                            if choice.message.function_call
+                            else None
+                        ),
                     },
-                    'finish_reason': choice.finish_reason
+                    "finish_reason": choice.finish_reason,
                 }
                 for choice in response.choices
             ],
-            'usage': {
-                'prompt_tokens': response.usage.prompt_tokens,
-                'completion_tokens': response.usage.completion_tokens,
-                'total_tokens': response.usage.total_tokens
-            } if response.usage else None
+            "usage": (
+                {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                }
+                if response.usage
+                else None
+            ),
         }
 
     def _deserialize_response(self, data: Dict) -> ChatCompletion:
@@ -244,34 +267,34 @@ class CachedChatCompletions:
 
         class MockCompletion:
             def __init__(self, data):
-                self.id = data['id']
-                self.object = data['object']
-                self.created = data['created']
-                self.model = data['model']
+                self.id = data["id"]
+                self.object = data["object"]
+                self.created = data["created"]
+                self.model = data["model"]
 
                 # Reconstruct choices
                 self.choices = []
-                for choice_data in data['choices']:
-                    msg_data = choice_data['message']
+                for choice_data in data["choices"]:
+                    msg_data = choice_data["message"]
                     message = MockMessage(
-                        role=msg_data['role'],
-                        content=msg_data['content'],
-                        function_call=msg_data.get('function_call')
+                        role=msg_data["role"],
+                        content=msg_data["content"],
+                        function_call=msg_data.get("function_call"),
                     )
                     choice = MockChoice(
-                        index=choice_data['index'],
+                        index=choice_data["index"],
                         message=message,
-                        finish_reason=choice_data['finish_reason']
+                        finish_reason=choice_data["finish_reason"],
                     )
                     self.choices.append(choice)
 
                 # Reconstruct usage
-                if data.get('usage'):
-                    usage_data = data['usage']
+                if data.get("usage"):
+                    usage_data = data["usage"]
                     self.usage = MockUsage(
-                        prompt_tokens=usage_data['prompt_tokens'],
-                        completion_tokens=usage_data['completion_tokens'],
-                        total_tokens=usage_data['total_tokens']
+                        prompt_tokens=usage_data["prompt_tokens"],
+                        completion_tokens=usage_data["completion_tokens"],
+                        total_tokens=usage_data["total_tokens"],
                     )
                 else:
                     self.usage = None
@@ -304,8 +327,13 @@ class CachedAzureOpenAI:
         response = client.chat.completions.create(...)
     """
 
-    def __init__(self, api_key: str, azure_endpoint: str, api_version: str,
-                 cache_config: Optional[Dict] = None):
+    def __init__(
+        self,
+        api_key: str,
+        azure_endpoint: str,
+        api_version: str,
+        cache_config: Optional[Dict] = None,
+    ):
         """
         Initialize cached OpenAI client.
 
@@ -317,9 +345,7 @@ class CachedAzureOpenAI:
         """
         # Create underlying client
         self.client = AzureOpenAI(
-            api_key=api_key,
-            azure_endpoint=azure_endpoint,
-            api_version=api_version
+            api_key=api_key, azure_endpoint=azure_endpoint, api_version=api_version
         )
 
         # Get cache manager
@@ -337,9 +363,13 @@ class CachedAzureOpenAI:
         return getattr(self.client, name)
 
 
-def create_cached_client(api_key: str, azure_endpoint: str, api_version: str,
-                        cache_enabled: bool = True,
-                        cache_config: Optional[Dict] = None) -> AzureOpenAI:
+def create_cached_client(
+    api_key: str,
+    azure_endpoint: str,
+    api_version: str,
+    cache_enabled: bool = True,
+    cache_config: Optional[Dict] = None,
+) -> AzureOpenAI:
     """
     Factory function to create OpenAI client with optional caching.
 
@@ -358,11 +388,9 @@ def create_cached_client(api_key: str, azure_endpoint: str, api_version: str,
             api_key=api_key,
             azure_endpoint=azure_endpoint,
             api_version=api_version,
-            cache_config=cache_config
+            cache_config=cache_config,
         )
     else:
         return AzureOpenAI(
-            api_key=api_key,
-            azure_endpoint=azure_endpoint,
-            api_version=api_version
+            api_key=api_key, azure_endpoint=azure_endpoint, api_version=api_version
         )

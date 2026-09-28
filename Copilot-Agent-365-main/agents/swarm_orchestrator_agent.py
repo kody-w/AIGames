@@ -8,9 +8,10 @@ Author: AI Ambassador Platform
 Version: 1.0.0
 """
 
-import logging
 import json
+import logging
 from typing import Dict, List
+
 from agents.basic_agent import BasicAgent
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class SwarmOrchestratorAgent(BasicAgent):
     """Orchestrates multiple agents working collaboratively on complex tasks."""
 
     def __init__(self):
-        self.name = 'SwarmOrchestrator'
+        self.name = "SwarmOrchestrator"
         self.metadata = {
             "name": self.name,
             "description": "Orchestrates multiple AI agents working together on complex tasks. Coordinates agent collaboration, routes sub-tasks, and synthesizes results from agent swarms.",
@@ -29,30 +30,41 @@ class SwarmOrchestratorAgent(BasicAgent):
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["coordinate", "plan_swarm", "execute_swarm", "list_swarm_templates"],
-                        "description": "Swarm orchestration action"
+                        "enum": [
+                            "coordinate",
+                            "plan_swarm",
+                            "execute_swarm",
+                            "list_swarm_templates",
+                        ],
+                        "description": "Swarm orchestration action",
                     },
                     "task": {
                         "type": "string",
-                        "description": "Complex task requiring multiple agents"
+                        "description": "Complex task requiring multiple agents",
                     },
                     "swarm_template": {
                         "type": "string",
-                        "enum": ["research_team", "creative_studio", "problem_solving", "data_analysis", "custom"],
-                        "description": "Pre-configured swarm template to use"
+                        "enum": [
+                            "research_team",
+                            "creative_studio",
+                            "problem_solving",
+                            "data_analysis",
+                            "custom",
+                        ],
+                        "description": "Pre-configured swarm template to use",
                     },
                     "agents": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Specific agents to include in swarm"
+                        "description": "Specific agents to include in swarm",
                     },
                     "max_agents": {
                         "type": "integer",
-                        "description": "Maximum number of agents to use in parallel"
-                    }
+                        "description": "Maximum number of agents to use in parallel",
+                    },
                 },
-                "required": ["action"]
-            }
+                "required": ["action"],
+            },
         }
         super().__init__(self.name, self.metadata)
 
@@ -63,43 +75,43 @@ class SwarmOrchestratorAgent(BasicAgent):
                 "description": "Comprehensive research and analysis",
                 "agents": ["WebSearch", "DataAnalysis", "ContextMemory"],
                 "workflow": "parallel_then_synthesize",
-                "icon": "🔬"
+                "icon": "🔬",
             },
             "creative_studio": {
                 "name": "Creative Studio",
                 "description": "Creative ideation and content generation",
                 "agents": ["ImageGeneration", "SentimentAnalysis", "Translation"],
                 "workflow": "sequential_refinement",
-                "icon": "🎨"
+                "icon": "🎨",
             },
             "problem_solving": {
                 "name": "Problem Solving Team",
                 "description": "Complex problem decomposition and solution",
                 "agents": ["ContextMemory", "DataAnalysis", "TaskManagement"],
                 "workflow": "iterative_improvement",
-                "icon": "🧩"
+                "icon": "🧩",
             },
             "data_analysis": {
                 "name": "Data Analysis Team",
                 "description": "Multi-faceted data analysis",
                 "agents": ["DataAnalysis", "SentimentAnalysis", "Analytics"],
                 "workflow": "parallel_analysis",
-                "icon": "📊"
-            }
+                "icon": "📊",
+            },
         }
 
     def perform(self, **kwargs) -> str:
         """Execute swarm orchestration operations."""
         try:
-            action = kwargs.get('action', '').lower()
+            action = kwargs.get("action", "").lower()
             if not action:
                 return self._error_response("Action parameter is required")
 
             handlers = {
-                'coordinate': self._coordinate_swarm,
-                'plan_swarm': self._plan_swarm,
-                'execute_swarm': self._execute_swarm,
-                'list_swarm_templates': self._list_swarm_templates
+                "coordinate": self._coordinate_swarm,
+                "plan_swarm": self._plan_swarm,
+                "execute_swarm": self._execute_swarm,
+                "list_swarm_templates": self._list_swarm_templates,
             }
 
             handler = handlers.get(action)
@@ -114,12 +126,14 @@ class SwarmOrchestratorAgent(BasicAgent):
 
     def _coordinate_swarm(self, **kwargs) -> str:
         """Coordinate a swarm of agents for a complex task."""
-        task = kwargs.get('task', '')
-        swarm_template = kwargs.get('swarm_template', 'problem_solving')
-        max_agents = kwargs.get('max_agents', 5)
+        task = kwargs.get("task", "")
+        swarm_template = kwargs.get("swarm_template", "problem_solving")
+        max_agents = kwargs.get("max_agents", 5)
 
         if not task:
-            return self._error_response("Task description required for swarm coordination")
+            return self._error_response(
+                "Task description required for swarm coordination"
+            )
 
         # Get swarm configuration
         template = self.swarm_templates.get(swarm_template)
@@ -160,8 +174,8 @@ class SwarmOrchestratorAgent(BasicAgent):
 
     def _plan_swarm(self, **kwargs) -> str:
         """Plan a custom swarm configuration."""
-        task = kwargs.get('task', '')
-        agents = kwargs.get('agents', [])
+        task = kwargs.get("task", "")
+        agents = kwargs.get("agents", [])
 
         if not task:
             return self._error_response("Task required for swarm planning")
@@ -172,10 +186,10 @@ class SwarmOrchestratorAgent(BasicAgent):
             agents = recommended_agents
 
         plan = {
-            'task': task,
-            'agents': agents,
-            'workflow': 'parallel_then_synthesize',
-            'sub_tasks': self._decompose_task(task, {'agents': agents})
+            "task": task,
+            "agents": agents,
+            "workflow": "parallel_then_synthesize",
+            "sub_tasks": self._decompose_task(task, {"agents": agents}),
         }
 
         return f"""🎯 **Custom Swarm Plan**
@@ -199,13 +213,15 @@ class SwarmOrchestratorAgent(BasicAgent):
 
     def _execute_swarm(self, **kwargs) -> str:
         """Execute a swarm operation (simulated execution)."""
-        task = kwargs.get('task', '')
-        swarm_template = kwargs.get('swarm_template', 'problem_solving')
+        task = kwargs.get("task", "")
+        swarm_template = kwargs.get("swarm_template", "problem_solving")
 
         if not task:
             return self._error_response("Task required for swarm execution")
 
-        template = self.swarm_templates.get(swarm_template, self.swarm_templates['problem_solving'])
+        template = self.swarm_templates.get(
+            swarm_template, self.swarm_templates["problem_solving"]
+        )
 
         # Simulate swarm execution
         execution_result = self._simulate_swarm_execution(task, template)
@@ -241,7 +257,7 @@ class SwarmOrchestratorAgent(BasicAgent):
 
         template_list = []
         for key, template in self.swarm_templates.items():
-            agents_str = ', '.join(template['agents'])
+            agents_str = ", ".join(template["agents"])
             template_list.append(f"""**{template['icon']} {template['name']}** (`{key}`)
 {template['description']}
 • Agents: {agents_str}
@@ -273,53 +289,73 @@ class SwarmOrchestratorAgent(BasicAgent):
         # Simulated task decomposition
         sub_tasks = [
             {
-                'id': 1,
-                'description': f"Gather and analyze relevant context for: {task[:80]}",
-                'assigned_agent': template['agents'][0] if template['agents'] else 'ContextMemory',
-                'priority': 'high',
-                'dependencies': []
+                "id": 1,
+                "description": f"Gather and analyze relevant context for: {task[:80]}",
+                "assigned_agent": (
+                    template["agents"][0] if template["agents"] else "ContextMemory"
+                ),
+                "priority": "high",
+                "dependencies": [],
             },
             {
-                'id': 2,
-                'description': f"Process and analyze data related to: {task[:80]}",
-                'assigned_agent': template['agents'][1] if len(template['agents']) > 1 else 'DataAnalysis',
-                'priority': 'high',
-                'dependencies': [1]
+                "id": 2,
+                "description": f"Process and analyze data related to: {task[:80]}",
+                "assigned_agent": (
+                    template["agents"][1]
+                    if len(template["agents"]) > 1
+                    else "DataAnalysis"
+                ),
+                "priority": "high",
+                "dependencies": [1],
             },
             {
-                'id': 3,
-                'description': f"Synthesize results and generate insights for: {task[:80]}",
-                'assigned_agent': 'SwarmOrchestrator',
-                'priority': 'medium',
-                'dependencies': [1, 2]
-            }
+                "id": 3,
+                "description": f"Synthesize results and generate insights for: {task[:80]}",
+                "assigned_agent": "SwarmOrchestrator",
+                "priority": "medium",
+                "dependencies": [1, 2],
+            },
         ]
 
         return sub_tasks
 
-    def _create_execution_plan(self, sub_tasks: List[Dict], template: Dict, max_agents: int) -> str:
+    def _create_execution_plan(
+        self, sub_tasks: List[Dict], template: Dict, max_agents: int
+    ) -> str:
         """Create a detailed execution plan."""
 
         plan_str = ""
         for i, task in enumerate(sub_tasks, 1):
-            deps = f" (depends on: {', '.join(map(str, task['dependencies']))})" if task['dependencies'] else ""
+            deps = (
+                f" (depends on: {', '.join(map(str, task['dependencies']))})"
+                if task["dependencies"]
+                else ""
+            )
             plan_str += f"{i}. **Phase {i}:** {task['assigned_agent']} - {task['description'][:100]}...{deps}\n"
 
         return plan_str
 
     def _format_sub_tasks(self, sub_tasks: List[Dict]) -> str:
         """Format sub-tasks for display."""
-        return chr(10).join(f"• Task {t['id']}: {t['description'][:120]}..." for t in sub_tasks)
+        return chr(10).join(
+            f"• Task {t['id']}: {t['description'][:120]}..." for t in sub_tasks
+        )
 
-    def _format_agent_assignments(self, sub_tasks: List[Dict], agents: List[str]) -> str:
+    def _format_agent_assignments(
+        self, sub_tasks: List[Dict], agents: List[str]
+    ) -> str:
         """Format agent assignments."""
         assignments = []
         for agent in agents:
-            tasks = [t for t in sub_tasks if t.get('assigned_agent') == agent]
+            tasks = [t for t in sub_tasks if t.get("assigned_agent") == agent]
             if tasks:
                 assignments.append(f"• **{agent}**: {len(tasks)} task(s)")
 
-        return chr(10).join(assignments) if assignments else "• Assignments will be determined dynamically"
+        return (
+            chr(10).join(assignments)
+            if assignments
+            else "• Assignments will be determined dynamically"
+        )
 
     def _recommend_agents(self, task: str) -> List[str]:
         """Recommend agents based on task analysis."""
@@ -328,23 +364,31 @@ class SwarmOrchestratorAgent(BasicAgent):
 
         agents = []
 
-        if any(word in task_lower for word in ['research', 'find', 'search', 'look up']):
-            agents.append('WebSearch')
+        if any(
+            word in task_lower for word in ["research", "find", "search", "look up"]
+        ):
+            agents.append("WebSearch")
 
-        if any(word in task_lower for word in ['analyze', 'data', 'statistics', 'metrics']):
-            agents.append('DataAnalysis')
+        if any(
+            word in task_lower for word in ["analyze", "data", "statistics", "metrics"]
+        ):
+            agents.append("DataAnalysis")
 
-        if any(word in task_lower for word in ['remember', 'recall', 'context', 'previous']):
-            agents.append('ContextMemory')
+        if any(
+            word in task_lower for word in ["remember", "recall", "context", "previous"]
+        ):
+            agents.append("ContextMemory")
 
-        if any(word in task_lower for word in ['sentiment', 'feeling', 'emotion', 'mood']):
-            agents.append('SentimentAnalysis')
+        if any(
+            word in task_lower for word in ["sentiment", "feeling", "emotion", "mood"]
+        ):
+            agents.append("SentimentAnalysis")
 
-        if any(word in task_lower for word in ['task', 'todo', 'manage', 'organize']):
-            agents.append('TaskManagement')
+        if any(word in task_lower for word in ["task", "todo", "manage", "organize"]):
+            agents.append("TaskManagement")
 
         if not agents:
-            agents = ['ContextMemory', 'DataAnalysis']  # Default fallback
+            agents = ["ContextMemory", "DataAnalysis"]  # Default fallback
 
         return agents[:5]  # Max 5 agents
 
@@ -352,16 +396,21 @@ class SwarmOrchestratorAgent(BasicAgent):
         """Simulate swarm execution results."""
 
         phase_results = []
-        for i, agent in enumerate(template['agents'], 1):
-            phase_results.append(f"**Phase {i} - {agent}:**\n└─ Completed successfully with valuable insights")
+        for i, agent in enumerate(template["agents"], 1):
+            phase_results.append(
+                f"**Phase {i} - {agent}:**\n└─ Completed successfully with valuable insights"
+            )
 
         return {
-            'phase_results': chr(10).join(phase_results),
-            'synthesis': f"The swarm analyzed '{task[:100]}' from multiple perspectives. {len(template['agents'])} specialized agents contributed unique insights, creating a comprehensive solution.",
-            'contributions': chr(10).join(f"• **{agent}**: Provided specialized {agent.lower()} capabilities" for agent in template['agents']),
-            'sub_tasks_completed': len(template['agents']) + 1,
-            'collaboration_events': len(template['agents']) - 1,
-            'execution_time': f"{len(template['agents']) * 2}s"
+            "phase_results": chr(10).join(phase_results),
+            "synthesis": f"The swarm analyzed '{task[:100]}' from multiple perspectives. {len(template['agents'])} specialized agents contributed unique insights, creating a comprehensive solution.",
+            "contributions": chr(10).join(
+                f"• **{agent}**: Provided specialized {agent.lower()} capabilities"
+                for agent in template["agents"]
+            ),
+            "sub_tasks_completed": len(template["agents"]) + 1,
+            "collaboration_events": len(template["agents"]) - 1,
+            "execution_time": f"{len(template['agents']) * 2}s",
         }
 
     def _error_response(self, message: str) -> str:
@@ -373,6 +422,6 @@ if __name__ == "__main__":
     result = agent.perform(
         action="coordinate",
         task="Research customer sentiment, analyze feedback trends, and create an improvement strategy",
-        swarm_template="research_team"
+        swarm_template="research_team",
     )
     print(result)

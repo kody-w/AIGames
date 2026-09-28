@@ -15,18 +15,19 @@ This module provides comprehensive content moderation capabilities including:
 Performance target: < 50ms for real-time checks
 """
 
-import re
+import hashlib
 import json
 import logging
-import time
-from typing import Dict, List, Tuple, Optional, Any
-from datetime import datetime, timedelta
-from collections import defaultdict
-import hashlib
 import os
+import re
+import time
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from openai import AzureOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -57,7 +58,7 @@ class ModerationResult:
             "filtered_content": self.filtered_content,
             "latency_ms": self.latency_ms,
             "method": self.method,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
 
@@ -66,91 +67,91 @@ class ContentModerator:
 
     # Comprehensive profanity list (sample - should be expanded)
     PROFANITY_PATTERNS = [
-        r'\b(fuck|shit|damn|hell|ass|bitch|bastard|crap|piss)\w*\b',
-        r'\b(cock|dick|pussy|cunt|whore|slut|fag|nigger|retard)\w*\b',
-        r'\b(motherfucker|asshole|bullshit|goddamn|sonofabitch)\w*\b',
+        r"\b(fuck|shit|damn|hell|ass|bitch|bastard|crap|piss)\w*\b",
+        r"\b(cock|dick|pussy|cunt|whore|slut|fag|nigger|retard)\w*\b",
+        r"\b(motherfucker|asshole|bullshit|goddamn|sonofabitch)\w*\b",
         # Obfuscated versions
-        r'\bf+u+c+k+\w*\b',
-        r'\bs+h+i+t+\w*\b',
-        r'\b\w*\*+\w*\b',  # asterisk obfuscation
+        r"\bf+u+c+k+\w*\b",
+        r"\bs+h+i+t+\w*\b",
+        r"\b\w*\*+\w*\b",  # asterisk obfuscation
     ]
 
     # PII patterns
     PII_PATTERNS = {
-        'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-        'phone': r'\b(?:\+?1[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b',
-        'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
-        'credit_card': r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',
-        'ip_address': r'\b(?:\d{1,3}\.){3}\d{1,3}\b',
-        'address': r'\b\d{1,5}\s+[\w\s]+(?:street|st|avenue|ave|road|rd|highway|hwy|square|sq|trail|trl|drive|dr|court|ct|parkway|pkwy|circle|cir|boulevard|blvd)\b',
+        "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        "phone": r"\b(?:\+?1[-.]?)?\(?\d{3}\)?[-.]?\d{3}[-.]?\d{4}\b",
+        "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+        "credit_card": r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",
+        "ip_address": r"\b(?:\d{1,3}\.){3}\d{1,3}\b",
+        "address": r"\b\d{1,5}\s+[\w\s]+(?:street|st|avenue|ave|road|rd|highway|hwy|square|sq|trail|trl|drive|dr|court|ct|parkway|pkwy|circle|cir|boulevard|blvd)\b",
     }
 
     # Spam patterns
     SPAM_PATTERNS = [
-        r'(?i)\b(buy now|click here|limited time|act now|free money|make money fast)\b',
-        r'(?i)\b(viagra|cialis|pharmacy|pills|medication)\b',
-        r'(?i)\b(casino|lottery|gambling|prize|winner)\b',
-        r'(?i)\b(mlm|multi-level|pyramid scheme)\b',
-        r'(?i)\b(crypto|bitcoin|investment opportunity)\b',
+        r"(?i)\b(buy now|click here|limited time|act now|free money|make money fast)\b",
+        r"(?i)\b(viagra|cialis|pharmacy|pills|medication)\b",
+        r"(?i)\b(casino|lottery|gambling|prize|winner)\b",
+        r"(?i)\b(mlm|multi-level|pyramid scheme)\b",
+        r"(?i)\b(crypto|bitcoin|investment opportunity)\b",
     ]
 
     # Prompt injection patterns
     PROMPT_INJECTION_PATTERNS = [
-        r'(?i)ignore (previous|all|above) (instructions|prompts|commands)',
-        r'(?i)system:?\s*(prompt|instructions|role)',
-        r'(?i)(you are now|act as|pretend to be|roleplay as)',
-        r'(?i)(bypass|override|disable) (safety|moderation|filter)',
-        r'(?i)jailbreak',
-        r'(?i)sudo mode',
-        r'(?i)developer mode',
-        r'(?i)\[INST\]|\[/INST\]',  # Llama-style injection
+        r"(?i)ignore (previous|all|above) (instructions|prompts|commands)",
+        r"(?i)system:?\s*(prompt|instructions|role)",
+        r"(?i)(you are now|act as|pretend to be|roleplay as)",
+        r"(?i)(bypass|override|disable) (safety|moderation|filter)",
+        r"(?i)jailbreak",
+        r"(?i)sudo mode",
+        r"(?i)developer mode",
+        r"(?i)\[INST\]|\[/INST\]",  # Llama-style injection
     ]
 
     # Toxicity patterns
     TOXICITY_PATTERNS = {
-        'hate_speech': [
-            r'(?i)\b(hate|despise|loathe)\s+(all\s+)?(blacks|whites|jews|muslims|christians|gays|women|men)\b',
-            r'(?i)\b(kill|hurt|attack|destroy)\s+(all\s+)?(blacks|whites|jews|muslims|christians|gays|women|men)\b',
-            r'(?i)\b(racial|ethnic)\s+slur\b',
+        "hate_speech": [
+            r"(?i)\b(hate|despise|loathe)\s+(all\s+)?(blacks|whites|jews|muslims|christians|gays|women|men)\b",
+            r"(?i)\b(kill|hurt|attack|destroy)\s+(all\s+)?(blacks|whites|jews|muslims|christians|gays|women|men)\b",
+            r"(?i)\b(racial|ethnic)\s+slur\b",
         ],
-        'harassment': [
-            r'(?i)\b(kill yourself|kys|die|neck yourself)\b',
-            r'(?i)\b(worthless|pathetic|loser|idiot|moron|stupid)\s+(person|human|user)\b',
-            r'(?i)\byou (should|ought to|need to) (die|kill yourself)\b',
+        "harassment": [
+            r"(?i)\b(kill yourself|kys|die|neck yourself)\b",
+            r"(?i)\b(worthless|pathetic|loser|idiot|moron|stupid)\s+(person|human|user)\b",
+            r"(?i)\byou (should|ought to|need to) (die|kill yourself)\b",
         ],
-        'threat': [
-            r'(?i)\b(i will|i\'ll|gonna)\s+(kill|hurt|harm|attack|murder)\b',
-            r'(?i)\b(watch out|be careful|you\'re dead)\b',
-            r'(?i)\b(bomb|explosive|weapon|gun|knife)\s+(threat|attack)\b',
+        "threat": [
+            r"(?i)\b(i will|i\'ll|gonna)\s+(kill|hurt|harm|attack|murder)\b",
+            r"(?i)\b(watch out|be careful|you\'re dead)\b",
+            r"(?i)\b(bomb|explosive|weapon|gun|knife)\s+(threat|attack)\b",
         ],
     }
 
     # Adult content patterns
     ADULT_CONTENT_PATTERNS = [
-        r'(?i)\b(porn|pornography|xxx|nsfw|nude|naked)\b',
-        r'(?i)\b(sex|sexual|erotic|orgasm|masturbat)\w*\b',
-        r'(?i)\b(penis|vagina|breast|nipple)\w*\b',
-        r'(?i)\bonlyfans\b',
+        r"(?i)\b(porn|pornography|xxx|nsfw|nude|naked)\b",
+        r"(?i)\b(sex|sexual|erotic|orgasm|masturbat)\w*\b",
+        r"(?i)\b(penis|vagina|breast|nipple)\w*\b",
+        r"(?i)\bonlyfans\b",
     ]
 
     # Violence patterns
     VIOLENCE_PATTERNS = [
-        r'(?i)\b(murder|kill|stab|shoot|torture|mutilate)\w*\b',
-        r'(?i)\b(blood|gore|violent|brutal|savage)\w*\b',
-        r'(?i)\b(suicide|self-harm|cutting)\w*\b',
-        r'(?i)\b(terrorist|terrorism|bomb|explosive)\w*\b',
+        r"(?i)\b(murder|kill|stab|shoot|torture|mutilate)\w*\b",
+        r"(?i)\b(blood|gore|violent|brutal|savage)\w*\b",
+        r"(?i)\b(suicide|self-harm|cutting)\w*\b",
+        r"(?i)\b(terrorist|terrorism|bomb|explosive)\w*\b",
     ]
 
     # Malicious URL patterns
     MALICIOUS_URL_PATTERNS = [
-        r'(?i)bit\.ly/[a-z0-9]+',  # URL shorteners (can hide malicious links)
-        r'(?i)tinyurl\.com',
-        r'(?i)goo\.gl',
-        r'(?i)\.exe\b',  # Executable files
-        r'(?i)\.scr\b',
-        r'(?i)\.bat\b',
-        r'(?i)phishing',
-        r'(?i)malware',
+        r"(?i)bit\.ly/[a-z0-9]+",  # URL shorteners (can hide malicious links)
+        r"(?i)tinyurl\.com",
+        r"(?i)goo\.gl",
+        r"(?i)\.exe\b",  # Executable files
+        r"(?i)\.scr\b",
+        r"(?i)\.bat\b",
+        r"(?i)phishing",
+        r"(?i)malware",
     ]
 
     def __init__(self, config_path: Optional[str] = None):
@@ -167,12 +168,14 @@ class ContentModerator:
 
         # Initialize Azure OpenAI client if available
         self.azure_client = None
-        if OPENAI_AVAILABLE and self.config.get('azure_moderation', {}).get('enabled', False):
+        if OPENAI_AVAILABLE and self.config.get("azure_moderation", {}).get(
+            "enabled", False
+        ):
             try:
                 self.azure_client = AzureOpenAI(
-                    api_key=os.getenv('AZURE_OPENAI_API_KEY'),
-                    api_version=os.getenv('AZURE_OPENAI_API_VERSION', '2024-02-01'),
-                    azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
+                    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                    api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01"),
+                    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
                 )
             except Exception as e:
                 self.logger.error(f"Failed to initialize Azure OpenAI client: {e}")
@@ -180,44 +183,44 @@ class ContentModerator:
     def _load_config(self, config_path: Optional[str]) -> Dict:
         """Load moderation configuration"""
         default_config = {
-            'enabled': True,
-            'max_violations_per_hour': 10,
-            'temp_ban_duration_hours': 24,
-            'severity_thresholds': {
-                'low': 0.3,
-                'medium': 0.5,
-                'high': 0.7,
-                'critical': 0.9
+            "enabled": True,
+            "max_violations_per_hour": 10,
+            "temp_ban_duration_hours": 24,
+            "severity_thresholds": {
+                "low": 0.3,
+                "medium": 0.5,
+                "high": 0.7,
+                "critical": 0.9,
             },
-            'actions': {
-                'low': 'warn',
-                'medium': 'filter',
-                'high': 'block',
-                'critical': 'ban'
+            "actions": {
+                "low": "warn",
+                "medium": "filter",
+                "high": "block",
+                "critical": "ban",
             },
-            'azure_moderation': {
-                'enabled': True,
-                'thresholds': {
-                    'hate': 0.5,
-                    'self_harm': 0.5,
-                    'sexual': 0.5,
-                    'violence': 0.5
-                }
+            "azure_moderation": {
+                "enabled": True,
+                "thresholds": {
+                    "hate": 0.5,
+                    "self_harm": 0.5,
+                    "sexual": 0.5,
+                    "violence": 0.5,
+                },
             },
-            'whitelist_words': [],
-            'blacklist_words': [],
-            'allowed_domains': [],
-            'blocked_domains': [],
-            'enable_pii_detection': True,
-            'enable_spam_detection': True,
-            'enable_prompt_injection_detection': True,
-            'multi_language_support': True,
-            'languages': ['en', 'es', 'fr', 'de', 'it', 'pt', 'zh', 'ja', 'ko']
+            "whitelist_words": [],
+            "blacklist_words": [],
+            "allowed_domains": [],
+            "blocked_domains": [],
+            "enable_pii_detection": True,
+            "enable_spam_detection": True,
+            "enable_prompt_injection_detection": True,
+            "multi_language_support": True,
+            "languages": ["en", "es", "fr", "de", "it", "pt", "zh", "ja", "ko"],
         }
 
         if config_path and os.path.exists(config_path):
             try:
-                with open(config_path, 'r', encoding='utf-8') as f:
+                with open(config_path, "r", encoding="utf-8") as f:
                     loaded_config = json.load(f)
                     default_config.update(loaded_config)
             except Exception as e:
@@ -225,8 +228,12 @@ class ContentModerator:
 
         return default_config
 
-    def check_content(self, content: str, user_guid: Optional[str] = None,
-                     context: Optional[str] = None) -> ModerationResult:
+    def check_content(
+        self,
+        content: str,
+        user_guid: Optional[str] = None,
+        context: Optional[str] = None,
+    ) -> ModerationResult:
         """
         Main content moderation check
 
@@ -257,7 +264,7 @@ class ContentModerator:
         result.reasons.extend(rule_based_result.reasons)
 
         # Azure OpenAI moderation check (if enabled)
-        if self.azure_client and self.config['azure_moderation']['enabled']:
+        if self.azure_client and self.config["azure_moderation"]["enabled"]:
             try:
                 azure_result = self._azure_moderation_check(content)
                 result.categories.update(azure_result.categories)
@@ -294,29 +301,33 @@ class ContentModerator:
         # Profanity check
         profanity_score = self._check_profanity(content)
         if profanity_score > 0:
-            result.categories['profanity'] = profanity_score
+            result.categories["profanity"] = profanity_score
             result.reasons.append(f"Profanity detected (score: {profanity_score:.2f})")
 
         # PII check
-        if self.config.get('enable_pii_detection', True):
+        if self.config.get("enable_pii_detection", True):
             pii_types = self._check_pii(content)
             if pii_types:
-                result.categories['pii'] = 1.0
+                result.categories["pii"] = 1.0
                 result.reasons.append(f"PII detected: {', '.join(pii_types)}")
 
         # Spam check
-        if self.config.get('enable_spam_detection', True):
+        if self.config.get("enable_spam_detection", True):
             spam_score = self._check_spam(content)
             if spam_score > 0:
-                result.categories['spam'] = spam_score
-                result.reasons.append(f"Spam patterns detected (score: {spam_score:.2f})")
+                result.categories["spam"] = spam_score
+                result.reasons.append(
+                    f"Spam patterns detected (score: {spam_score:.2f})"
+                )
 
         # Prompt injection check
-        if self.config.get('enable_prompt_injection_detection', True):
+        if self.config.get("enable_prompt_injection_detection", True):
             injection_score = self._check_prompt_injection(content)
             if injection_score > 0:
-                result.categories['prompt_injection'] = injection_score
-                result.reasons.append(f"Prompt injection attempt detected (score: {injection_score:.2f})")
+                result.categories["prompt_injection"] = injection_score
+                result.reasons.append(
+                    f"Prompt injection attempt detected (score: {injection_score:.2f})"
+                )
 
         # Toxicity check
         toxicity_results = self._check_toxicity(content)
@@ -328,20 +339,24 @@ class ContentModerator:
         # Adult content check
         adult_score = self._check_adult_content(content)
         if adult_score > 0:
-            result.categories['adult_content'] = adult_score
+            result.categories["adult_content"] = adult_score
             result.reasons.append(f"Adult content detected (score: {adult_score:.2f})")
 
         # Violence check
         violence_score = self._check_violence(content)
         if violence_score > 0:
-            result.categories['violence'] = violence_score
-            result.reasons.append(f"Violent content detected (score: {violence_score:.2f})")
+            result.categories["violence"] = violence_score
+            result.reasons.append(
+                f"Violent content detected (score: {violence_score:.2f})"
+            )
 
         # Malicious URL check
         malicious_url_score = self._check_malicious_urls(content)
         if malicious_url_score > 0:
-            result.categories['malicious_urls'] = malicious_url_score
-            result.reasons.append(f"Malicious URLs detected (score: {malicious_url_score:.2f})")
+            result.categories["malicious_urls"] = malicious_url_score
+            result.reasons.append(
+                f"Malicious URLs detected (score: {malicious_url_score:.2f})"
+            )
 
         return result
 
@@ -354,7 +369,7 @@ class ContentModerator:
             matches += len(re.findall(pattern, content_lower))
 
         # Check blacklist
-        for word in self.config.get('blacklist_words', []):
+        for word in self.config.get("blacklist_words", []):
             if word.lower() in content_lower:
                 matches += 1
 
@@ -440,7 +455,7 @@ class ContentModerator:
             matches += len(re.findall(pattern, content))
 
         # Check blocked domains
-        for domain in self.config.get('blocked_domains', []):
+        for domain in self.config.get("blocked_domains", []):
             if domain in content.lower():
                 matches += 1
 
@@ -455,27 +470,35 @@ class ContentModerator:
 
             if response.results:
                 mod_result = response.results[0]
-                thresholds = self.config['azure_moderation']['thresholds']
+                thresholds = self.config["azure_moderation"]["thresholds"]
 
                 # Check each category
                 categories = mod_result.categories
                 scores = mod_result.category_scores
 
-                if scores.hate > thresholds['hate']:
-                    result.categories['hate'] = scores.hate
-                    result.reasons.append(f"Hate speech detected (Azure AI: {scores.hate:.2f})")
+                if scores.hate > thresholds["hate"]:
+                    result.categories["hate"] = scores.hate
+                    result.reasons.append(
+                        f"Hate speech detected (Azure AI: {scores.hate:.2f})"
+                    )
 
-                if scores.self_harm > thresholds['self_harm']:
-                    result.categories['self_harm'] = scores.self_harm
-                    result.reasons.append(f"Self-harm content detected (Azure AI: {scores.self_harm:.2f})")
+                if scores.self_harm > thresholds["self_harm"]:
+                    result.categories["self_harm"] = scores.self_harm
+                    result.reasons.append(
+                        f"Self-harm content detected (Azure AI: {scores.self_harm:.2f})"
+                    )
 
-                if scores.sexual > thresholds['sexual']:
-                    result.categories['sexual'] = scores.sexual
-                    result.reasons.append(f"Sexual content detected (Azure AI: {scores.sexual:.2f})")
+                if scores.sexual > thresholds["sexual"]:
+                    result.categories["sexual"] = scores.sexual
+                    result.reasons.append(
+                        f"Sexual content detected (Azure AI: {scores.sexual:.2f})"
+                    )
 
-                if scores.violence > thresholds['violence']:
-                    result.categories['violence'] = scores.violence
-                    result.reasons.append(f"Violent content detected (Azure AI: {scores.violence:.2f})")
+                if scores.violence > thresholds["violence"]:
+                    result.categories["violence"] = scores.violence
+                    result.reasons.append(
+                        f"Violent content detected (Azure AI: {scores.violence:.2f})"
+                    )
 
         except Exception as e:
             self.logger.error(f"Azure moderation API error: {e}")
@@ -488,23 +511,23 @@ class ContentModerator:
             return "none"
 
         max_score = max(categories.values())
-        thresholds = self.config['severity_thresholds']
+        thresholds = self.config["severity_thresholds"]
 
-        if max_score >= thresholds['critical']:
+        if max_score >= thresholds["critical"]:
             return "critical"
-        elif max_score >= thresholds['high']:
+        elif max_score >= thresholds["high"]:
             return "high"
-        elif max_score >= thresholds['medium']:
+        elif max_score >= thresholds["medium"]:
             return "medium"
-        elif max_score >= thresholds['low']:
+        elif max_score >= thresholds["low"]:
             return "low"
         else:
             return "none"
 
     def _determine_action(self, severity: str) -> str:
         """Determine moderation action based on severity"""
-        actions = self.config['actions']
-        return actions.get(severity, 'allow')
+        actions = self.config["actions"]
+        return actions.get(severity, "allow")
 
     def _filter_content(self, content: str) -> str:
         """Filter/redact inappropriate content"""
@@ -512,28 +535,30 @@ class ContentModerator:
 
         # Replace profanity with asterisks
         for pattern in self.PROFANITY_PATTERNS:
-            filtered = re.sub(pattern, lambda m: '*' * len(m.group()), filtered, flags=re.IGNORECASE)
+            filtered = re.sub(
+                pattern, lambda m: "*" * len(m.group()), filtered, flags=re.IGNORECASE
+            )
 
         # Redact PII
         for pii_type, pattern in self.PII_PATTERNS.items():
-            if pii_type == 'email':
-                filtered = re.sub(pattern, '[EMAIL_REDACTED]', filtered)
-            elif pii_type == 'phone':
-                filtered = re.sub(pattern, '[PHONE_REDACTED]', filtered)
-            elif pii_type == 'ssn':
-                filtered = re.sub(pattern, '[SSN_REDACTED]', filtered)
-            elif pii_type == 'credit_card':
-                filtered = re.sub(pattern, '[CARD_REDACTED]', filtered)
+            if pii_type == "email":
+                filtered = re.sub(pattern, "[EMAIL_REDACTED]", filtered)
+            elif pii_type == "phone":
+                filtered = re.sub(pattern, "[PHONE_REDACTED]", filtered)
+            elif pii_type == "ssn":
+                filtered = re.sub(pattern, "[SSN_REDACTED]", filtered)
+            elif pii_type == "credit_card":
+                filtered = re.sub(pattern, "[CARD_REDACTED]", filtered)
 
         return filtered
 
     def _track_violation(self, user_guid: str, result: ModerationResult):
         """Track user violations for rate limiting and banning"""
         violation = {
-            'timestamp': datetime.utcnow(),
-            'severity': result.severity,
-            'categories': result.categories,
-            'reasons': result.reasons
+            "timestamp": datetime.utcnow(),
+            "severity": result.severity,
+            "categories": result.categories,
+            "reasons": result.reasons,
         }
 
         self.violation_tracker[user_guid].append(violation)
@@ -541,13 +566,12 @@ class ContentModerator:
         # Clean old violations (older than 1 hour)
         cutoff = datetime.utcnow() - timedelta(hours=1)
         self.violation_tracker[user_guid] = [
-            v for v in self.violation_tracker[user_guid]
-            if v['timestamp'] > cutoff
+            v for v in self.violation_tracker[user_guid] if v["timestamp"] > cutoff
         ]
 
         # Check if temporary ban needed
         recent_violations = len(self.violation_tracker[user_guid])
-        max_violations = self.config.get('max_violations_per_hour', 10)
+        max_violations = self.config.get("max_violations_per_hour", 10)
 
         if recent_violations >= max_violations:
             self._temp_ban_user(user_guid)
@@ -580,10 +604,12 @@ class ContentModerator:
 
     def _temp_ban_user(self, user_guid: str):
         """Temporarily ban a user"""
-        duration_hours = self.config.get('temp_ban_duration_hours', 24)
+        duration_hours = self.config.get("temp_ban_duration_hours", 24)
         expiry = datetime.utcnow() + timedelta(hours=duration_hours)
         self.temp_banned_users[user_guid] = expiry.timestamp()
-        self.logger.warning(f"User {user_guid} has been temporarily banned until {expiry}")
+        self.logger.warning(
+            f"User {user_guid} has been temporarily banned until {expiry}"
+        )
 
     def unban_user(self, user_guid: str):
         """Unban a user (for moderation dashboard)"""
@@ -598,10 +624,10 @@ class ContentModerator:
         violations = self.violation_tracker.get(user_guid, [])
         return [
             {
-                'timestamp': v['timestamp'].isoformat(),
-                'severity': v['severity'],
-                'categories': v['categories'],
-                'reasons': v['reasons']
+                "timestamp": v["timestamp"].isoformat(),
+                "severity": v["severity"],
+                "categories": v["categories"],
+                "reasons": v["reasons"],
             }
             for v in violations
         ]
@@ -609,18 +635,19 @@ class ContentModerator:
     def whitelist_content(self, content: str):
         """Add content to whitelist (for false positives)"""
         words = content.lower().split()
-        self.config['whitelist_words'].extend(words)
+        self.config["whitelist_words"].extend(words)
         self.logger.info(f"Added to whitelist: {content}")
 
     def blacklist_content(self, content: str):
         """Add content to blacklist"""
         words = content.lower().split()
-        self.config['blacklist_words'].extend(words)
+        self.config["blacklist_words"].extend(words)
         self.logger.info(f"Added to blacklist: {content}")
 
 
 # Singleton instance
 _moderator_instance = None
+
 
 def get_moderator(config_path: Optional[str] = None) -> ContentModerator:
     """Get or create the global moderator instance"""
